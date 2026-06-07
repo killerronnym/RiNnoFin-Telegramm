@@ -372,10 +372,19 @@ const tgConfigPage = {
             }
         }
 
-        [sync, notify, allowReq, enableQuiz, triggerQuizBtn, contentTopic, quizTopic].forEach(el => {
+        // Toggles und Quiz-Button nur aktiv wenn Chat verknüpft
+        [sync, notify, allowReq, enableQuiz, triggerQuizBtn].forEach(el => {
             if (el) {
                 el.disabled = !hasLinked;
-                el.parentElement.title = hasLinked ? '' : 'Trage eine Telegram Chat ID ein oder verknüpfe einen Chat.';
+                if (el.parentElement) el.parentElement.title = hasLinked ? '' : 'Trage zuerst eine Telegram Chat ID ein.';
+            }
+        });
+
+        // Topic-Felder immer editierbar wenn Gruppe ausgewählt (damit man Chat ID + Topics gleichzeitig eintragen kann)
+        [contentTopic, quizTopic].forEach(el => {
+            if (el) {
+                el.disabled = false;
+                if (el.parentElement) el.parentElement.title = '';
             }
         });
 

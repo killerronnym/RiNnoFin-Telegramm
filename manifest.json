@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.1.7",
+        "changelog": "Fix: Eingabefelder für Chat-ID und Topic-IDs in der Gruppeneinstellung sind nun immer editierbar, sobald eine Gruppe ausgewählt ist. Vorher waren sie gesperrt bis eine Chat-ID bereits hinterlegt war (Sackgasse).",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "6178FA569930AACF8B206103C2F37928",
+        "timestamp": "2026-06-07 22:10:00"
+      },
+      {
         "version": "1.0.1.6",
         "changelog": "Feat: Neues Quizbot-System (/quiz) hinzugefügt, das zufällige Quizfragen aus der Jellyfin-Bibliothek stellt. Kanäle/Gruppen können nun getrennte Topic-IDs für Medien-News und Quizze sowie eine direkte Chat-ID-Eingabe nutzen.",
         "targetAbi": "10.9.0.0",
