@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.0.9",
+        "changelog": "Fix: Problem behoben, dass das Telegram-Widget 'deprecated' meldete, wenn Browser Popups blockierten. Jetzt wird der korrekte Redirect-Fallback mit data-auth-url verwendet.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "956BD87C6AE831CED00F2E2402FD94C1",
+        "timestamp": "2026-06-07 18:45:00"
+      },
+      {
         "version": "1.0.0.8",
         "changelog": "Cache-Buster: Erzwingt das Herunterladen des neuen direkten Repository-Links, um den Caching-Fehler von Jellyfin zu umgehen.",
         "targetAbi": "10.9.0.0",

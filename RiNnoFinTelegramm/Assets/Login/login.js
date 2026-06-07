@@ -18,13 +18,33 @@ const loadingSpinner = {
 };
 
 window.onload = function () {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('id') && params.has('hash')) {
+        const user = {
+            id: params.get('id'),
+            first_name: params.get('first_name'),
+            last_name: params.get('last_name'),
+            username: params.get('username'),
+            photo_url: params.get('photo_url'),
+            auth_date: params.get('auth_date'),
+            hash: params.get('hash')
+        };
+        
+        // Remove query parameters from URL so they don't stay in the history
+        window.history.replaceState({}, document.title, window.location.pathname);
+        
+        // Execute the login logic immediately
+        setTimeout(() => onTelegramAuth(user), 100);
+        return;
+    }
+
     const creds = localStorage.getItem("jellyfin_credentials");
     if (creds) {
         const parsedCreds = JSON.parse(creds);
         if (parsedCreds && parsedCreds.Servers && parsedCreds.Servers.length > 0) {
             const server = parsedCreds.Servers[0];
             if (server.Connect.Expires && new Date(server.Connect.Expires) > new Date()) {
-                const serverUrl = window.location.href.replace(/\/sso\/Telegram(\/login)?/i, "");
+                const serverUrl = window.location.href.replace(/\/sso\/Telegram(\/login)?(\?.*)?/i, "");
                 window.location.replace(serverUrl);
             }
         }
