@@ -52,8 +52,8 @@ public class RiNnoFinPlugin : BasePlugin<PluginConfiguration>, IPlugin, IHasWebP
         return
         [
             new PluginPageInfo { Name = Name, EmbeddedResourcePath = $"{typeof(RiNnoFinPlugin).Namespace}.Assets.Config.config.html" },
-            new PluginPageInfo { Name = Name + ".js", EmbeddedResourcePath = $"{typeof(RiNnoFinPlugin).Namespace}.Assets.Config.config.js" },
-            new PluginPageInfo { Name = Name + ".css", EmbeddedResourcePath = $"{typeof(RiNnoFinPlugin).Namespace}.Assets.Config.config.css" }
+            new PluginPageInfo { Name = "RiNnoFinTelegramm.js", EmbeddedResourcePath = $"{typeof(RiNnoFinPlugin).Namespace}.Assets.Config.config.js" },
+            new PluginPageInfo { Name = "RiNnoFinTelegramm.css", EmbeddedResourcePath = $"{typeof(RiNnoFinPlugin).Namespace}.Assets.Config.config.css" }
         ];
     }
 

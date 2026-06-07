@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.0.4",
+        "changelog": "Fix: Problem behoben, dass Javascript und CSS nach Namensänderung des Plugins nicht geladen wurden (404 Not Found), wodurch keine Buttons funktionierten.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://github.com/killerronnym/RiNnoFin-Telegramm/releases/download/v1.0.0.4/RiNnoFinTelegramm.zip",
+        "checksum": "441581A2268062B74CE684D82C638A1C",
+        "timestamp": "2026-06-07 17:07:00"
+      },
+      {
         "version": "1.0.0.3",
         "changelog": "Fix für defekte Event-Listener (Save Button & Test Button reagierten aufgrund von Browser-Caching Fehler nicht).",
         "targetAbi": "10.9.0.0",
