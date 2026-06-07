@@ -27,6 +27,9 @@ public static class QuizHelper
 
     public static async Task<bool> SendQuizQuestionAsync(ITelegramBotClient botClient, long chatId, int? messageThreadId, ILogger logger, CancellationToken cancellationToken)
     {
+        // Topic ID ist optional: 0 oder null → kein Topic (Nachricht im Hauptchat)
+        int? threadId = (messageThreadId ?? 0) > 0 ? messageThreadId : null;
+
         try
         {
             var libraryManager = RiNnoFinPlugin.Instance?.LibraryManager;
@@ -54,7 +57,7 @@ public static class QuizHelper
                 await botClient.SendMessage(
                     chatId,
                     "⚠️ Es wurden keine Filme oder Serien in der Bibliothek gefunden, um ein Quiz zu erstellen.",
-                    messageThreadId: messageThreadId,
+                    messageThreadId: threadId,
                     cancellationToken: cancellationToken
                 );
                 return false;
@@ -116,7 +119,7 @@ public static class QuizHelper
                 if (itemsWithGenres.Count == 0)
                 {
                     // Fallback to year type
-                    return await SendQuizQuestionAsync(botClient, chatId, messageThreadId, logger, cancellationToken);
+                    return await SendQuizQuestionAsync(botClient, chatId, threadId, logger, cancellationToken);
                 }
 
                 var selectedItem = itemsWithGenres[Rng.Next(itemsWithGenres.Count)];
@@ -166,7 +169,7 @@ public static class QuizHelper
                 if (episodes.Count == 0)
                 {
                     // Fallback to year type
-                    return await SendQuizQuestionAsync(botClient, chatId, messageThreadId, logger, cancellationToken);
+                    return await SendQuizQuestionAsync(botClient, chatId, threadId, logger, cancellationToken);
                 }
 
                 var selectedEpisode = episodes[Rng.Next(episodes.Count)];
@@ -188,7 +191,7 @@ public static class QuizHelper
                 else
                 {
                     // Fallback to another question type if not enough series
-                    return await SendQuizQuestionAsync(botClient, chatId, messageThreadId, logger, cancellationToken);
+                    return await SendQuizQuestionAsync(botClient, chatId, threadId, logger, cancellationToken);
                 }
 
                 var allOptions = wrongSeries.ToList();
@@ -213,7 +216,7 @@ public static class QuizHelper
                 type: PollType.Quiz,
                 correctOptionId: correctOptionIndex,
                 isAnonymous: false,
-                messageThreadId: messageThreadId,
+                messageThreadId: threadId,
                 cancellationToken: cancellationToken
             );
 

@@ -679,10 +679,12 @@ export default function (view) {
             type: "POST"
         }).then(() => {
             window.Dashboard.hideLoadingMsg();
-            window.Dashboard.alert("Quizfrage wurde erfolgreich an Telegram gesendet!");
+            window.Dashboard.alert("✅ Quizfrage wurde erfolgreich an Telegram gesendet!");
         }).catch(err => {
             window.Dashboard.hideLoadingMsg();
-            window.Dashboard.alert("Fehler beim Senden der Quizfrage: " + (err.message || "Unbekannter Fehler"));
+            // Try to extract the actual error message from the response body
+            const msg = err?.responseJSON?.message || err?.responseText || err?.message || "Unbekannter Fehler";
+            window.Dashboard.alert("❌ Fehler beim Senden der Quizfrage:\n" + msg);
         });
     });
 

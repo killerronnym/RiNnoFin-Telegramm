@@ -182,30 +182,39 @@ public class RiNnoFinConfigController : ControllerBase
 
         if (group.TelegramGroupChat == null || group.TelegramGroupChat.TelegramChatId == 0)
         {
-            return BadRequest("Group is not linked to Telegram.");
+            return BadRequest("Gruppe ist nicht mit Telegram verknüpft.");
         }
 
         var botClient = _botClientWrapper.Client;
         if (botClient == null)
         {
-            return BadRequest("Telegram bot is not active.");
+            return BadRequest("Telegram Bot ist nicht aktiv.");
         }
 
-        var success = await QuizHelper.SendQuizQuestionAsync(
-            botClient,
-            group.TelegramGroupChat.TelegramChatId,
-            group.TelegramGroupChat.QuizTopicId,
-            _logger,
-            cancellationToken
-        );
+        // Topic ID ist optional – 0 oder null bedeutet: kein Topic (Hauptchat)
+        int? quizThreadId = (group.TelegramGroupChat.QuizTopicId ?? 0) > 0
+            ? group.TelegramGroupChat.QuizTopicId
+            : null;
 
-        if (success)
+        try
         {
-            return Ok();
+            var success = await QuizHelper.SendQuizQuestionAsync(
+                botClient,
+                group.TelegramGroupChat.TelegramChatId,
+                quizThreadId,
+                _logger,
+                cancellationToken
+            );
+
+            if (success)
+                return Ok(new { message = "Quizfrage erfolgreich gesendet!" });
+            else
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Keine Medien in der Bibliothek gefunden." });
         }
-        else
+        catch (Exception ex)
         {
-            return StatusCode(StatusCodes.Status500InternalServerError, "Failed to send quiz.");
+            _logger.LogError(ex, "Fehler beim Senden der Quizfrage.");
+            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
         }
     }
 }
