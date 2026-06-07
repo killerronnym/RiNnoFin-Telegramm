@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.1.2",
+        "changelog": "Fix: Veraltetes data-auth-url-Attribut aus login.html entfernt, um den veralteten Redirect-Flow von Telegram zu umgehen. Es wird nun ausschließlich der moderne Callback-Flow (data-onauth) genutzt, welcher von Telegram voll unterstützt wird. Update auf Version 23 des Widget-Skripts.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "5DE9D7DB9C6DF4FE6E48A57B16CE770C",
+        "timestamp": "2026-06-07 19:05:00"
+      },
+      {
         "version": "1.0.1.1",
         "changelog": "Fix: Schema-Konflikt behoben (HTTPS zu HTTP). Das Plugin respektiert nun das konfigurierte LoginBaseUrl für data-auth-url.",
         "targetAbi": "10.9.0.0",
