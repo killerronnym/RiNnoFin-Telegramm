@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <RootNamespace>Jellyfin.Plugin.RiNnoFinTelegramm</RootNamespace>
+        <AssemblyVersion>1.0.0.1</AssemblyVersion>
+        <FileVersion>1.0.0.1</FileVersion>
+        <Version>1.0.0.1</Version>
+        <GenerateDocumentationFile>false</GenerateDocumentationFile>
+        <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+        <MSBuildArgs>/property:GenerateFullPaths=true</MSBuildArgs>
+        <PackageTags>jellyfin;jellyfin-plugin;telegram;telegram-bot;</PackageTags>
+        <PackageId>RiNnoFinTelegramm</PackageId>
+        <NeutralLanguage>de</NeutralLanguage>
+        <Title>RiNnoFin Telegramm Plugin</Title>
+        <Description>Telegram Authentifizierung und Benachrichtigungen für Jellyfin (auf Deutsch)</Description>
+        <Copyright>Copyright © 2026 Ronny</Copyright>
+        <Company>RiNnoFin</Company>
+        <Product>RiNnoFin Telegramm</Product>
+        <Nullable>enable</Nullable>
+        <LangVersion>12</LangVersion>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App"/>
+        <PackageReference Include="Jellyfin.Controller" Version="10.11.3"/>
+        <PackageReference Include="Jellyfin.Model" Version="10.11.3"/>
+        <PackageReference Include="Telegram.Bot" Version="22.7.5" PrivateAssets="All"/>
+        <PackageReference Include="ILRepack.Lib.MSBuild.Task" Version="2.0.44.1">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <EmbeddedResource Include="Assets\**" Exclude="**/.DS_Store"/>
+    </ItemGroup>
+
+    <PropertyGroup>
+        <FinalOutputPath Condition="'$(PublishDir)' != ''">$(PublishDir)</FinalOutputPath>
+        <FinalOutputPath Condition="'$(PublishDir)' == ''">$(TargetDir)</FinalOutputPath>
+        <FinalOutputPath Condition="!$([System.IO.Path]::IsPathRooted('$(FinalOutputPath)'))">$(ProjectDir)$(FinalOutputPath)</FinalOutputPath>
+    </PropertyGroup>
+
+</Project>

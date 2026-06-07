@@ -1,0 +1,29 @@
+[
+  {
+    "category": "Integration",
+    "guid": "9e1d84f2-901d-44a6-ba92-7fcf1a5598ba",
+    "name": "RiNnoFin Telegramm",
+    "description": "Telegram-Integration für Jellyfin mit SSO-Anmeldung, Passwortänderung, Medien-Newsletter und Request-Management.",
+    "owner": "Ronny",
+    "overview": "RiNnoFin Telegramm verbindet Jellyfin mit Telegram. Ermöglicht Benutzern die Anmeldung via Telegram SSO, Passwortänderungen im Chat, das Abonnieren von Medien-Newslettern für neue Filme, Serien & Musik, sowie das Einrichten von Gruppenordnern und das Einreichen von Medien-Anfragen.",
+    "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/rinnofin_plugin_cover.png",
+    "versions": [
+      {
+        "version": "1.0.0.1",
+        "changelog": "Verbesserte Benutzeroberfläche für den Verbindungsstatus, neuer /ping Befehl und bessere /start Rückmeldung für den Admin-Status.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "951D735D30E19681259E62408E9BB98F",
+        "timestamp": "2026-06-07 16:15:00"
+      },
+      {
+        "version": "1.0.0.0",
+        "changelog": "Erste Version von RiNnoFin Telegramm mit kompletter deutscher UI, Telegram SSO, Newsletter-Support für Musik, Filme, Serien und automatischem Request-Management.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "2c2554a357ccab1edff9ef815fc5e466",
+        "timestamp": "2026-06-07 15:55:00"
+      }
+    ]
+  }
+]
