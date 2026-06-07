@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.1.0",
+        "changelog": "Fix: Problem mit Zeitabweichungen behoben (AllowedTimeOffset auf 24h erhöht) und Signatur-Verifikation vereinfacht. Zudem Bootstrap-Admin für killerronnym und den ersten User hinzugefügt falls kein Admin vorhanden ist.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "A402EE11067E51260DAD77FE0748CB65",
+        "timestamp": "2026-06-07 18:50:00"
+      },
+      {
         "version": "1.0.0.9",
         "changelog": "Fix: Problem behoben, dass das Telegram-Widget 'deprecated' meldete, wenn Browser Popups blockierten. Jetzt wird der korrekte Redirect-Fallback mit data-auth-url verwendet.",
         "targetAbi": "10.9.0.0",
