@@ -599,12 +599,12 @@ export default function (view) {
         });
     });
 
-    view.querySelector("#show-hide-token").addEventListener("click", (e) => {
+    view.querySelector("#show-hide-token")?.addEventListener("click", (e) => {
         e.preventDefault();
         tgConfigPage.toggleTokenFunction(e);
     });
 
-    view.querySelector("#LoginBaseUrl").addEventListener("change", (e) => {
+    view.querySelector("#LoginBaseUrl")?.addEventListener("change", (e) => {
         const ref = view.querySelector('#LoginBaseUrl');
         const inputValue = ref?.value;
         if (inputValue?.endsWith("/")) {
@@ -612,12 +612,12 @@ export default function (view) {
         }
     });
 
-    view.querySelector("#SaveConfig").addEventListener("click", async (e) => {
+    view.querySelector("#SaveConfig")?.addEventListener("click", async (e) => {
         e.preventDefault();
         await tgConfigPage.saveConfig(view);
     });
 
-    view.querySelector("#EnableAllFolders").addEventListener("change", (e) => {
+    view.querySelector("#EnableAllFolders")?.addEventListener("change", (e) => {
         const checkboxes = view.querySelectorAll('.folder-checkbox');
         checkboxes.forEach(cb => {
             cb.disabled = e.target.checked;
@@ -629,35 +629,35 @@ export default function (view) {
         tgConfigPage.updateGroupEditingState(view);
     });
 
-    view.querySelector("#AddGroup").addEventListener("click", (e) => {
+    view.querySelector("#AddGroup")?.addEventListener("click", (e) => {
         e.preventDefault();
         tgConfigPage.addGroup(view);
     });
 
-    view.querySelector("#SaveGroupConfig").addEventListener("click", (e) => {
+    view.querySelector("#SaveGroupConfig")?.addEventListener("click", (e) => {
         e.preventDefault();
         tgConfigPage.saveGroupConfig(view);
     });
 
-    view.querySelector("#DeleteGroup").addEventListener("click", (e) => {
+    view.querySelector("#DeleteGroup")?.addEventListener("click", (e) => {
         e.preventDefault();
         tgConfigPage.deleteGroup(view);
     });
 
-    view.querySelector("#RefreshRequests").addEventListener("click", (e) => {
+    view.querySelector("#RefreshRequests")?.addEventListener("click", (e) => {
         e.preventDefault();
         tgConfigPage.loadRequests(view);
         window.Dashboard.alert('Wunschliste aktualisiert.');
     });
 
-    view.querySelector("#AddManualRequest").addEventListener("click", (e) => {
+    view.querySelector("#AddManualRequest")?.addEventListener("click", (e) => {
         e.preventDefault();
         tgConfigPage.addRequest(view);
     });
 
     const inputElement = view.querySelector("#TgBotToken");
     
-    view.querySelector("#TestTokenBtn").addEventListener("click", (e) => {
+    view.querySelector("#TestTokenBtn")?.addEventListener("click", (e) => {
         e.preventDefault();
         const token = view.querySelector("#TgBotToken").value;
         if (!token) {
