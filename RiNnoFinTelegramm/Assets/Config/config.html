@@ -235,9 +235,24 @@
                                     <!-- Telegram Settings -->
                                     <div class="group-column">
                                         <div class="column-header">Telegram Einstellungen</div>
-                                        <span>Verknüpfter Chat/Gruppe: </span>
-                                        <span id="LinkedTelegramGroupId">Keine</span>
+                                        
+                                        <div class="inputContainer">
+                                            <label class="inputLabel" for="LinkedTelegramGroupIdInput">Verknüpfter Chat/Gruppe (Telegram Chat ID):</label>
+                                            <input class="sso-text" id="LinkedTelegramGroupIdInput" is="emby-input" type="text" placeholder="Keine (z.B. -100123456789)"/>
+                                        </div>
+
                                         <a class="button-link emby-button" href="#INVALID_BOT_TOKEN" id="BotLinkCommandUrl" target="_blank">Gruppe mit Telegram verknüpfen (/link)</a>
+                                        
+                                        <div class="inputContainer" style="margin-top: 1em;">
+                                            <label class="inputLabel" for="ContentTopicId">Topic ID für neue Medien (Optional):</label>
+                                            <input class="sso-text" id="ContentTopicId" is="emby-input" type="number" placeholder="z.B. 1234"/>
+                                        </div>
+
+                                        <div class="inputContainer">
+                                            <label class="inputLabel" for="QuizTopicId">Topic ID für Quizbot (Optional):</label>
+                                            <input class="sso-text" id="QuizTopicId" is="emby-input" type="number" placeholder="z.B. 5678"/>
+                                        </div>
+
                                         <label>
                                             <input id="SyncUserNames"
                                                    is="emby-checkbox"
@@ -256,6 +271,20 @@
                                                    type="checkbox"/>
                                             <span>/request-Befehl erlauben</span>
                                         </label>
+                                        <label>
+                                            <input id="EnableQuiz"
+                                                   is="emby-checkbox"
+                                                   type="checkbox"/>
+                                            <span>Quizbot aktivieren</span>
+                                        </label>
+
+                                        <button class="raised button-alt block emby-button"
+                                                id="TriggerGroupQuiz"
+                                                is="emby-button"
+                                                type="button"
+                                                style="margin-top: 1em;">
+                                            <span>Quizfrage jetzt senden</span>
+                                        </button>
                                     </div>
                                 </div>
 

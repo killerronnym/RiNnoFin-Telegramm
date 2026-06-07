@@ -19,4 +19,10 @@ public class TelegramGroupChat
     public bool NotifyNewContent { get; set; } = true;
 
     public bool AllowRequests { get; set; } = true;
+
+    public int? ContentTopicId { get; set; }
+
+    public int? QuizTopicId { get; set; }
+
+    public bool EnableQuiz { get; set; } = true;
 }

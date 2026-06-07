@@ -301,17 +301,18 @@ public class NotificationService : IDisposable
         // 1. Senden an Gruppen
         foreach (var notifyGroup in notifyGroups)
         {
-            SendToChat(notifyGroup.TelegramGroupChat!.TelegramChatId, messageText, imagePath);
+            var threadId = notifyGroup.TelegramGroupChat?.ContentTopicId;
+            SendToChat(notifyGroup.TelegramGroupChat!.TelegramChatId, messageText, imagePath, threadId);
         }
 
         // 2. Senden an Abonnenten (Newsletter)
         foreach (var notifyUser in notifyUsers)
         {
-            SendToChat(notifyUser.TelegramUserId, messageText, imagePath);
+            SendToChat(notifyUser.TelegramUserId, messageText, imagePath, null);
         }
     }
 
-    private void SendToChat(long chatId, string messageText, string? imagePath)
+    private void SendToChat(long chatId, string messageText, string? imagePath, int? messageThreadId)
     {
         try
         {
@@ -325,7 +326,8 @@ public class NotificationService : IDisposable
                     showCaptionAboveMedia: true,
                     caption: messageText,
                     photo: InputFile.FromStream(fromFile),
-                    parseMode: ParseMode.MarkdownV2
+                    parseMode: ParseMode.MarkdownV2,
+                    messageThreadId: messageThreadId
                 ).Wait(TimeSpan.FromSeconds(30));
             }
             else
@@ -333,7 +335,8 @@ public class NotificationService : IDisposable
                 _ = _botClientWrapper.Client.SendMessage(
                     chatId,
                     text: messageText,
-                    parseMode: ParseMode.MarkdownV2
+                    parseMode: ParseMode.MarkdownV2,
+                    messageThreadId: messageThreadId
                 ).Wait(TimeSpan.FromSeconds(30));
             }
         }

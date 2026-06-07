@@ -229,8 +229,16 @@ const tgConfigPage = {
         const enableAllFolders = page.querySelector("#EnableAllFolders");
         const folderList = page.querySelector("#EnabledFolders");
         const delGroupBtn = page.querySelector("#DeleteGroup");
+        const chatIdInput = page.querySelector("#LinkedTelegramGroupIdInput");
+        const contentTopic = page.querySelector("#ContentTopicId");
+        const quizTopic = page.querySelector("#QuizTopicId");
+        const syncUser = page.querySelector("#SyncUserNames");
+        const notifyNew = page.querySelector("#NotifyNewContent");
+        const allowReq = page.querySelector("#AllowRequests");
+        const enableQuiz = page.querySelector("#EnableQuiz");
+        const triggerQuizBtn = page.querySelector("#TriggerGroupQuiz");
 
-        [userNamesList, enableAllFolders, delGroupBtn].forEach(element => {
+        [userNamesList, enableAllFolders, delGroupBtn, chatIdInput, contentTopic, quizTopic, syncUser, notifyNew, allowReq, enableQuiz, triggerQuizBtn].forEach(element => {
             if (element) {
                 element.disabled = !hasSelectedGroup;
                 element.title = hasSelectedGroup ? "" : "Bitte wähle zuerst eine Gruppe aus.";
@@ -256,9 +264,12 @@ const tgConfigPage = {
     updateGroupData: (page) => {
         if (!tgConfigPage.currentGroup) return;
 
-        const linkedText = (page.querySelector("#LinkedTelegramGroupId")?.innerText || "").trim();
-        const linkedId = (linkedText && linkedText !== "Keine" && linkedText !== "None") ? Number(linkedText) : 0;
+        const linkedText = (page.querySelector("#LinkedTelegramGroupIdInput")?.value || "").trim();
+        const linkedId = linkedText ? Number(linkedText) : 0;
         const hasLinkedChat = !!linkedId;
+
+        const contentTopicVal = (page.querySelector("#ContentTopicId")?.value || "").trim();
+        const quizTopicVal = (page.querySelector("#QuizTopicId")?.value || "").trim();
 
         const groupData = {
             GroupName: tgConfigPage.currentGroup,
@@ -270,6 +281,9 @@ const tgConfigPage = {
                 SyncUserNames: page.querySelector("#SyncUserNames").checked,
                 NotifyNewContent: page.querySelector("#NotifyNewContent").checked,
                 AllowRequests: (page.querySelector("#AllowRequests")?.checked) ?? true,
+                ContentTopicId: contentTopicVal ? Number(contentTopicVal) : null,
+                QuizTopicId: quizTopicVal ? Number(quizTopicVal) : null,
+                EnableQuiz: page.querySelector("#EnableQuiz").checked
             } : undefined
         };
 
@@ -317,10 +331,13 @@ const tgConfigPage = {
             const enableAllCheckbox = page.querySelector("#EnableAllFolders");
             enableAllCheckbox.checked = groupData.EnableAllFolders;
 
-            page.querySelector("#LinkedTelegramGroupId").innerHTML = groupData.TelegramGroupChat?.TelegramChatId ?? "Keine";
+            page.querySelector("#LinkedTelegramGroupIdInput").value = groupData.TelegramGroupChat?.TelegramChatId ?? "";
+            page.querySelector("#ContentTopicId").value = groupData.TelegramGroupChat?.ContentTopicId ?? "";
+            page.querySelector("#QuizTopicId").value = groupData.TelegramGroupChat?.QuizTopicId ?? "";
             page.querySelector("#UserNames").value = groupData.UserNames.join("\r\n");
             page.querySelector("#SyncUserNames").checked = groupData.TelegramGroupChat?.SyncUserNames ?? true;
             page.querySelector("#NotifyNewContent").checked = groupData.TelegramGroupChat?.NotifyNewContent ?? true;
+            page.querySelector("#EnableQuiz").checked = groupData.TelegramGroupChat?.EnableQuiz ?? true;
             const allowReq = page.querySelector("#AllowRequests");
             if (allowReq) allowReq.checked = groupData.TelegramGroupChat?.AllowRequests ?? true;
 
@@ -336,6 +353,10 @@ const tgConfigPage = {
         const sync = page.querySelector('#SyncUserNames');
         const notify = page.querySelector('#NotifyNewContent');
         const allowReq = page.querySelector('#AllowRequests');
+        const enableQuiz = page.querySelector('#EnableQuiz');
+        const triggerQuizBtn = page.querySelector('#TriggerGroupQuiz');
+        const contentTopic = page.querySelector('#ContentTopicId');
+        const quizTopic = page.querySelector('#QuizTopicId');
         const linkBtn = page.querySelector('#BotLinkCommandUrl');
 
         if (linkBtn) {
@@ -351,12 +372,16 @@ const tgConfigPage = {
             }
         }
 
-        [sync, notify, allowReq].forEach(el => {
+        [sync, notify, allowReq, enableQuiz, triggerQuizBtn, contentTopic, quizTopic].forEach(el => {
             if (el) {
                 el.disabled = !hasLinked;
-                el.parentElement.title = hasLinked ? '' : 'Verknüpfe zuerst einen Telegram-Chat mit /link';
+                el.parentElement.title = hasLinked ? '' : 'Trage eine Telegram Chat ID ein oder verknüpfe einen Chat.';
             }
         });
+
+        if (triggerQuizBtn && hasLinked) {
+            triggerQuizBtn.disabled = !(enableQuiz && enableQuiz.checked);
+        }
 
         const chatType = groupData.TelegramGroupChat?.ChatType;
         const isUnsupportedSync = chatType === 'Channel' || chatType === 'Private' || chatType === 2 || chatType === 3;
@@ -395,7 +420,10 @@ const tgConfigPage = {
                     page.querySelector("#EnableAllFolders").checked = false;
                     page.querySelector("#UserNames").value = '';
                     page.querySelectorAll('.folder-checkbox').forEach(cb => cb.checked = false);
-                    page.querySelector("#LinkedTelegramGroupId").innerHTML = "Keine";
+                    page.querySelector("#LinkedTelegramGroupIdInput").value = "";
+                    page.querySelector("#ContentTopicId").value = "";
+                    page.querySelector("#QuizTopicId").value = "";
+                    page.querySelector("#EnableQuiz").checked = true;
                     page.querySelector("#BotLinkCommandUrl").href = `https://t.me/${tgTokenHelper.currentUserName}?startgroup`;
                     resolve();
                 });
@@ -588,7 +616,11 @@ export default function (view) {
             ".folder-checkbox",
             "#SyncUserNames",
             "#NotifyNewContent",
-            "#AllowRequests"
+            "#AllowRequests",
+            "#LinkedTelegramGroupIdInput",
+            "#ContentTopicId",
+            "#QuizTopicId",
+            "#EnableQuiz"
         ];
 
         inputs.forEach(selector => {
@@ -596,6 +628,52 @@ export default function (view) {
             elements.forEach(element => {
                 element.addEventListener('change', () => tgConfigPage.updateGroupData(view));
             });
+        });
+    });
+
+    view.querySelector("#LinkedTelegramGroupIdInput")?.addEventListener("input", () => {
+        tgConfigPage.updateGroupData(view);
+        const linkedVal = Number(view.querySelector("#LinkedTelegramGroupIdInput").value) || 0;
+        const groupData = {
+            GroupName: tgConfigPage.currentGroup,
+            TelegramGroupChat: {
+                TelegramChatId: linkedVal
+            }
+        };
+        tgConfigPage.updateTelegramSettingsUI(view, groupData);
+    });
+
+    view.querySelector("#EnableQuiz")?.addEventListener("change", () => {
+        tgConfigPage.updateGroupData(view);
+        const linkedVal = Number(view.querySelector("#LinkedTelegramGroupIdInput").value) || 0;
+        const groupData = {
+            GroupName: tgConfigPage.currentGroup,
+            TelegramGroupChat: {
+                TelegramChatId: linkedVal,
+                EnableQuiz: view.querySelector("#EnableQuiz").checked
+            }
+        };
+        tgConfigPage.updateTelegramSettingsUI(view, groupData);
+    });
+
+    view.querySelector("#TriggerGroupQuiz")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        const groupName = tgConfigPage.currentGroup;
+        if (!groupName) {
+            window.Dashboard.alert("Bitte wähle zuerst eine Gruppe aus.");
+            return;
+        }
+
+        window.Dashboard.showLoadingMsg();
+        window.ApiClient.ajax({
+            url: window.ApiClient.getUrl(`/api/RiNnoFinConfig/TriggerQuiz/${encodeURIComponent(groupName)}`),
+            type: "POST"
+        }).then(() => {
+            window.Dashboard.hideLoadingMsg();
+            window.Dashboard.alert("Quizfrage wurde erfolgreich an Telegram gesendet!");
+        }).catch(err => {
+            window.Dashboard.hideLoadingMsg();
+            window.Dashboard.alert("Fehler beim Senden der Quizfrage: " + (err.message || "Unbekannter Fehler"));
         });
     });
 

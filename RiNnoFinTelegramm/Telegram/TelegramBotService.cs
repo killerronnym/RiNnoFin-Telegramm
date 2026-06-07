@@ -124,6 +124,22 @@ internal sealed class TelegramBotService : ITelegramBotService
             Logger.LogInformation("Telegram-Bot lauscht als @{UserName}", BotInfo.Username);
             StartTime = DateTime.UtcNow;
             LastActivityTime = DateTime.UtcNow;
+
+            // Register commands in Telegram Client menu
+            try
+            {
+                var botCommands = Commands.Select(c => new global::Telegram.Bot.Types.BotCommand
+                {
+                    Command = c.Command.ToLowerInvariant(),
+                    Description = GetCommandDescription(c.Command)
+                }).ToArray();
+                await BotClientWrapper.Client.SetMyCommands(botCommands, cancellationToken: _cancellationTokenSource.Token);
+                Logger.LogInformation("Telegram-Bot-Befehle erfolgreich registriert.");
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Fehler beim Registrieren der Befehle im Telegram-Menü.");
+            }
         }
         catch (Exception ex)
         {
@@ -450,5 +466,25 @@ internal sealed class TelegramBotService : ITelegramBotService
 
         Logger.LogError("Fehler im Bot Polling: {Err}", errorMessage);
         return Task.CompletedTask;
+    }
+
+    private static string GetCommandDescription(string command)
+    {
+        return command.ToLowerInvariant() switch
+        {
+            "start" => "Begrüßungsnachricht und SSO-Link anzeigen",
+            "help" => "Hilfe und alle Befehle anzeigen",
+            "ping" => "Verbindung zum Bot testen",
+            "abonnieren" => "Medien-Newsletter abonnieren",
+            "deabonnieren" => "Medien-Newsletter deabonnieren",
+            "newsletter" => "Newsletter-Einstellungen anzeigen",
+            "link" => "Telegram-Gruppe verknüpfen (nur Admins)",
+            "unlink" => "Gruppe entkoppeln (nur Admins)",
+            "userlist" => "Mitglieder der Whitelist anzeigen (nur Admins)",
+            "passwort" => "Dein Jellyfin-Passwort ändern",
+            "status" => "Server-Statistiken anzeigen (nur Admins)",
+            "quiz" => "Quizfrage zu Filmen/Serien starten (nur Admins)",
+            _ => "Befehl ausführen"
+        };
     }
 }

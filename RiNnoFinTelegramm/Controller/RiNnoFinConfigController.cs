@@ -6,10 +6,12 @@ using System.Threading.Tasks;
 using System.Linq;
 using Jellyfin.Plugin.RiNnoFinTelegramm.Classes;
 using Jellyfin.Plugin.RiNnoFinTelegramm.Services;
+using Jellyfin.Plugin.RiNnoFinTelegramm.Telegram;
 using MediaBrowser.Controller.Providers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 
 namespace Jellyfin.Plugin.RiNnoFinTelegramm.Controller;
@@ -21,11 +23,19 @@ public class RiNnoFinConfigController : ControllerBase
 {
     private readonly IProviderManager _providerManager;
     private readonly RequestService _requestService;
+    private readonly TelegramBotClientWrapper _botClientWrapper;
+    private readonly ILogger<RiNnoFinConfigController> _logger;
 
-    public RiNnoFinConfigController(RequestService requestService, IProviderManager providerManager)
+    public RiNnoFinConfigController(
+        RequestService requestService,
+        IProviderManager providerManager,
+        TelegramBotClientWrapper botClientWrapper,
+        ILogger<RiNnoFinConfigController> _loggerVal)
     {
         _requestService = requestService ?? throw new ArgumentNullException(nameof(requestService));
         _providerManager = providerManager ?? throw new ArgumentNullException(nameof(providerManager));
+        _botClientWrapper = botClientWrapper ?? throw new ArgumentNullException(nameof(botClientWrapper));
+        _logger = _loggerVal ?? throw new ArgumentNullException(nameof(_loggerVal));
     }
 
     [HttpPost(nameof(TestBotToken))]
@@ -150,6 +160,53 @@ public class RiNnoFinConfigController : ControllerBase
     {
         await _requestService.RemoveRequestAsync(imdbId, cancellationToken).ConfigureAwait(false);
         return Ok();
+    }
+
+    [HttpPost("TriggerQuiz/{groupName}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> TriggerQuiz(string groupName, CancellationToken cancellationToken)
+    {
+        var config = RiNnoFinPlugin.Instance?.Configuration;
+        if (config == null)
+        {
+            return BadRequest("Configuration not found.");
+        }
+
+        var group = config.TelegramGroups.FirstOrDefault(g => string.Equals(g.GroupName, groupName, StringComparison.OrdinalIgnoreCase));
+        if (group == null)
+        {
+            return BadRequest("Group not found.");
+        }
+
+        if (group.TelegramGroupChat == null || group.TelegramGroupChat.TelegramChatId == 0)
+        {
+            return BadRequest("Group is not linked to Telegram.");
+        }
+
+        var botClient = _botClientWrapper.Client;
+        if (botClient == null)
+        {
+            return BadRequest("Telegram bot is not active.");
+        }
+
+        var success = await QuizHelper.SendQuizQuestionAsync(
+            botClient,
+            group.TelegramGroupChat.TelegramChatId,
+            group.TelegramGroupChat.QuizTopicId,
+            _logger,
+            cancellationToken
+        );
+
+        if (success)
+        {
+            return Ok();
+        }
+        else
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, "Failed to send quiz.");
+        }
     }
 }
 

@@ -38,6 +38,8 @@ public class RiNnoFinPlugin : BasePlugin<PluginConfiguration>, IPlugin, IHasWebP
 
     public static RiNnoFinPlugin? Instance { get; private set; }
 
+    public ILibraryManager LibraryManager => _libraryManager;
+
     public new IApplicationPaths ApplicationPaths { get; }
 
     public void Dispose()
