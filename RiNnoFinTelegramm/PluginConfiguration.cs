@@ -21,6 +21,10 @@ public class PluginConfiguration : BasePluginConfiguration
 
     public string ForcedUrlScheme { get; set; } = "none";
 
+    public string? JfaGoUrl { get; set; }
+
+    public string? JfaGoApiKey { get; set; }
+
     [XmlArray("TelegramGroups")]
     [XmlArrayItem(typeof(TelegramGroup), ElementName = "TelegramGroups")]
     public List<TelegramGroup> TelegramGroups { get; set; } = [];

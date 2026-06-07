@@ -27,6 +27,8 @@ const tgConfigPage = {
         page.querySelector("#LoginBaseUrl").value = config.LoginBaseUrl ?? '';
         page.querySelector("#TgAdministrators").value = config.AdminUserNames?.join("\r\n") || "";
         page.querySelector("#ForcedUrlScheme").value = config.ForcedUrlScheme || "none";
+        page.querySelector("#JfaGoUrl").value = config.JfaGoUrl ?? '';
+        page.querySelector("#JfaGoApiKey").value = config.JfaGoApiKey ?? '';
         page.querySelector("#EnableBotService").checked = config.EnableBotService ?? true;
     },
 
@@ -159,6 +161,8 @@ const tgConfigPage = {
                 config.LoginBaseUrl = finalBaseUrl;
                 config.AdminUserNames = tgConfigPage.parseTextList(page.querySelector("#TgAdministrators"));
                 config.ForcedUrlScheme = page.querySelector("#ForcedUrlScheme").value || "none";
+                config.JfaGoUrl = (page.querySelector("#JfaGoUrl").value ?? "").trim();
+                config.JfaGoApiKey = (page.querySelector("#JfaGoApiKey").value ?? "").trim();
                 config.EnableBotService = page.querySelector("#EnableBotService").checked;
 
                 window.ApiClient.updatePluginConfiguration(

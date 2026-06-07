@@ -37,7 +37,8 @@ internal class CommandHelp : ICommandBase
         sb.AppendLine("• `/link <rinnofin_gruppe>` - Verknüpft die Gruppe");
         sb.AppendLine("• `/unlink` - Hebt Gruppenverbindung auf");
         sb.AppendLine("• `/userlist` - Listet verknüpfte Gruppen-Mitglieder auf");
-        sb.AppendLine("• `/quiz` - Sendet ein Medien-Quiz in der Gruppe (nur Admins)");
+        sb.AppendLine("• `/quiz` - Sendet ein Medien-Quiz in der Gruppe");
+        sb.AppendLine("• `/invite <user> <email>` - Erstellt eine Einladung (benötigt JFA-Go)");
 
         await botClient.SendMessage(
             message.Chat.Id,
