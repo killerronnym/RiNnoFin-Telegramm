@@ -16,6 +16,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
+using Jellyfin.Plugin.RiNnoFinTelegramm.Services;
+using Telegram.Bot;
+
 namespace Jellyfin.Plugin.RiNnoFinTelegramm.Controller;
 
 [ApiController]
@@ -27,16 +30,19 @@ public class TelegramController : ControllerBase
     private readonly BrandingOptions _brandingOptions;
     private readonly RiNnoFinPlugin _instance;
     private readonly TelegramLoginService _telegramLoginService;
+    private readonly TelegramBotClientWrapper _botClientWrapper;
 
     public TelegramController(
         ISessionManager sessionManager,
         IUserManager userManager,
         ICryptoProvider cryptoProvider,
-        IConfigurationManager configurationManager)
+        IConfigurationManager configurationManager,
+        TelegramBotClientWrapper botClientWrapper)
     {
         _instance = RiNnoFinPlugin.Instance ?? throw new ArgumentException("RiNnoFinPlugin Instanz ist null.");
         _telegramLoginService = new TelegramLoginService(_instance, sessionManager, userManager, cryptoProvider);
         _brandingOptions = configurationManager.GetConfiguration<BrandingOptions>("branding");
+        _botClientWrapper = botClientWrapper;
     }
 
     [AllowAnonymous]
@@ -109,6 +115,28 @@ public class TelegramController : ControllerBase
 
             var user = await _telegramLoginService.GetOrCreateJellyUser(authData);
             var authResult = await _telegramLoginService.DoJellyUserAuth(Request, user);
+
+            // Send confirmation message to Telegram
+            if (authData.TryGetValue("id", out var idStr) && long.TryParse(idStr, out var telegramChatId))
+            {
+                var client = _botClientWrapper.Client;
+                if (client != null)
+                {
+                    try
+                    {
+                        var userName = authData.TryGetValue("username", out var name) ? name : user.Username;
+                        var messageText = $"✅ *Verknüpfung erfolgreich!*\n\nDein Telegram-Konto @{userName} wurde erfolgreich mit dem Jellyfin-Konto *{user.Username}* verknüpft.\n\nDu kannst jetzt alle Bot-Befehle nutzen!";
+                        await client.SendMessage(
+                            telegramChatId,
+                            messageText,
+                            parseMode: global::Telegram.Bot.Types.Enums.ParseMode.Markdown);
+                    }
+                    catch
+                    {
+                        // Ignore message sending failures to avoid blocking login itself
+                    }
+                }
+            }
 
             return Ok(new SsoAuthenticationResult { ServerAddress = requestBase, Ok = true, AuthenticatedUser = authResult });
         }
