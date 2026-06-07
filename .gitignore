@@ -28,6 +28,4 @@ dotnet-sdk/
 dotnet-install.ps1
 
 # Publish Output
-publish_release/
 publish/
-*.zip
