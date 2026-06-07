@@ -305,14 +305,28 @@ internal sealed class TelegramBotService : ITelegramBotService
         }
 
         var message = update.Message!;
-        if (!message.Text!.StartsWith('/'))
+        if (!message.Text!.StartsWith('/') && message.ReplyToMessage == null)
         {
             return;
         }
 
         Logger.LogDebug("Bot Update empfangen Typ: {UpdateType} von UserId: '{FromId}' Text: '{MsgText}'", update.Type, message.From?.Id, message.Text);
 
-        var commandText = GetCommandText(message.Text, BotInfo.Username);
+        string? commandText = null;
+
+        if (message.Text!.StartsWith('/'))
+        {
+            commandText = GetCommandText(message.Text, BotInfo.Username);
+        }
+        else if (message.ReplyToMessage != null)
+        {
+            var replyText = message.ReplyToMessage.Text ?? "";
+            if (replyText.Contains("Bitte Benutzername eingeben"))
+                commandText = "neubenutzer_step1";
+            else if (replyText.Contains("Bitte E-Mail eingeben"))
+                commandText = "neubenutzer_step2";
+        }
+
         if (commandText == null)
         {
             return;

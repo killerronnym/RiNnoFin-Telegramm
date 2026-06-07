@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.2.2",
+        "changelog": "Feat: JFA-Go Integration auf interaktiven Befehl '/NeuBenutzer' umgestellt. Der Bot fragt nun schrittweise nach Benutzername und E-Mail. Die Einladung wird mit dem Profil 'Standard User' erstellt.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "66FE5BEDB4E8207C4F891EE889542AF4",
+        "timestamp": "2026-06-07 23:40:00"
+      },
+      {
         "version": "1.0.2.1",
         "changelog": "Feat: JFA-Go Integration hinzugefügt. Administratoren können nun über '/invite <benutzername> <email>' direkt Einladungen erstellen. Die JFA-Go URL und der API-Key können in den Plugin-Einstellungen konfiguriert werden.",
         "targetAbi": "10.9.0.0",
