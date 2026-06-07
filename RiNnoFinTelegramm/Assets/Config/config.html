@@ -153,10 +153,20 @@
 
                             <div class="inputContainer">
                                 <div>
-                                    <label class="inputLabel inputLabelUnfocused" for="JfaGoApiKey">JFA-Go API Key (Optional):</label>
-                                    <input class="sso-text" id="JfaGoApiKey" is="emby-input" maxlength="200" type="password"/>
+                                    <label class="inputLabel inputLabelUnfocused" for="JfaGoUsername">JFA-Go Administrator Benutzername:</label>
+                                    <input class="sso-text" id="JfaGoUsername" is="emby-input" maxlength="200" type="text"/>
                                     <div class="fieldDescription">
-                                        Der API-Schlüssel für jfa-go (kann in jfa-go generiert werden).
+                                        Der Benutzername deines JFA-Go Admin-Accounts.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="inputContainer">
+                                <div>
+                                    <label class="inputLabel inputLabelUnfocused" for="JfaGoPassword">JFA-Go Administrator Passwort:</label>
+                                    <input class="sso-text" id="JfaGoPassword" is="emby-input" maxlength="200" type="password"/>
+                                    <div class="fieldDescription">
+                                        Das Passwort deines JFA-Go Admin-Accounts. Wird benötigt, um den Login durchzuführen und die Einladung zu generieren.
                                     </div>
                                 </div>
                             </div>

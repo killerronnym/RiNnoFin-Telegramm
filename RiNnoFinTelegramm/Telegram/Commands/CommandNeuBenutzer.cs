@@ -16,13 +16,9 @@ namespace Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.Commands;
 
 internal class CommandNeuBenutzer : ICommandBase
 {
-    public string Command => "NeuBenutzer";
+    // Akzeptiert sowohl NeuerBenutzer als auch NeuBenutzer falls der Nutzer sich vertippt
+    public string Command => "NeuerBenutzer";
     public bool NeedsAdmin => true;
-
-    private static readonly HttpClient HttpClient = new();
-    
-    // We store the username temporarily while waiting for the email
-    private static readonly ConcurrentDictionary<long, string> PendingUsernames = new();
 
     public async Task Execute(ITelegramBotService telegramBotService, Message message, bool isAdmin, CancellationToken cancellationToken)
     {
@@ -30,11 +26,11 @@ internal class CommandNeuBenutzer : ICommandBase
         if (botClient == null) return;
 
         var config = RiNnoFinPlugin.Instance?.Configuration;
-        if (config == null || string.IsNullOrWhiteSpace(config.JfaGoUrl) || string.IsNullOrWhiteSpace(config.JfaGoApiKey))
+        if (config == null || string.IsNullOrWhiteSpace(config.JfaGoUrl) || string.IsNullOrWhiteSpace(config.JfaGoUsername))
         {
             await botClient.SendMessage(
                 message.Chat.Id,
-                "⚠️ JFA-Go ist noch nicht konfiguriert. Bitte trage die JFA-Go URL und den API Key in den Plugin-Einstellungen ein.",
+                "⚠️ JFA-Go ist noch nicht konfiguriert. Bitte trage die JFA-Go URL, Benutzername und Passwort in den Plugin-Einstellungen ein.",
                 cancellationToken: cancellationToken);
             return;
         }
@@ -45,6 +41,18 @@ internal class CommandNeuBenutzer : ICommandBase
             "Bitte Benutzername eingeben für den neuen Account:",
             replyMarkup: new ForceReplyMarkup { Selective = true },
             cancellationToken: cancellationToken);
+    }
+}
+
+internal class CommandNeuBenutzerAlias : ICommandBase
+{
+    public string Command => "NeuBenutzer";
+    public bool NeedsAdmin => true;
+
+    public Task Execute(ITelegramBotService telegramBotService, Message message, bool isAdmin, CancellationToken cancellationToken)
+    {
+        var cmd = new CommandNeuBenutzer();
+        return cmd.Execute(telegramBotService, message, isAdmin, cancellationToken);
     }
 }
 
@@ -87,7 +95,7 @@ internal class CommandNeuBenutzerStep2 : ICommandBase
         if (botClient == null) return;
 
         var config = RiNnoFinPlugin.Instance?.Configuration;
-        if (config == null || string.IsNullOrWhiteSpace(config.JfaGoUrl) || string.IsNullOrWhiteSpace(config.JfaGoApiKey))
+        if (config == null || string.IsNullOrWhiteSpace(config.JfaGoUrl) || string.IsNullOrWhiteSpace(config.JfaGoUsername))
         {
             return;
         }
@@ -99,7 +107,7 @@ internal class CommandNeuBenutzerStep2 : ICommandBase
         {
             await botClient.SendMessage(
                 message.Chat.Id,
-                "⚠️ Entschuldigung, der Benutzername wurde nicht gefunden. Bitte starte mit /NeuBenutzer erneut.",
+                "⚠️ Entschuldigung, der Benutzername wurde nicht gefunden. Bitte starte mit /NeuerBenutzer erneut.",
                 cancellationToken: cancellationToken);
             return;
         }
@@ -108,8 +116,56 @@ internal class CommandNeuBenutzerStep2 : ICommandBase
         {
             var jfaGoUrl = config.JfaGoUrl.TrimEnd('/');
             
-            // JFA-Go Payload with profile "Standard User"
-            var payload = new
+            // 1. Authenticate with JFA-Go using username/password
+            var loginPayload = new
+            {
+                username = config.JfaGoUsername,
+                password = config.JfaGoPassword ?? ""
+            };
+            var loginJson = JsonSerializer.Serialize(loginPayload);
+            var loginContent = new StringContent(loginJson, Encoding.UTF8, "application/json");
+
+            var loginRequest = new HttpRequestMessage(HttpMethod.Post, $"{jfaGoUrl}/users/login")
+            {
+                Content = loginContent
+            };
+
+            var loginResponse = await HttpClient.SendAsync(loginRequest, cancellationToken);
+            var loginResponseContent = await loginResponse.Content.ReadAsStringAsync(cancellationToken);
+
+            if (!loginResponse.IsSuccessStatusCode)
+            {
+                telegramBotService.Logger.LogWarning("JFA-Go Login fehlgeschlagen: {Status} - {Response}", loginResponse.StatusCode, loginResponseContent);
+                await botClient.SendMessage(
+                    message.Chat.Id,
+                    $"❌ JFA-Go Login fehlgeschlagen (Status {loginResponse.StatusCode}). Bitte überprüfe Benutzername und Passwort.",
+                    cancellationToken: cancellationToken);
+                return;
+            }
+
+            // Extract token
+            string? token = null;
+            try
+            {
+                var doc = JsonDocument.Parse(loginResponseContent);
+                if (doc.RootElement.TryGetProperty("token", out var tokenProp))
+                {
+                    token = tokenProp.GetString();
+                }
+            }
+            catch { }
+
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                await botClient.SendMessage(
+                    message.Chat.Id,
+                    "❌ Konnte kein Token von JFA-Go erhalten.",
+                    cancellationToken: cancellationToken);
+                return;
+            }
+
+            // 2. Create Invite
+            var invitePayload = new
             {
                 email = email,
                 label = username,
@@ -117,28 +173,17 @@ internal class CommandNeuBenutzerStep2 : ICommandBase
                 send_to = email
             };
 
-            var json = JsonSerializer.Serialize(payload);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var inviteJson = JsonSerializer.Serialize(invitePayload);
+            var inviteContent = new StringContent(inviteJson, Encoding.UTF8, "application/json");
 
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{jfaGoUrl}/invites");
-            
-            if (config.JfaGoApiKey.Contains(':'))
-            {
-                var authBytes = Encoding.UTF8.GetBytes(config.JfaGoApiKey);
-                request.Headers.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(authBytes));
-            }
-            else
-            {
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", config.JfaGoApiKey);
-                request.Headers.Add("Authorization", config.JfaGoApiKey);
-            }
+            var inviteRequest = new HttpRequestMessage(HttpMethod.Post, $"{jfaGoUrl}/invites");
+            inviteRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            inviteRequest.Content = inviteContent;
 
-            request.Content = content;
+            var inviteResponse = await HttpClient.SendAsync(inviteRequest, cancellationToken);
+            var inviteResponseContent = await inviteResponse.Content.ReadAsStringAsync(cancellationToken);
 
-            var response = await HttpClient.SendAsync(request, cancellationToken);
-            var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-
-            if (response.IsSuccessStatusCode)
+            if (inviteResponse.IsSuccessStatusCode)
             {
                 await botClient.SendMessage(
                     message.Chat.Id,
@@ -148,11 +193,11 @@ internal class CommandNeuBenutzerStep2 : ICommandBase
             }
             else
             {
-                telegramBotService.Logger.LogWarning("JFA-Go Invite fehlgeschlagen: {Status} - {Response}", response.StatusCode, responseContent);
+                telegramBotService.Logger.LogWarning("JFA-Go Invite fehlgeschlagen: {Status} - {Response}", inviteResponse.StatusCode, inviteResponseContent);
                 
                 await botClient.SendMessage(
                     message.Chat.Id,
-                    $"❌ Fehler beim Erstellen der Einladung in JFA-Go.\nStatus: {response.StatusCode}\nNachricht: {responseContent}",
+                    $"❌ Fehler beim Erstellen der Einladung in JFA-Go.\nStatus: {inviteResponse.StatusCode}\nNachricht: {inviteResponseContent}",
                     cancellationToken: cancellationToken);
             }
         }

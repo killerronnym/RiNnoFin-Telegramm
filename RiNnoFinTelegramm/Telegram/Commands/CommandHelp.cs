@@ -38,7 +38,7 @@ internal class CommandHelp : ICommandBase
         sb.AppendLine("• `/unlink` - Hebt Gruppenverbindung auf");
         sb.AppendLine("• `/userlist` - Listet verknüpfte Gruppen-Mitglieder auf");
         sb.AppendLine("• `/quiz` - Sendet ein Medien-Quiz in der Gruppe");
-        sb.AppendLine("• `/NeuBenutzer` - Erstellt eine Einladung (benötigt JFA-Go)");
+        sb.AppendLine("• `/NeuerBenutzer` - Erstellt eine Einladung (benötigt JFA-Go)");
 
         await botClient.SendMessage(
             message.Chat.Id,

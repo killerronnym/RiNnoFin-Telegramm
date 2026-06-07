@@ -23,7 +23,9 @@ public class PluginConfiguration : BasePluginConfiguration
 
     public string? JfaGoUrl { get; set; }
 
-    public string? JfaGoApiKey { get; set; }
+    public string? JfaGoUsername { get; set; }
+
+    public string? JfaGoPassword { get; set; }
 
     [XmlArray("TelegramGroups")]
     [XmlArrayItem(typeof(TelegramGroup), ElementName = "TelegramGroups")]

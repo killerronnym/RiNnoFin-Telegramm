@@ -9,11 +9,11 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
-        "version": "1.0.2.2",
-        "changelog": "Feat: JFA-Go Integration auf interaktiven Befehl '/NeuBenutzer' umgestellt. Der Bot fragt nun schrittweise nach Benutzername und E-Mail. Die Einladung wird mit dem Profil 'Standard User' erstellt.",
+        "version": "1.0.2.3",
+        "changelog": "Fix: Befehl '/NeuerBenutzer' (sowie das Alias '/NeuBenutzer') korrekt in der Hilfe und im Bot registriert. Auth-Methode in JFA-Go auf Login mit Benutzername und Passwort umgestellt (die Einstellungen wurden entsprechend auf Benutzername/Passwort geändert).",
         "targetAbi": "10.9.0.0",
         "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
-        "checksum": "66FE5BEDB4E8207C4F891EE889542AF4",
+        "checksum": "6DE0BBB20F1B293A73B677BE59EBF20C",
         "timestamp": "2026-06-07 23:40:00"
       },
       {
