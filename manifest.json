@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.1.1",
+        "changelog": "Fix: Schema-Konflikt behoben (HTTPS zu HTTP). Das Plugin respektiert nun das konfigurierte LoginBaseUrl für data-auth-url.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "FA2B11B5AE75B8844DD29C0D61CB4192",
+        "timestamp": "2026-06-07 18:58:00"
+      },
+      {
         "version": "1.0.1.0",
         "changelog": "Fix: Problem mit Zeitabweichungen behoben (AllowedTimeOffset auf 24h erhöht) und Signatur-Verifikation vereinfacht. Zudem Bootstrap-Admin für killerronnym und den ersten User hinzugefügt falls kein Admin vorhanden ist.",
         "targetAbi": "10.9.0.0",

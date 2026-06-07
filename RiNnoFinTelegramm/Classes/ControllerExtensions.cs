@@ -12,6 +12,11 @@ internal static class ControllerExtensions
             throw new ArgumentNullException(nameof(request), "Request ist null.");
         }
 
+        if (!string.IsNullOrWhiteSpace(configuration.LoginBaseUrl))
+        {
+            return configuration.LoginBaseUrl.TrimEnd('/');
+        }
+
         var configSchema = configuration.ForcedUrlScheme;
         var requestPort = request.Host.Port ?? -1;
         var requestScheme =
