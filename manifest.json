@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.0.8",
+        "changelog": "Cache-Buster: Erzwingt das Herunterladen des neuen direkten Repository-Links, um den Caching-Fehler von Jellyfin zu umgehen.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "878D0976ECD5699727CD78339907AB8F",
+        "timestamp": "2026-06-07 18:37:00"
+      },
+      {
         "version": "1.0.0.7",
         "changelog": "Stabilitäts-Update und Checksum-Fix für den Download-Link.",
         "targetAbi": "10.9.0.0",
