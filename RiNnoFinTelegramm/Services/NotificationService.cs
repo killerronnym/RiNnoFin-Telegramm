@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
@@ -183,21 +184,51 @@ public class NotificationService : IDisposable
 
         var message = new StringBuilder();
 
-        if (item is Movie)
+        var yearStr = item.ProductionYear.HasValue ? $" ({item.ProductionYear.Value})" : string.Empty;
+        var baseUrl = config.LoginBaseUrl?.TrimEnd('/');
+        string jellyfinUrl = string.Empty;
+        if (!string.IsNullOrWhiteSpace(baseUrl))
         {
-            message.AppendLine("🎬 *Neuer Film hinzugefügt\\!*");
+            jellyfinUrl = $"{baseUrl}/web/index.html#!/details?id={item.Id:N}";
         }
-        else if (item is Series or Season or Episode)
+
+        string titleLink;
+        if (!string.IsNullOrEmpty(jellyfinUrl))
         {
-            message.AppendLine("📺 *Neue Episode/Serie hinzugefügt\\!*");
-        }
-        else if (item is JellyfinAudio or MusicAlbum)
-        {
-            message.AppendLine("🎵 *Neue Musik hinzugefügt\\!*");
+            titleLink = $"[{TelegramMarkdown.Escape(item.Name)}]({TelegramMarkdown.Escape(jellyfinUrl)})";
         }
         else
         {
-            message.AppendLine("🎉 *Neues Element hinzugefügt\\!*");
+            titleLink = TelegramMarkdown.Escape(item.Name);
+        }
+
+        if (item is Movie)
+        {
+            message.AppendLine($"🎬 *Neuer Film:* {titleLink}{TelegramMarkdown.Escape(yearStr)}");
+        }
+        else if (item is Series)
+        {
+            message.AppendLine($"📺 *Neue Serie:* {titleLink}{TelegramMarkdown.Escape(yearStr)}");
+            message.AppendLine("Staffel: Alle Staffeln");
+        }
+        else if (item is Season season)
+        {
+            var seriesName = season.SeriesName ?? "Serie";
+            message.AppendLine($"📺 *Neue Staffel:* [{TelegramMarkdown.Escape(seriesName)}]({TelegramMarkdown.Escape(jellyfinUrl)}) \\- {TelegramMarkdown.Escape(season.Name)}");
+        }
+        else if (item is Episode episode)
+        {
+            var seriesName = episode.SeriesName ?? "Serie";
+            var episodeCode = $"S{episode.ParentIndexNumber ?? 0:00}E{episode.IndexNumber ?? 0:00}";
+            message.AppendLine($"📺 *Neue Episode:* [{TelegramMarkdown.Escape(seriesName)}]({TelegramMarkdown.Escape(jellyfinUrl)}) \\- {TelegramMarkdown.Escape(episodeCode)} \\- {TelegramMarkdown.Escape(episode.Name)}");
+        }
+        else if (item is JellyfinAudio or MusicAlbum)
+        {
+            message.AppendLine($"🎵 *Neue Musik:* {titleLink}");
+        }
+        else
+        {
+            message.AppendLine($"🎉 *Neues Element:* {titleLink}");
         }
 
         if (isTimeout)
@@ -206,28 +237,63 @@ public class NotificationService : IDisposable
         }
 
         message.AppendLine();
-        message.Append(item.GetTelegramHyperlink(config.LoginBaseUrl));
 
-        var extraLink = item.GetExtraLink();
-        if (extraLink != null)
+        var overview = item.Overview;
+        if (!string.IsNullOrEmpty(overview))
         {
-            message.Append(extraLink);
+            if (overview.Length > 400)
+            {
+                overview = overview.Substring(0, 400) + "...";
+            }
+            message.AppendLine(TelegramMarkdown.Escape(overview));
+            message.AppendLine();
         }
-
-        message.AppendLine();
 
         var audioLanguages = item.GetStreamLanguages(MediaStreamType.Audio);
         if (audioLanguages.Length > 0)
         {
-            var audioLine = "Audio: " + string.Join(", ", audioLanguages);
+            var audioLine = "🔊 Audio: " + string.Join(", ", audioLanguages);
             message.AppendLine(TelegramMarkdown.Escape(audioLine));
         }
 
         var subtitleLanguages = item.GetStreamLanguages(MediaStreamType.Subtitle);
         if (subtitleLanguages.Length > 0)
         {
-            var subsLine = "Untertitel: " + string.Join(", ", subtitleLanguages);
+            var subsLine = "📝 Untertitel: " + string.Join(", ", subtitleLanguages);
             message.AppendLine(TelegramMarkdown.Escape(subsLine));
+        }
+
+        if (audioLanguages.Length > 0 || subtitleLanguages.Length > 0)
+        {
+            message.AppendLine();
+        }
+
+        var linksList = new List<string>();
+        if (!string.IsNullOrEmpty(jellyfinUrl))
+        {
+            linksList.Add($"[🔗 In Jellyfin öffnen]({TelegramMarkdown.Escape(jellyfinUrl)})");
+        }
+
+        var imdbId = item.GetProviderId(MetadataProvider.Imdb);
+        if (!string.IsNullOrEmpty(imdbId))
+        {
+            linksList.Add($"[ℹ️ IMDb]({TelegramMarkdown.Escape($"https://www.imdb.com/title/{imdbId}")})");
+        }
+        else
+        {
+            var tmdbId = item.GetProviderId(MetadataProvider.Tmdb);
+            if (!string.IsNullOrEmpty(tmdbId))
+            {
+                var tmdbUrl = item is Movie
+                    ? $"https://www.themoviedb.org/movie/{tmdbId}"
+                    : $"https://www.themoviedb.org/tv/{tmdbId}";
+                linksList.Add($"[ℹ️ TMDb]({TelegramMarkdown.Escape(tmdbUrl)})");
+            }
+        }
+
+        if (linksList.Any())
+        {
+            message.AppendLine(string.Join(" \\| ", linksList));
         }
 
         var messageText = message.ToString();

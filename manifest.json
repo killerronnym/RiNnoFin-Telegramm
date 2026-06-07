@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.1.5",
+        "changelog": "Feat: Newsletter-Meldungen enthalten nun den Filmtitel/Serientitel verlinkt, das Veröffentlichungsjahr, eine Beschreibung (Overview) des Mediums auf Deutsch sowie Direktsprung-Links (Jellyfin, IMDb, TMDb) am Ende der Nachricht.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "B2F4187D21772D824C6CC74A7D05D7B4",
+        "timestamp": "2026-06-07 19:25:00"
+      },
+      {
         "version": "1.0.1.4",
         "changelog": "Fix: Telegram-Bestätigungsmeldung bei erfolgreicher SSO-Verknüpfung hinzugefügt. Zusätzlich wurden alle Bot-Befehle (wie /start, /ping, etc.) auf korrekte Funktionsweise überprüft und der isAdmin-Check im Bot-Handler auf Case-Insensitivity und Fallbacks angepasst.",
         "targetAbi": "10.9.0.0",
