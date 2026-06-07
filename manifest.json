@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.1.3",
+        "changelog": "Fix: Umstellung des Verknüpfungs-Buttons im Telegram-Bot auf Telegrams natives LoginUrl-Verfahren. Dies behebt Fehler beim Aufrufen des Links über In-App-Browser auf Mobilgeräten, da Telegram den Benutzer nun direkt in der App autorisiert und weiterleitet, anstatt den fehleranfälligen Web-Widget-Flow zu nutzen.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "3F6D6059D9ABE0B5F41E6FEC9F4315E5",
+        "timestamp": "2026-06-07 19:15:00"
+      },
+      {
         "version": "1.0.1.2",
         "changelog": "Fix: Veraltetes data-auth-url-Attribut aus login.html entfernt, um den veralteten Redirect-Flow von Telegram zu umgehen. Es wird nun ausschließlich der moderne Callback-Flow (data-onauth) genutzt, welcher von Telegram voll unterstützt wird. Update auf Version 23 des Widget-Skripts.",
         "targetAbi": "10.9.0.0",

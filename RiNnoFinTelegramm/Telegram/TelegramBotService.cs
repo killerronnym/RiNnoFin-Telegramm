@@ -41,9 +41,18 @@ public static class TelegramBotServiceExtensions
         var baseUrl = telegramBotService.Config.LoginBaseUrl?.TrimEnd('/');
         var ssoUrl = string.IsNullOrEmpty(baseUrl) ? string.Empty : $"{baseUrl}/sso/Telegram";
         
-        var replyMarkup = string.IsNullOrEmpty(ssoUrl) ? null : new global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(
-            global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton.WithUrl("🔗 Mit Jellyfin verknüpfen", ssoUrl)
-        );
+        global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup? replyMarkup = null;
+        if (!string.IsNullOrEmpty(ssoUrl))
+        {
+            var loginUrl = new global::Telegram.Bot.Types.LoginUrl
+            {
+                Url = ssoUrl,
+                RequestWriteAccess = true
+            };
+            replyMarkup = new global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(
+                global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton.WithLoginUrl("🔗 Mit Jellyfin verknüpfen", loginUrl)
+            );
+        }
 
         await botClient.SendMessage(
             chatId,
