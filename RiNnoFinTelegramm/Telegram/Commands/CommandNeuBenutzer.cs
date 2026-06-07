@@ -116,19 +116,10 @@ internal class CommandNeuBenutzerStep2 : ICommandBase
         {
             var jfaGoUrl = config.JfaGoUrl.TrimEnd('/');
             
-            // 1. Authenticate with JFA-Go using username/password
-            var loginPayload = new
-            {
-                username = config.JfaGoUsername,
-                password = config.JfaGoPassword ?? ""
-            };
-            var loginJson = JsonSerializer.Serialize(loginPayload);
-            var loginContent = new StringContent(loginJson, Encoding.UTF8, "application/json");
-
-            var loginRequest = new HttpRequestMessage(HttpMethod.Post, $"{jfaGoUrl}/users/login")
-            {
-                Content = loginContent
-            };
+            // 1. Authenticate with JFA-Go using username/password via GET /token/login
+            var loginRequest = new HttpRequestMessage(HttpMethod.Get, $"{jfaGoUrl}/token/login");
+            var authBytes = Encoding.UTF8.GetBytes($"{config.JfaGoUsername}:{config.JfaGoPassword ?? ""}");
+            loginRequest.Headers.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(authBytes));
 
             var loginResponse = await HttpClient.SendAsync(loginRequest, cancellationToken);
             var loginResponseContent = await loginResponse.Content.ReadAsStringAsync(cancellationToken);
