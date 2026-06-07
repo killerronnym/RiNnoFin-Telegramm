@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
@@ -20,6 +21,9 @@ internal class CommandStart : ICommandBase
 
         if (message.Chat.Type == ChatType.Private)
         {
+            var senderId = message.From?.Id;
+            var link = senderId.HasValue ? telegramBotService.Config.TelegramUserLinks.FirstOrDefault(l => l.TelegramUserId == senderId.Value) : null;
+
             var welcomeText = isAdmin 
                 ? Constants.PrivateAdminWelcomeMessage 
                 : Constants.PrivateUserWelcomeMessage;
@@ -41,9 +45,31 @@ internal class CommandStart : ICommandBase
                 welcomeText = $"Hallo Admin @{userUsername}!\n(Status: Administrator)\n\n" + welcomeText;
             }
 
+            global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup? replyMarkup = null;
+
+            if (link == null)
+            {
+                welcomeText = "❌ Dein Telegram-Konto ist noch *nicht* mit einem Jellyfin-Konto verknüpft!\nUm alle Befehle nutzen zu können, verknüpfe bitte zuerst dein Konto:\n\n" + welcomeText;
+                
+                var baseUrl = telegramBotService.Config.LoginBaseUrl?.TrimEnd('/');
+                var ssoUrl = string.IsNullOrEmpty(baseUrl) ? string.Empty : $"{baseUrl}/sso/Telegram";
+                if (!string.IsNullOrEmpty(ssoUrl))
+                {
+                    replyMarkup = new global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(
+                        global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton.WithUrl("🔗 Mit Jellyfin verknüpfen", ssoUrl)
+                    );
+                }
+            }
+            else
+            {
+                welcomeText = "✅ Dein Konto ist erfolgreich mit Jellyfin verknüpft!\n\n" + welcomeText;
+            }
+
             await botClient.SendMessage(
                 message.Chat.Id,
                 welcomeText,
+                replyMarkup: replyMarkup,
+                parseMode: ParseMode.Markdown,
                 cancellationToken: cancellationToken);
         }
         else

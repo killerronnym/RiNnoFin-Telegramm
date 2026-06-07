@@ -41,11 +41,7 @@ internal class CommandPasswort : ICommandBase
         var link = telegramBotService.Config.TelegramUserLinks.FirstOrDefault(l => l.TelegramUserId == senderId.Value);
         if (link == null)
         {
-            await botClient.SendMessage(
-                message.Chat.Id,
-                "❌ Dein Telegram-Konto ist nicht mit einem Jellyfin-Konto verknüpft.\n\n" +
-                "Bitte melde dich einmalig über die Jellyfin-Anmeldeseite mit Telegram SSO an, um dein Konto zu verknüpfen.",
-                cancellationToken: cancellationToken);
+            await telegramBotService.SendNotLinkedMessage(message.Chat.Id, cancellationToken);
             return;
         }
 

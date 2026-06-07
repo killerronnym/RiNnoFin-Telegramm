@@ -31,6 +31,31 @@ public interface ITelegramBotService : IDisposable
     DateTime LastActivityTime { get; set; }
 }
 
+public static class TelegramBotServiceExtensions
+{
+    public static async Task SendNotLinkedMessage(this ITelegramBotService telegramBotService, long chatId, CancellationToken cancellationToken)
+    {
+        var botClient = telegramBotService.BotClientWrapper.Client;
+        if (botClient == null) return;
+
+        var baseUrl = telegramBotService.Config.LoginBaseUrl?.TrimEnd('/');
+        var ssoUrl = string.IsNullOrEmpty(baseUrl) ? string.Empty : $"{baseUrl}/sso/Telegram";
+        
+        var replyMarkup = string.IsNullOrEmpty(ssoUrl) ? null : new global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(
+            global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton.WithUrl("🔗 Mit Jellyfin verknüpfen", ssoUrl)
+        );
+
+        await botClient.SendMessage(
+            chatId,
+            "❌ Dein Telegram-Konto ist nicht mit einem Jellyfin-Konto verknüpft.\n\n" +
+            "Bitte klicke auf den Button unten, um dich einmalig über die Jellyfin-Anmeldeseite mit Telegram SSO anzumelden und dein Konto zu verknüpfen.\n\n" +
+            "*(Falls kein Button erscheint, hinterlege zuerst deine Server-Domain in den Jellyfin Plugin-Einstellungen)*",
+            replyMarkup: replyMarkup,
+            parseMode: ParseMode.Markdown,
+            cancellationToken: cancellationToken);
+    }
+}
+
 internal sealed class TelegramBotService : ITelegramBotService
 {
     private readonly string _botToken;
