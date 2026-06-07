@@ -30,6 +30,13 @@ public class NotificationService : IDisposable
     private readonly RequestService _requestService;
     private readonly Timer _timer;
 
+    // Episode batching: group episodes per series, flush after 30s of inactivity
+    private readonly ConcurrentDictionary<string, List<Episode>> _pendingEpisodeBatches = new();
+    private readonly ConcurrentDictionary<string, Timer> _episodeFlushTimers = new();
+    private readonly ConcurrentDictionary<string, DateTime> _recentlyAddedSeries = new();
+    private readonly object _batchLock = new();
+    private static readonly TimeSpan EpisodeBatchWindow = TimeSpan.FromSeconds(30);
+
     public NotificationService(
         ILogger<NotificationService> logger,
         ILibraryManager libraryManager,
@@ -46,15 +53,27 @@ public class NotificationService : IDisposable
     public void Dispose()
     {
         _timer.Dispose();
+        foreach (var t in _episodeFlushTimers.Values)
+            t.Dispose();
         GC.SuppressFinalize(this);
     }
 
     public void OnItemUpdated(object? sender, ItemChangeEventArgs e)
     {
-        if (e.Item is not (Movie or Series or Season or Episode or JellyfinAudio or MusicAlbum))
+        // Seasons are suppressed — episodes handle grouping
+        if (e.Item is Season or Series) return;
+
+        if (e.Item is Episode episode)
         {
+            if (IsMetadataComplete(episode) && _pendingNotifications.TryRemove(episode.Id, out _))
+            {
+                QueueEpisodeForBatch(episode);
+                RemoveRequestIfNeeded(episode);
+            }
             return;
         }
+
+        if (e.Item is not (Movie or JellyfinAudio or MusicAlbum)) return;
 
         _logger.LogInformation("Element aktualisiert: {ItemType} - {ItemName}", e.Item.GetType().Name, e.Item.Name);
 
@@ -67,10 +86,34 @@ public class NotificationService : IDisposable
 
     public void OnItemAdded(object? sender, ItemChangeEventArgs e)
     {
-        if (e.Item is not (Movie or Series or Season or Episode or JellyfinAudio or MusicAlbum))
+        // Seasons suppressed
+        if (e.Item is Season) return;
+
+        // Series: just mark as recently added so episode flush knows it's a new series
+        if (e.Item is Series)
         {
+            _recentlyAddedSeries[e.Item.Name] = DateTime.UtcNow;
+            _logger.LogInformation("Neue Serie erkannt (wird über Episoden gemeldet): {Name}", e.Item.Name);
             return;
         }
+
+        // Episodes: batch
+        if (e.Item is Episode episode)
+        {
+            _logger.LogInformation("Episode hinzugefügt (batching): {Series} - {Name}", episode.SeriesName, episode.Name);
+            if (IsMetadataComplete(episode))
+            {
+                QueueEpisodeForBatch(episode);
+                RemoveRequestIfNeeded(episode);
+            }
+            else
+            {
+                _pendingNotifications.TryAdd(episode.Id, DateTime.UtcNow);
+            }
+            return;
+        }
+
+        if (e.Item is not (Movie or JellyfinAudio or MusicAlbum)) return;
 
         _logger.LogInformation("Element hinzugefügt: {ItemType} - {ItemName}", e.Item.GetType().Name, e.Item.Name);
 
@@ -85,73 +128,61 @@ public class NotificationService : IDisposable
         }
     }
 
-    private void CheckForTimeouts(object? state)
+    // ── Episode Batching ──────────────────────────────────────────────────────
+
+    private void QueueEpisodeForBatch(Episode episode)
     {
-        _logger.LogInformation("Prüfe auf abgelaufene Benachrichtigungen...");
+        var key = episode.SeriesName ?? episode.Id.ToString();
 
-        foreach (var item in _pendingNotifications)
+        lock (_batchLock)
         {
-            if (DateTime.UtcNow - item.Value <= TimeSpan.FromHours(24))
-            {
-                continue;
-            }
+            var batch = _pendingEpisodeBatches.GetOrAdd(key, _ => new List<Episode>());
+            if (!batch.Any(ep => ep.Id == episode.Id))
+                batch.Add(episode);
+        }
 
-            if (!_pendingNotifications.TryRemove(item.Key, out _))
-            {
-                continue;
-            }
-
-            var baseItem = _libraryManager.GetItemById(item.Key);
-            if (baseItem != null)
-            {
-                SendRichNotificationAsync(baseItem, true);
-                RemoveRequestIfNeeded(baseItem);
-            }
+        // Debounce: reset timer so we wait another 30s after the last episode arrives
+        if (_episodeFlushTimers.TryGetValue(key, out var existing))
+        {
+            existing.Change(EpisodeBatchWindow, Timeout.InfiniteTimeSpan);
+        }
+        else
+        {
+            var t = new Timer(_ => FlushEpisodeBatch(key), null, EpisodeBatchWindow, Timeout.InfiniteTimeSpan);
+            if (!_episodeFlushTimers.TryAdd(key, t))
+                t.Dispose();
         }
     }
 
-    private void RemoveRequestIfNeeded(BaseItem item)
+    private void FlushEpisodeBatch(string seriesKey)
     {
-        if (!IsMetadataComplete(item))
+        if (_episodeFlushTimers.TryRemove(seriesKey, out var t))
+            t.Dispose();
+
+        List<Episode> episodes;
+        lock (_batchLock)
         {
-            return;
+            if (!_pendingEpisodeBatches.TryRemove(seriesKey, out var batch) || batch.Count == 0)
+                return;
+            episodes = batch
+                .OrderBy(ep => ep.ParentIndexNumber ?? 0)
+                .ThenBy(ep => ep.IndexNumber ?? 0)
+                .ToList();
         }
 
-        var imdbId = item.GetProviderId(MetadataProvider.Imdb);
-        if (string.IsNullOrEmpty(imdbId))
-        {
-            return;
-        }
+        // Is this part of a freshly imported series (added within last 10 min)?
+        bool isNewSeries = _recentlyAddedSeries.TryGetValue(seriesKey, out var addedAt)
+                           && DateTime.UtcNow - addedAt < TimeSpan.FromMinutes(10);
 
-        try
-        {
-            _requestService.RemoveRequestAsync(imdbId, CancellationToken.None).Wait();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Fehler beim Entfernen der Anfrage für Element: {ItemType} - '{ItemName}'", item.GetType().Name, item.Name);
-        }
+        _logger.LogInformation("Flushing episode batch '{Series}': {Count} episodes, isNewSeries={New}",
+            seriesKey, episodes.Count, isNewSeries);
+
+        SendEpisodeBatchNotification(episodes, isNewSeries);
     }
 
-    private bool IsMetadataComplete(BaseItem item)
+    private void SendEpisodeBatchNotification(List<Episode> episodes, bool isNewSeries)
     {
-        if (item is JellyfinAudio or MusicAlbum)
-        {
-            // Musik hat keine IMDb-ID; sofortige Freigabe
-            return true;
-        }
-
-        return !string.IsNullOrEmpty(item.GetProviderId(MetadataProvider.Imdb)) &&
-               item.HasImage(ImageType.Primary);
-    }
-
-    private void SendRichNotificationAsync(BaseItem item, bool isTimeout = false)
-    {
-        if (_botClientWrapper.Client == null)
-        {
-            _logger.LogInformation("Kann Benachrichtigung für '{ItemName}' nicht senden: Bot-Client ist null.", item.Name);
-            return;
-        }
+        if (_botClientWrapper.Client == null || episodes.Count == 0) return;
 
         var config = RiNnoFinPlugin.Instance?.Configuration
                      ?? throw new Exception("RiNnoFinPlugin Instanz/Konfiguration ist null.");
@@ -164,121 +195,226 @@ public class NotificationService : IDisposable
             .Where(u => u.SubscribedToNewsletter)
             .ToArray();
 
-        if (notifyGroups.Length == 0 && notifyUsers.Length == 0)
-        {
-            _logger.LogInformation("Keine Benachrichtigung gesendet für '{ItemName}': Keine Abonnenten oder aktiven Gruppen.", item.Name);
-            return;
-        }
+        if (notifyGroups.Length == 0 && notifyUsers.Length == 0) return;
 
-        _logger.LogInformation("Sende Benachrichtigung für '{ItemName}' an {GroupCount} Gruppen und {UserCount} Benutzer.", item.Name, notifyGroups.Length, notifyUsers.Length);
+        var firstEp = episodes[0];
+        var seriesName = firstEp.SeriesName ?? firstEp.Name;
+
+        // Try to find the Series item for image + overview
+        BaseItem? seriesItem = _libraryManager.GetItemList(new MediaBrowser.Controller.Entities.InternalItemsQuery
+        {
+            Name = seriesName,
+            IncludeItemTypes = new[] { Jellyfin.Data.Enums.BaseItemKind.Series }
+        }).FirstOrDefault();
 
         string? imagePath = null;
-        if (item.HasImage(ImageType.Primary))
-        {
-            imagePath = item.GetImagePath(ImageType.Primary);
-        }
-        else if (item.HasImage(ImageType.Backdrop))
-        {
-            imagePath = item.GetImagePath(ImageType.Backdrop);
-        }
+        if (seriesItem?.HasImage(ImageType.Primary) == true)
+            imagePath = seriesItem.GetImagePath(ImageType.Primary);
+        else if (firstEp.HasImage(ImageType.Primary))
+            imagePath = firstEp.GetImagePath(ImageType.Primary);
 
+        var baseUrl = config.LoginBaseUrl?.TrimEnd('/');
+        string seriesUrl = seriesItem != null && !string.IsNullOrWhiteSpace(baseUrl)
+            ? $"{baseUrl}/web/index.html#!/details?id={seriesItem.Id:N}"
+            : string.Empty;
+
+        string seriesTitleLink = !string.IsNullOrEmpty(seriesUrl)
+            ? $"[{TelegramMarkdown.Escape(seriesName)}]({TelegramMarkdown.Escape(seriesUrl)})"
+            : TelegramMarkdown.Escape(seriesName);
+
+        var yearStr = firstEp.ProductionYear.HasValue ? $" ({firstEp.ProductionYear.Value})" : string.Empty;
         var message = new StringBuilder();
 
-        var yearStr = item.ProductionYear.HasValue ? $" ({item.ProductionYear.Value})" : string.Empty;
-        var baseUrl = config.LoginBaseUrl?.TrimEnd('/');
-        string jellyfinUrl = string.Empty;
-        if (!string.IsNullOrWhiteSpace(baseUrl))
+        if (episodes.Count == 1 && !isNewSeries)
         {
-            jellyfinUrl = $"{baseUrl}/web/index.html#!/details?id={item.Id:N}";
-        }
+            // ── Single new episode ──────────────────────────────────────────
+            var ep = episodes[0];
+            var code = $"S{ep.ParentIndexNumber ?? 0:00}E{ep.IndexNumber ?? 0:00}";
+            message.AppendLine($"📺 *Neue Episode:* {seriesTitleLink} \\- {TelegramMarkdown.Escape(code)} \\- {TelegramMarkdown.Escape(ep.Name)}");
 
-        string titleLink;
-        if (!string.IsNullOrEmpty(jellyfinUrl))
-        {
-            titleLink = $"[{TelegramMarkdown.Escape(item.Name)}]({TelegramMarkdown.Escape(jellyfinUrl)})";
+            if (!string.IsNullOrEmpty(ep.Overview))
+            {
+                message.AppendLine();
+                var ov = ep.Overview.Length > 300 ? ep.Overview[..300] + "..." : ep.Overview;
+                message.AppendLine(TelegramMarkdown.Escape(ov));
+            }
         }
         else
         {
-            titleLink = TelegramMarkdown.Escape(item.Name);
-        }
+            // ── Grouped: new series or multiple episodes ────────────────────
+            string header = isNewSeries ? "Neue Serie" : "Neue Episoden";
+            message.AppendLine($"📺 *{header}:* {seriesTitleLink}{TelegramMarkdown.Escape(yearStr)}");
 
-        if (item is Movie)
-        {
-            message.AppendLine($"🎬 *Neuer Film:* {titleLink}{TelegramMarkdown.Escape(yearStr)}");
-        }
-        else if (item is Series)
-        {
-            message.AppendLine($"📺 *Neue Serie:* {titleLink}{TelegramMarkdown.Escape(yearStr)}");
-            message.AppendLine("Staffel: Alle Staffeln");
-        }
-        else if (item is Season season)
-        {
-            var seriesName = season.SeriesName ?? "Serie";
-            message.AppendLine($"📺 *Neue Staffel:* [{TelegramMarkdown.Escape(seriesName)}]({TelegramMarkdown.Escape(jellyfinUrl)}) \\- {TelegramMarkdown.Escape(season.Name)}");
-        }
-        else if (item is Episode episode)
-        {
-            var seriesName = episode.SeriesName ?? "Serie";
-            var episodeCode = $"S{episode.ParentIndexNumber ?? 0:00}E{episode.IndexNumber ?? 0:00}";
-            message.AppendLine($"📺 *Neue Episode:* [{TelegramMarkdown.Escape(seriesName)}]({TelegramMarkdown.Escape(jellyfinUrl)}) \\- {TelegramMarkdown.Escape(episodeCode)} \\- {TelegramMarkdown.Escape(episode.Name)}");
-        }
-        else if (item is JellyfinAudio or MusicAlbum)
-        {
-            message.AppendLine($"🎵 *Neue Musik:* {titleLink}");
-        }
-        else
-        {
-            message.AppendLine($"🎉 *Neues Element:* {titleLink}");
-        }
+            var bySeason = episodes
+                .GroupBy(ep => ep.ParentIndexNumber ?? 0)
+                .OrderBy(g => g.Key);
 
-        if (isTimeout)
-        {
-            message.AppendLine("_(Metadaten unvollständig)_");
+            foreach (var season in bySeason)
+            {
+                var eps = season.OrderBy(ep => ep.IndexNumber ?? 0).ToList();
+                var firstNum = eps.First().IndexNumber ?? 1;
+                var lastNum  = eps.Last().IndexNumber  ?? firstNum;
+                string line = firstNum == lastNum
+                    ? $"Staffel {season.Key} · Episode {firstNum}"
+                    : $"Staffel {season.Key} · Episode {firstNum} bis {lastNum} \\({eps.Count} Episoden\\)";
+                message.AppendLine(TelegramMarkdown.Escape(line));
+            }
+
+            // Series overview
+            if (seriesItem != null && !string.IsNullOrEmpty(seriesItem.Overview))
+            {
+                message.AppendLine();
+                var ov = seriesItem.Overview.Length > 400
+                    ? seriesItem.Overview[..400] + "..."
+                    : seriesItem.Overview;
+                message.AppendLine(TelegramMarkdown.Escape(ov));
+            }
         }
 
         message.AppendLine();
 
-        var overview = item.Overview;
-        if (!string.IsNullOrEmpty(overview))
+        // Links
+        var links = new List<string>();
+        if (!string.IsNullOrEmpty(seriesUrl))
+            links.Add($"[🔗 In Jellyfin öffnen]({TelegramMarkdown.Escape(seriesUrl)})");
+
+        var imdbId = (seriesItem ?? (BaseItem)firstEp).GetProviderId(MetadataProvider.Imdb);
+        if (!string.IsNullOrEmpty(imdbId))
+            links.Add($"[ℹ️ IMDb]({TelegramMarkdown.Escape($"https://www.imdb.com/title/{imdbId}")})");
+
+        if (links.Any())
+            message.AppendLine(string.Join(" \\| ", links));
+
+        var text = message.ToString();
+
+        foreach (var group in notifyGroups)
+            SendToChat(group.TelegramGroupChat!.TelegramChatId, text, imagePath, group.TelegramGroupChat.ContentTopicId);
+
+        foreach (var user in notifyUsers)
+            SendToChat(user.TelegramUserId, text, imagePath, null);
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private void CheckForTimeouts(object? state)
+    {
+        _logger.LogInformation("Prüfe auf abgelaufene Benachrichtigungen...");
+
+        foreach (var item in _pendingNotifications)
         {
-            if (overview.Length > 400)
+            if (DateTime.UtcNow - item.Value <= TimeSpan.FromHours(24)) continue;
+
+            if (!_pendingNotifications.TryRemove(item.Key, out _)) continue;
+
+            var baseItem = _libraryManager.GetItemById(item.Key);
+            if (baseItem != null)
             {
-                overview = overview.Substring(0, 400) + "...";
+                if (baseItem is Episode ep)
+                    QueueEpisodeForBatch(ep);
+                else
+                    SendRichNotificationAsync(baseItem, true);
+                RemoveRequestIfNeeded(baseItem);
             }
-            message.AppendLine(TelegramMarkdown.Escape(overview));
+        }
+    }
+
+    private void RemoveRequestIfNeeded(BaseItem item)
+    {
+        if (!IsMetadataComplete(item)) return;
+
+        var imdbId = item.GetProviderId(MetadataProvider.Imdb);
+        if (string.IsNullOrEmpty(imdbId)) return;
+
+        try
+        {
+            _requestService.RemoveRequestAsync(imdbId, CancellationToken.None).Wait();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Fehler beim Entfernen der Anfrage für '{ItemName}'", item.Name);
+        }
+    }
+
+    private bool IsMetadataComplete(BaseItem item)
+    {
+        if (item is JellyfinAudio or MusicAlbum) return true;
+        return !string.IsNullOrEmpty(item.GetProviderId(MetadataProvider.Imdb))
+               && item.HasImage(ImageType.Primary);
+    }
+
+    private void SendRichNotificationAsync(BaseItem item, bool isTimeout = false)
+    {
+        if (_botClientWrapper.Client == null) return;
+
+        var config = RiNnoFinPlugin.Instance?.Configuration
+                     ?? throw new Exception("RiNnoFinPlugin Instanz/Konfiguration ist null.");
+
+        var notifyGroups = config.TelegramGroups
+            .Where(g => g.TelegramGroupChat is { NotifyNewContent: true })
+            .ToArray();
+
+        var notifyUsers = config.TelegramUserLinks
+            .Where(u => u.SubscribedToNewsletter)
+            .ToArray();
+
+        if (notifyGroups.Length == 0 && notifyUsers.Length == 0) return;
+
+        _logger.LogInformation("Sende Benachrichtigung für '{ItemName}'.", item.Name);
+
+        string? imagePath = null;
+        if (item.HasImage(ImageType.Primary))
+            imagePath = item.GetImagePath(ImageType.Primary);
+        else if (item.HasImage(ImageType.Backdrop))
+            imagePath = item.GetImagePath(ImageType.Backdrop);
+
+        var message = new StringBuilder();
+        var yearStr = item.ProductionYear.HasValue ? $" ({item.ProductionYear.Value})" : string.Empty;
+        var baseUrl = config.LoginBaseUrl?.TrimEnd('/');
+        string jellyfinUrl = !string.IsNullOrWhiteSpace(baseUrl)
+            ? $"{baseUrl}/web/index.html#!/details?id={item.Id:N}"
+            : string.Empty;
+
+        string titleLink = !string.IsNullOrEmpty(jellyfinUrl)
+            ? $"[{TelegramMarkdown.Escape(item.Name)}]({TelegramMarkdown.Escape(jellyfinUrl)})"
+            : TelegramMarkdown.Escape(item.Name);
+
+        if (item is Movie)
+            message.AppendLine($"🎬 *Neuer Film:* {titleLink}{TelegramMarkdown.Escape(yearStr)}");
+        else if (item is JellyfinAudio or MusicAlbum)
+            message.AppendLine($"🎵 *Neue Musik:* {titleLink}");
+        else
+            message.AppendLine($"🎉 *Neues Element:* {titleLink}");
+
+        if (isTimeout)
+            message.AppendLine("_(Metadaten unvollständig)_");
+
+        message.AppendLine();
+
+        if (!string.IsNullOrEmpty(item.Overview))
+        {
+            var ov = item.Overview.Length > 400 ? item.Overview[..400] + "..." : item.Overview;
+            message.AppendLine(TelegramMarkdown.Escape(ov));
             message.AppendLine();
         }
 
-        var audioLanguages = item.GetStreamLanguages(MediaStreamType.Audio);
-        if (audioLanguages.Length > 0)
-        {
-            var audioLine = "🔊 Audio: " + string.Join(", ", audioLanguages);
-            message.AppendLine(TelegramMarkdown.Escape(audioLine));
-        }
+        var audioLangs = item.GetStreamLanguages(MediaStreamType.Audio);
+        if (audioLangs.Length > 0)
+            message.AppendLine(TelegramMarkdown.Escape("🔊 Audio: " + string.Join(", ", audioLangs)));
 
-        var subtitleLanguages = item.GetStreamLanguages(MediaStreamType.Subtitle);
-        if (subtitleLanguages.Length > 0)
-        {
-            var subsLine = "📝 Untertitel: " + string.Join(", ", subtitleLanguages);
-            message.AppendLine(TelegramMarkdown.Escape(subsLine));
-        }
+        var subLangs = item.GetStreamLanguages(MediaStreamType.Subtitle);
+        if (subLangs.Length > 0)
+            message.AppendLine(TelegramMarkdown.Escape("📝 Untertitel: " + string.Join(", ", subLangs)));
 
-        if (audioLanguages.Length > 0 || subtitleLanguages.Length > 0)
-        {
+        if (audioLangs.Length > 0 || subLangs.Length > 0)
             message.AppendLine();
-        }
 
-        var linksList = new List<string>();
+        var links = new List<string>();
         if (!string.IsNullOrEmpty(jellyfinUrl))
-        {
-            linksList.Add($"[🔗 In Jellyfin öffnen]({TelegramMarkdown.Escape(jellyfinUrl)})");
-        }
+            links.Add($"[🔗 In Jellyfin öffnen]({TelegramMarkdown.Escape(jellyfinUrl)})");
 
         var imdbId = item.GetProviderId(MetadataProvider.Imdb);
         if (!string.IsNullOrEmpty(imdbId))
-        {
-            linksList.Add($"[ℹ️ IMDb]({TelegramMarkdown.Escape($"https://www.imdb.com/title/{imdbId}")})");
-        }
+            links.Add($"[ℹ️ IMDb]({TelegramMarkdown.Escape($"https://www.imdb.com/title/{imdbId}")})");
         else
         {
             var tmdbId = item.GetProviderId(MetadataProvider.Tmdb);
@@ -287,29 +423,20 @@ public class NotificationService : IDisposable
                 var tmdbUrl = item is Movie
                     ? $"https://www.themoviedb.org/movie/{tmdbId}"
                     : $"https://www.themoviedb.org/tv/{tmdbId}";
-                linksList.Add($"[ℹ️ TMDb]({TelegramMarkdown.Escape(tmdbUrl)})");
+                links.Add($"[ℹ️ TMDb]({TelegramMarkdown.Escape(tmdbUrl)})");
             }
         }
 
-        if (linksList.Any())
-        {
-            message.AppendLine(string.Join(" \\| ", linksList));
-        }
+        if (links.Any())
+            message.AppendLine(string.Join(" \\| ", links));
 
-        var messageText = message.ToString();
+        var text = message.ToString();
 
-        // 1. Senden an Gruppen
-        foreach (var notifyGroup in notifyGroups)
-        {
-            var threadId = notifyGroup.TelegramGroupChat?.ContentTopicId;
-            SendToChat(notifyGroup.TelegramGroupChat!.TelegramChatId, messageText, imagePath, threadId);
-        }
+        foreach (var group in notifyGroups)
+            SendToChat(group.TelegramGroupChat!.TelegramChatId, text, imagePath, group.TelegramGroupChat.ContentTopicId);
 
-        // 2. Senden an Abonnenten (Newsletter)
-        foreach (var notifyUser in notifyUsers)
-        {
-            SendToChat(notifyUser.TelegramUserId, messageText, imagePath, null);
-        }
+        foreach (var user in notifyUsers)
+            SendToChat(user.TelegramUserId, text, imagePath, null);
     }
 
     private void SendToChat(long chatId, string messageText, string? imagePath, int? messageThreadId)

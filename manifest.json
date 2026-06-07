@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.1.8",
+        "changelog": "Feat: Newsletter bündelt Episoden einer Serie jetzt in einer Nachricht (z.B. Staffel 1 · Episode 1 bis 12). Einzelne neue Episoden werden weiterhin separat gemeldet. Serien- und Staffel-Events werden nicht mehr doppelt gesendet.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "EC6B74F68DA10095E0DD8DC821B470C3",
+        "timestamp": "2026-06-07 22:15:00"
+      },
+      {
         "version": "1.0.1.7",
         "changelog": "Fix: Eingabefelder für Chat-ID und Topic-IDs in der Gruppeneinstellung sind nun immer editierbar, sobald eine Gruppe ausgewählt ist. Vorher waren sie gesperrt bis eine Chat-ID bereits hinterlegt war (Sackgasse).",
         "targetAbi": "10.9.0.0",
