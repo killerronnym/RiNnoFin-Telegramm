@@ -6,7 +6,7 @@
     "description": "Telegram-Integration für Jellyfin mit SSO-Anmeldung, Passwortänderung, Medien-Newsletter und Request-Management.",
     "owner": "Ronny",
     "overview": "RiNnoFin Telegramm verbindet Jellyfin mit Telegram. Ermöglicht Benutzern die Anmeldung via Telegram SSO, Passwortänderungen im Chat, das Abonnieren von Medien-Newslettern für neue Filme, Serien & Musik, sowie das Einrichten von Gruppenordnern und das Einreichen von Medien-Anfragen.",
-    "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/rinnofin_plugin_cover.png",
+    "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
         "version": "1.0.0.2",

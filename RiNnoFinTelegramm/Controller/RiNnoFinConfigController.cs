@@ -59,7 +59,7 @@ public class RiNnoFinConfigController : ControllerBase
                         await botClient.SendMessage(
                             link.TelegramUserId,
                             "✅ *Test erfolgreich!*\nDein Jellyfin-Server hat den Bot-Token erfolgreich überprüft und sich mit Telegram verbunden.",
-                            Telegram.Bot.Types.Enums.ParseMode.Markdown,
+                            global::Telegram.Bot.Types.Enums.ParseMode.Markdown,
                             cancellationToken: ct.Token
                         );
                         messageSent = true;
