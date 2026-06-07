@@ -25,207 +25,149 @@ public static class QuizHelper
         "Dokumentarfilm", "Animation", "Abenteuer", "Fantasy", "Krimi", "Romantik"
     };
 
-    public static async Task<bool> SendQuizQuestionAsync(ITelegramBotClient botClient, long chatId, int? messageThreadId, ILogger logger, CancellationToken cancellationToken)
+    /// <summary>
+    /// Sends a random quiz question to the given chat.
+    /// Throws on Telegram API errors so the caller can display the real message.
+    /// Topic ID is optional – null or 0 means main chat.
+    /// </summary>
+    public static async Task<bool> SendQuizQuestionAsync(
+        ITelegramBotClient botClient,
+        long chatId,
+        int? messageThreadId,
+        ILogger logger,
+        CancellationToken cancellationToken)
     {
-        // Topic ID ist optional: 0 oder null → kein Topic (Nachricht im Hauptchat)
+        // Topic ID ist optional: 0 oder null → Hauptchat (kein Topic)
         int? threadId = (messageThreadId ?? 0) > 0 ? messageThreadId : null;
 
-        try
+        logger.LogInformation("QuizHelper: Chat={ChatId} ThreadId={ThreadId}", chatId, threadId?.ToString() ?? "null");
+
+        var libraryManager = RiNnoFinPlugin.Instance?.LibraryManager
+            ?? throw new InvalidOperationException("LibraryManager ist nicht verfügbar.");
+
+        var items = libraryManager.GetItemList(new InternalItemsQuery
         {
-            var libraryManager = RiNnoFinPlugin.Instance?.LibraryManager;
-            if (libraryManager == null)
-            {
-                logger.LogError("QuizHelper: LibraryManager ist null.");
-                return false;
-            }
+            IncludeItemTypes = new[] { BaseItemKind.Movie, BaseItemKind.Series },
+            Recursive = true,
+            IsVirtualItem = false
+        }).Where(i => !string.IsNullOrEmpty(i.Name)).ToList();
 
-            // Fetch movies and series
-            var query = new InternalItemsQuery
-            {
-                IncludeItemTypes = new[] { BaseItemKind.Movie, BaseItemKind.Series },
-                Recursive = true,
-                IsVirtualItem = false
-            };
-
-            var items = libraryManager.GetItemList(query)
-                .Where(i => !string.IsNullOrEmpty(i.Name))
-                .ToList();
-
-            if (items.Count == 0)
-            {
-                logger.LogWarning("QuizHelper: Keine Filme oder Serien in der Bibliothek gefunden.");
-                await botClient.SendMessage(
-                    chatId,
-                    "⚠️ Es wurden keine Filme oder Serien in der Bibliothek gefunden, um ein Quiz zu erstellen.",
-                    messageThreadId: threadId,
-                    cancellationToken: cancellationToken
-                );
-                return false;
-            }
-
-            // Choose a random question type:
-            // 0: Year of Production
-            // 1: Genre
-            // 2: Episode association
-            int questionType = Rng.Next(0, 3);
-            
-            // If we have very few series, type 2 might fail, so let's check and fallback if needed
-            var seriesItems = items.Where(i => i is Series).ToList();
-            if (questionType == 2 && seriesItems.Count == 0)
-            {
-                questionType = Rng.Next(0, 2);
-            }
-
-            string questionText = string.Empty;
-            List<string> options = new();
-            int correctOptionIndex = 0;
-
-            if (questionType == 0) // Year
-            {
-                // Find an item with a production year
-                var itemsWithYear = items.Where(i => i.ProductionYear.HasValue).ToList();
-                if (itemsWithYear.Count == 0) itemsWithYear = items; // Fallback
-
-                var selectedItem = itemsWithYear[Rng.Next(itemsWithYear.Count)];
-                int correctYear = selectedItem.ProductionYear ?? Rng.Next(1990, 2026);
-
-                var isMovie = selectedItem is Movie;
-                var mediaTypeWord = isMovie ? "Film" : "Serie";
-                questionText = $"Aus welchem Jahr stammt der {mediaTypeWord} '{selectedItem.Name}'?";
-
-                // Generate 3 unique wrong years close to correct
-                var wrongYears = new HashSet<int>();
-                while (wrongYears.Count < 3)
-                {
-                    int offset = Rng.Next(-10, 10);
-                    if (offset != 0)
-                    {
-                        int wrongYear = correctYear + offset;
-                        if (wrongYear > 1900 && wrongYear <= DateTime.UtcNow.Year)
-                        {
-                            wrongYears.Add(wrongYear);
-                        }
-                    }
-                }
-
-                var allOptions = wrongYears.Select(y => y.ToString()).ToList();
-                correctOptionIndex = Rng.Next(0, 4);
-                allOptions.Insert(correctOptionIndex, correctYear.ToString());
-                options = allOptions;
-            }
-            else if (questionType == 1) // Genre
-            {
-                var itemsWithGenres = items.Where(i => i.Genres != null && i.Genres.Length > 0).ToList();
-                if (itemsWithGenres.Count == 0)
-                {
-                    // Fallback to year type
-                    return await SendQuizQuestionAsync(botClient, chatId, threadId, logger, cancellationToken);
-                }
-
-                var selectedItem = itemsWithGenres[Rng.Next(itemsWithGenres.Count)];
-                string correctGenre = selectedItem.Genres[0];
-
-                var isMovie = selectedItem is Movie;
-                var mediaTypeWord = isMovie ? "Film" : "Serie";
-                questionText = $"Welchem Genre ist der {mediaTypeWord} '{selectedItem.Name}' zugeordnet?";
-
-                // Generate 3 wrong genres
-                var wrongGenres = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                var otherGenresInLibrary = itemsWithGenres
-                    .SelectMany(i => i.Genres)
-                    .Where(g => !string.Equals(g, correctGenre, StringComparison.OrdinalIgnoreCase))
-                    .Distinct()
-                    .ToList();
-
-                var pool = otherGenresInLibrary.Count >= 3 ? otherGenresInLibrary : Genres.ToList();
-                while (wrongGenres.Count < 3)
-                {
-                    string randomGenre = pool[Rng.Next(pool.Count)];
-                    if (!string.Equals(randomGenre, correctGenre, StringComparison.OrdinalIgnoreCase))
-                    {
-                        wrongGenres.Add(randomGenre);
-                    }
-                }
-
-                var allOptions = wrongGenres.ToList();
-                correctOptionIndex = Rng.Next(0, 4);
-                allOptions.Insert(correctOptionIndex, correctGenre);
-                options = allOptions;
-            }
-            else // Episode association
-            {
-                // Fetch all episodes
-                var epQuery = new InternalItemsQuery
-                {
-                    IncludeItemTypes = new[] { BaseItemKind.Episode },
-                    Recursive = true,
-                    IsVirtualItem = false
-                };
-                var episodes = libraryManager.GetItemList(epQuery)
-                    .Where(e => e is Episode && !string.IsNullOrEmpty(e.Name) && !string.IsNullOrEmpty(((Episode)e).SeriesName))
-                    .Cast<Episode>()
-                    .ToList();
-
-                if (episodes.Count == 0)
-                {
-                    // Fallback to year type
-                    return await SendQuizQuestionAsync(botClient, chatId, threadId, logger, cancellationToken);
-                }
-
-                var selectedEpisode = episodes[Rng.Next(episodes.Count)];
-                string correctSeries = selectedEpisode.SeriesName!;
-                questionText = $"Zu welcher Serie gehört die Episode '{selectedEpisode.Name}'?";
-
-                // Generate 3 wrong series names
-                var wrongSeries = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                var allSeriesNames = seriesItems.Select(s => s.Name).Where(n => !string.Equals(n, correctSeries, StringComparison.OrdinalIgnoreCase)).Distinct().ToList();
-
-                if (allSeriesNames.Count >= 3)
-                {
-                    while (wrongSeries.Count < 3)
-                    {
-                        string randomSeries = allSeriesNames[Rng.Next(allSeriesNames.Count)];
-                        wrongSeries.Add(randomSeries);
-                    }
-                }
-                else
-                {
-                    // Fallback to another question type if not enough series
-                    return await SendQuizQuestionAsync(botClient, chatId, threadId, logger, cancellationToken);
-                }
-
-                var allOptions = wrongSeries.ToList();
-                correctOptionIndex = Rng.Next(0, 4);
-                allOptions.Insert(correctOptionIndex, correctSeries);
-                options = allOptions;
-            }
-
-            // Ensure option text length does not exceed 100 characters (Telegram limit)
-            options = options.Select(o => o.Length > 100 ? o.Substring(0, 97) + "..." : o).ToList();
-            if (questionText.Length > 300)
-            {
-                questionText = questionText.Substring(0, 297) + "...";
-            }
-
-            var pollOptions = options.Select(o => new InputPollOption(o)).ToArray();
-
-            await botClient.SendPoll(
-                chatId: chatId,
-                question: questionText,
-                options: pollOptions,
-                type: PollType.Quiz,
-                correctOptionId: correctOptionIndex,
-                isAnonymous: false,
+        if (items.Count == 0)
+        {
+            await botClient.SendMessage(chatId,
+                "⚠️ Keine Filme oder Serien in der Bibliothek gefunden.",
                 messageThreadId: threadId,
-                cancellationToken: cancellationToken
-            );
-
-            return true;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Fehler beim Erstellen/Senden der Quizfrage.");
+                cancellationToken: cancellationToken);
             return false;
         }
+
+        var seriesItems = items.Where(i => i is Series).ToList();
+        int questionType = Rng.Next(0, 3);
+        if (questionType == 2 && seriesItems.Count == 0)
+            questionType = Rng.Next(0, 2);
+
+        string questionText;
+        List<string> options;
+        int correctOptionIndex;
+
+        if (questionType == 0) // Jahr
+        {
+            var withYear = items.Where(i => i.ProductionYear.HasValue).ToList();
+            if (withYear.Count == 0) withYear = items;
+
+            var item = withYear[Rng.Next(withYear.Count)];
+            int correctYear = item.ProductionYear ?? Rng.Next(1990, 2026);
+            questionText = $"Aus welchem Jahr stammt der {(item is Movie ? "Film" : "Serie")} '{item.Name}'?";
+
+            var wrongYears = new HashSet<int>();
+            while (wrongYears.Count < 3)
+            {
+                int offset = Rng.Next(-10, 10);
+                if (offset == 0) continue;
+                int wy = correctYear + offset;
+                if (wy > 1900 && wy <= DateTime.UtcNow.Year) wrongYears.Add(wy);
+            }
+            options = wrongYears.Select(y => y.ToString()).ToList();
+            correctOptionIndex = Rng.Next(0, 4);
+            options.Insert(correctOptionIndex, correctYear.ToString());
+        }
+        else if (questionType == 1) // Genre
+        {
+            var withGenres = items.Where(i => i.Genres?.Length > 0).ToList();
+            if (withGenres.Count == 0)
+                return await SendQuizQuestionAsync(botClient, chatId, threadId, logger, cancellationToken);
+
+            var item = withGenres[Rng.Next(withGenres.Count)];
+            string correctGenre = item.Genres[0];
+            questionText = $"Welchem Genre gehört der {(item is Movie ? "Film" : "Serie")} '{item.Name}' an?";
+
+            var pool = withGenres.SelectMany(i => i.Genres)
+                .Where(g => !string.Equals(g, correctGenre, StringComparison.OrdinalIgnoreCase))
+                .Distinct().ToList();
+            if (pool.Count < 3) pool = Genres.ToList();
+
+            var wrongGenres = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            while (wrongGenres.Count < 3)
+            {
+                string g = pool[Rng.Next(pool.Count)];
+                if (!string.Equals(g, correctGenre, StringComparison.OrdinalIgnoreCase))
+                    wrongGenres.Add(g);
+            }
+            options = wrongGenres.ToList();
+            correctOptionIndex = Rng.Next(0, 4);
+            options.Insert(correctOptionIndex, correctGenre);
+        }
+        else // Episode-Zuordnung
+        {
+            var episodes = libraryManager.GetItemList(new InternalItemsQuery
+            {
+                IncludeItemTypes = new[] { BaseItemKind.Episode },
+                Recursive = true,
+                IsVirtualItem = false
+            }).OfType<Episode>()
+              .Where(ep => !string.IsNullOrEmpty(ep.Name) && !string.IsNullOrEmpty(ep.SeriesName))
+              .ToList();
+
+            if (episodes.Count == 0)
+                return await SendQuizQuestionAsync(botClient, chatId, threadId, logger, cancellationToken);
+
+            var ep = episodes[Rng.Next(episodes.Count)];
+            string correctSeries = ep.SeriesName!;
+            questionText = $"Zu welcher Serie gehört die Episode '{ep.Name}'?";
+
+            var otherSeries = seriesItems.Select(s => s.Name)
+                .Where(n => !string.Equals(n, correctSeries, StringComparison.OrdinalIgnoreCase))
+                .Distinct().ToList();
+
+            if (otherSeries.Count < 3)
+                return await SendQuizQuestionAsync(botClient, chatId, threadId, logger, cancellationToken);
+
+            var wrong = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            while (wrong.Count < 3)
+                wrong.Add(otherSeries[Rng.Next(otherSeries.Count)]);
+
+            options = wrong.ToList();
+            correctOptionIndex = Rng.Next(0, 4);
+            options.Insert(correctOptionIndex, correctSeries);
+        }
+
+        // Telegram-Längenbegrenzungen einhalten
+        options = options.Select(o => o.Length > 100 ? o[..97] + "..." : o).ToList();
+        if (questionText.Length > 300) questionText = questionText[..297] + "...";
+
+        logger.LogInformation("QuizHelper: Sende Poll '{Q}' ({Count} Optionen)", questionText, options.Count);
+
+        await botClient.SendPoll(
+            chatId: chatId,
+            question: questionText,
+            options: options.Select(o => new InputPollOption(o)).ToArray(),
+            type: PollType.Quiz,
+            correctOptionId: correctOptionIndex,
+            isAnonymous: false,
+            messageThreadId: threadId,
+            cancellationToken: cancellationToken
+        );
+
+        return true;
     }
 }

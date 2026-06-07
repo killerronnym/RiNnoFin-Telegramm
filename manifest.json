@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.2.0",
+        "changelog": "Fix: Quizfrage-Fehler vollständig behoben – Telegram-Fehlermeldungen werden jetzt klar im Dashboard angezeigt statt 'Unbekannter Fehler'. QuizHelper gibt Fehler nicht mehr still zurück, sondern leitet sie an den Controller weiter.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "E9B9B5B51F1A71C95C4399B8FACC7A21",
+        "timestamp": "2026-06-07 23:00:00"
+      },
+      {
         "version": "1.0.1.9",
         "changelog": "Fix: Quiz-Fehler 'Unbekannter Fehler' behoben – Topic-IDs sind jetzt wirklich optional (leer = Quizfrage im Hauptchat). Echte Fehlermeldungen von Telegram werden nun im UI angezeigt.",
         "targetAbi": "10.9.0.0",
