@@ -526,14 +526,10 @@ const tgTokenHelper = {
     currentUserName: "INVALID_BOT_TOKEN",
 
     validateToken(page, token) {
-        const saveButton = page.querySelector("#SaveConfig");
-        saveButton.disabled = true;
-        saveButton.classList.add("raised");
-
         tgTokenHelper.currentToken = token.trim();
         return window.ApiClient.ajax(
             {
-                url: window.ApiClient.getUrl("/api/RiNnoFinConfig/ValidateBotToken"),
+                url: window.ApiClient.getUrl("/api/RiNnoFinConfig/TestBotToken"),
                 type: "POST",
                 data: JSON.stringify({Token: token}),
                 contentType: "application/json",
@@ -543,7 +539,7 @@ const tgTokenHelper = {
                 tgTokenHelper.handleValidationResponse(page, data);
             })
             .catch(error => {
-                tgTokenHelper.handleValidationResponse(page, {ErrorMessage: error.message});
+                tgTokenHelper.handleValidationResponse(page, {ErrorMessage: error.message || "Fehler beim Verbinden"});
             });
     },
 
@@ -556,21 +552,24 @@ const tgTokenHelper = {
             tgTokenHelper.currentUserName = data.BotUsername;
             nameElement.innerHTML = `✅ Verbunden als @${data.BotUsername}`;
 
+            if (data.AdminMessageSent) {
+                window.Dashboard.alert(`Erfolgreich verbunden! Testnachricht wurde an die Administratoren gesendet.`);
+            } else {
+                window.Dashboard.alert(`Erfolgreich verbunden als @${data.BotUsername}. (Keine Testnachricht gesendet, da keine Chat-IDs für die Admins gefunden wurden)`);
+            }
+
             if (tgConfigPage.currentGroup) {
                 const encodedText = btoa(`${LinkPrefix}${tgConfigPage.currentGroup}`);
                 page.querySelector("#BotLinkCommandUrl").href = `https://t.me/${data.BotUsername}?startgroup=${encodedText}`;
             } else {
                 page.querySelector("#BotLinkCommandUrl").href = `https://t.me/${data.BotUsername}?startgroup`;
             }
-
-            const saveButton = page.querySelector("#SaveConfig");
-            saveButton.disabled = false;
-            saveButton.classList.remove("raised");
         } else {
             nameElement.style.color = "indianred";
             tokenElement.style.borderColor = "indianred";
             tgTokenHelper.currentUserName = "";
             nameElement.innerHTML = `❌ Nicht verbunden: ${data.ErrorMessage || "Ungültiger Token"}`;
+            window.Dashboard.alert(`Fehler bei der Überprüfung: ${data.ErrorMessage || "Ungültiger Token"}`);
         }
     }
 }
@@ -656,11 +655,16 @@ export default function (view) {
         tgConfigPage.addRequest(view);
     });
 
-    let debounce;
     const inputElement = view.querySelector("#TgBotToken");
-    inputElement.addEventListener("input", () => {
-        clearTimeout(debounce);
-        debounce = setTimeout(() => tgTokenHelper.validateToken(view, inputElement.value), 250);
+    
+    view.querySelector("#TestTokenBtn").addEventListener("click", (e) => {
+        e.preventDefault();
+        const token = view.querySelector("#TgBotToken").value;
+        if (!token) {
+            window.Dashboard.alert("Bitte gib zuerst einen Token ein.");
+            return;
+        }
+        tgTokenHelper.validateToken(view, token);
     });
 
     const loginUrl = window.ApiClient.getUrl("/sso/Telegram");

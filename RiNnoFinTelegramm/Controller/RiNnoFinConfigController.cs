@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
 using Jellyfin.Plugin.RiNnoFinTelegramm.Classes;
 using Jellyfin.Plugin.RiNnoFinTelegramm.Services;
 using MediaBrowser.Controller.Providers;
@@ -27,12 +28,12 @@ public class RiNnoFinConfigController : ControllerBase
         _providerManager = providerManager ?? throw new ArgumentNullException(nameof(providerManager));
     }
 
-    [HttpPost(nameof(ValidateBotToken))]
+    [HttpPost(nameof(TestBotToken))]
     [Produces(MediaTypeNames.Application.Json)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<ValidateBotTokenResponse>> ValidateBotToken([FromBody] ValidateBotTokenRequest request)
+    public async Task<ActionResult<ValidateBotTokenResponse>> TestBotToken([FromBody] ValidateBotTokenRequest request)
     {
         try
         {
@@ -40,11 +41,41 @@ public class RiNnoFinConfigController : ControllerBase
             using var ct = new CancellationTokenSource(TimeSpan.FromMilliseconds(10000));
             var botInfo = await botClient.GetMe(ct.Token);
 
-            return Ok(new ValidateBotTokenResponse { Ok = true, BotUsername = botInfo.Username! });
+            bool messageSent = false;
+            
+            // Versuche an Administratoren zu senden, die bereits mit dem Bot interagiert haben
+            var config = RiNnoFinPlugin.Instance?.Configuration;
+            if (config != null && config.AdminUserNames.Count > 0 && config.TelegramUserLinks.Count > 0)
+            {
+                var adminUsernamesLower = config.AdminUserNames.Select(u => u.ToLowerInvariant()).ToList();
+                var adminLinks = config.TelegramUserLinks
+                    .Where(l => adminUsernamesLower.Contains(l.TelegramUsername.ToLowerInvariant()))
+                    .ToList();
+
+                foreach (var link in adminLinks)
+                {
+                    try
+                    {
+                        await botClient.SendMessage(
+                            link.TelegramUserId,
+                            "✅ *Test erfolgreich!*\nDein Jellyfin-Server hat den Bot-Token erfolgreich überprüft und sich mit Telegram verbunden.",
+                            Telegram.Bot.Types.Enums.ParseMode.Markdown,
+                            cancellationToken: ct.Token
+                        );
+                        messageSent = true;
+                    }
+                    catch
+                    {
+                        // Ignore send errors for individuals
+                    }
+                }
+            }
+
+            return Ok(new ValidateBotTokenResponse { Ok = true, BotUsername = botInfo.Username!, AdminMessageSent = messageSent });
         }
         catch (Exception)
         {
-            return StatusCode(500, new ValidateBotTokenResponse { ErrorMessage = "Ungültiger Token" });
+            return StatusCode(500, new ValidateBotTokenResponse { ErrorMessage = "Ungültiger Token oder Verbindungsfehler" });
         }
     }
 

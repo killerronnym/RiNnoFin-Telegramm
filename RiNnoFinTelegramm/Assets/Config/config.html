@@ -81,13 +81,17 @@
                     <form id="BasicConfigForm">
                         <fieldset class="verticalSection">
                             <legend><h3>Allgemeine Konfiguration</h3></legend>
-                            <!-- BotToken -->
                             <div class="inputContainer bot-token-input">
                                 <div>
                                     <label class="inputLabel inputLabelUnfocused" for="TgBotToken">Telegram Bot Token:</label>
-                                    <input class="sso-text" id="TgBotToken" is="emby-input" maxlength="200" required="required" type="password"/>
+                                    <div style="display: flex; gap: 10px;">
+                                        <input class="sso-text" id="TgBotToken" is="emby-input" maxlength="200" required="required" type="password" style="flex: 1;" />
+                                        <button class="raised button-alt emby-button" id="TestTokenBtn" is="emby-button" type="button" style="margin: 0; padding: 0.5em 1em;">
+                                            <span>Token testen</span>
+                                        </button>
+                                    </div>
                                 </div>
-                                <a class="button-link" id="show-hide-token" is="emby-linkbutton" target="_blank">
+                                <a class="button-link" id="show-hide-token" is="emby-linkbutton" target="_blank" style="margin-top: 5px;">
                                     <p>Anzeigen / Ausblenden</p>
                                 </a>
                                 <div class="fieldDescription">

@@ -7,4 +7,6 @@ public class ValidateBotTokenResponse
     public string? ErrorMessage { get; set; }
 
     public string? BotUsername { get; set; }
+    
+    public bool AdminMessageSent { get; set; }
 }
