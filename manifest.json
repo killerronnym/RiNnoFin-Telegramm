@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.0.6",
+        "changelog": "Bugfix: Groß-/Kleinschreibung beim Laden des Logos auf der Login-Seite korrigiert.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://github.com/killerronnym/RiNnoFin-Telegramm/releases/download/v1.0.0.6/RiNnoFinTelegramm.zip",
+        "checksum": "47F68D64E7AC51440641CD5918A21714",
+        "timestamp": "2026-06-07 18:16:00"
+      },
+      {
         "version": "1.0.0.5",
         "changelog": "Feature: Telegram-Bot sendet nun einen direkten 'Mit Jellyfin verknüpfen'-Button in den Chat, wenn ein Nutzer Befehle ausführt, aber sein Konto noch nicht verknüpft hat. Der Button führt direkt zum SSO-Login.",
         "targetAbi": "10.9.0.0",

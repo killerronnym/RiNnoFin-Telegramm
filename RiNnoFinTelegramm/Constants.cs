@@ -56,7 +56,7 @@ public static class Constants
 
     public static string UserImageFolder => "userimages";
 
-    public static string DefaultUserImageExtraFile => "RiNnoFinLogo.png";
+    public static string DefaultUserImageExtraFile => "rinnofinlogo.png";
 
     public static string DefaultBotToken => "12345678:xxxxxxxxxxxxxxx";
 }
