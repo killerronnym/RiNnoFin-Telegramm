@@ -179,7 +179,12 @@ internal class CommandNeuBenutzerStep2 : ICommandBase
                 email = email,
                 label = username,
                 profile = "Standard User",
-                send_to = email
+                send_to = email,
+                remaining_uses = 1,
+                months = 0,
+                days = 1, // Gültig für 1 Tag
+                hours = 0,
+                minutes = 0
             };
 
             var inviteJson = JsonSerializer.Serialize(invitePayload);

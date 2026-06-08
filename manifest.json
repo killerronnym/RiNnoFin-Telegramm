@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.2.5",
+        "changelog": "Fix: JFA-Go Invites verfallen nicht mehr sofort. Gültigkeit auf 1 Tag (days: 1) und 1 Verwendung (remaining_uses: 1) gesetzt.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "7F298B1CCE82ADAC1915F61E9738ECF1",
+        "timestamp": "2026-06-08 10:20:00"
+      },
+      {
         "version": "1.0.2.4",
         "changelog": "Fix: E-Mail Validierung hinzugefügt und JFA-Go Error-Handling (HTTP 401 & 404) verbessert, damit Login-Fehler für Nutzer besser erkennbar sind.",
         "targetAbi": "10.9.0.0",
