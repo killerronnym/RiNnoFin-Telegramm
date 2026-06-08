@@ -103,6 +103,17 @@ internal class CommandNeuBenutzerStep2 : ICommandBase
         var email = message.Text?.Trim();
         if (string.IsNullOrWhiteSpace(email)) return;
 
+        // E-Mail Validierung
+        if (!System.Text.RegularExpressions.Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+        {
+            await botClient.SendMessage(
+                message.Chat.Id,
+                "⚠️ Die eingegebene E-Mail-Adresse scheint ungültig zu sein. Bitte antworte erneut auf diese Nachricht mit einer korrekten E-Mail-Adresse.",
+                replyMarkup: new ForceReplyMarkup { Selective = true },
+                cancellationToken: cancellationToken);
+            return;
+        }
+
         if (!CommandNeuBenutzerStep1.PendingUsernames.TryRemove(message.From!.Id, out var username))
         {
             await botClient.SendMessage(
@@ -127,9 +138,16 @@ internal class CommandNeuBenutzerStep2 : ICommandBase
             if (!loginResponse.IsSuccessStatusCode)
             {
                 telegramBotService.Logger.LogWarning("JFA-Go Login fehlgeschlagen: {Status} - {Response}", loginResponse.StatusCode, loginResponseContent);
+                
+                string errorMsg = loginResponse.StatusCode == System.Net.HttpStatusCode.Unauthorized
+                    ? "❌ JFA-Go Login fehlgeschlagen (401 Unauthorized). Bitte überprüfe Benutzername und Passwort in den Plugin-Einstellungen."
+                    : loginResponse.StatusCode == System.Net.HttpStatusCode.NotFound
+                    ? "❌ JFA-Go Login-Endpunkt nicht gefunden (404 NotFound). Möglicherweise ist der API-Endpunkt 'GET /token/login' für deine JFA-Go Version nicht korrekt."
+                    : $"❌ JFA-Go Login fehlgeschlagen (Status {loginResponse.StatusCode}).";
+
                 await botClient.SendMessage(
                     message.Chat.Id,
-                    $"❌ JFA-Go Login fehlgeschlagen (Status {loginResponse.StatusCode}). Bitte überprüfe Benutzername und Passwort.",
+                    errorMsg,
                     cancellationToken: cancellationToken);
                 return;
             }

@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.2.4",
+        "changelog": "Fix: E-Mail Validierung hinzugefügt und JFA-Go Error-Handling (HTTP 401 & 404) verbessert, damit Login-Fehler für Nutzer besser erkennbar sind.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "33411CF843567CFA532F28CBD6208DED",
+        "timestamp": "2026-06-08 10:10:00"
+      },
+      {
         "version": "1.0.2.3",
         "changelog": "Fix: Befehl '/NeuerBenutzer' (sowie das Alias '/NeuBenutzer') korrekt in der Hilfe und im Bot registriert. Auth-Methode in JFA-Go auf Login mit Benutzername und Passwort umgestellt (die Einstellungen wurden entsprechend auf Benutzername/Passwort geändert).",
         "targetAbi": "10.9.0.0",
