@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.2.6",
+        "changelog": "Fix: JFA-Go JSON-Payload auf Bindestrich-Format ('send-to', 'no-limit', 'remaining-uses') umgestellt. E-Mail-Versand und Limitierungen (unbegrenzt) funktionieren nun korrekt.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "A61DF59E5DDDDDF36C229F7B2E9CFF23",
+        "timestamp": "2026-06-08 10:35:00"
+      },
+      {
         "version": "1.0.2.5",
         "changelog": "Fix: JFA-Go Invites verfallen nicht mehr sofort. Gültigkeit auf 1 Tag (days: 1) und 1 Verwendung (remaining_uses: 1) gesetzt.",
         "targetAbi": "10.9.0.0",

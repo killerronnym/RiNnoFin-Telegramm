@@ -173,18 +173,22 @@ internal class CommandNeuBenutzerStep2 : ICommandBase
                 return;
             }
 
-            // 2. Create Invite
-            var invitePayload = new
+            // 2. Create Invite (mit Dictionary für Bindestrich-Schlüssel)
+            var invitePayload = new System.Collections.Generic.Dictionary<string, object>
             {
-                email = email,
-                label = username,
-                profile = "Standard User",
-                send_to = email,
-                remaining_uses = 1,
-                months = 0,
-                days = 1, // Gültig für 1 Tag
-                hours = 0,
-                minutes = 0
+                { "email", email },
+                { "label", username },
+                { "profile", "Standard User" },
+                { "send-to", email },
+                { "user-expiry", false },
+                { "multiple-uses", true },
+                { "no-limit", true },
+                { "remaining-uses", 0 },
+                { "months", 0 },
+                { "days", 0 }, // Kein Ablaufdatum (no-limit)
+                { "hours", 0 },
+                { "minutes", 0 },
+                { "user_label", "" }
             };
 
             var inviteJson = JsonSerializer.Serialize(invitePayload);
