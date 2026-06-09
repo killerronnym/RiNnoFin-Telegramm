@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.0",
+        "changelog": "Feature & Fix: Behebt das 'Lade Profile...'-Problem in der Benutzerverwaltung sowie Abstürze beim Laden der Benutzerliste. Zusätzlich wurde ein neues, hochprofessionelles Echtzeit-Log-System ('Protokoll') im Dashboard integriert, um Fehler direkt dort einsehen zu können. Detaillierte Ablaufprotokolle bei der Registrierung erleichtern die Fehlerdiagnose.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "DB3DF9817BB1A6E85082F4E7C30C87EE",
+        "timestamp": "2026-06-09 21:20:00"
+      },
+      {
         "version": "1.0.3.9",
         "changelog": "Hotfix: Behebt das 'Error processing request.'-Problem bei der Registrierung. Fehler beim E-Mail-Versand (z.B. falsche SMTP-Daten) blockieren nun nicht mehr die erfolgreiche Accounterstellung. Zusätzlich werden generelle Fehler jetzt sauber im Web-Frontend angezeigt statt als 500-Error abzustürzen.",
         "targetAbi": "10.9.0.0",

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Mime;
 using System.Threading;
@@ -282,46 +282,65 @@ public class RiNnoFinConfigController : ControllerBase
         [FromBody] AcceptInviteRequest request,
         CancellationToken cancellationToken)
     {
+        PluginLog.Info($"AcceptInvite aufgerufen für Username: '{request.Username}' mit Token: '{request.Token}'");
+
         if (string.IsNullOrWhiteSpace(request.Token) || string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
         {
-            return BadRequest(new { message = "Alle Felder mÃ¼ssen ausgefÃ¼llt sein." });
+            PluginLog.Warn("AcceptInvite abgelehnt: Eines der Pflichtfelder (Token, Username, Password) ist leer.");
+            return BadRequest(new { message = "Alle Felder müssen ausgefüllt sein." });
         }
 
         if (!Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.Commands.InviteTokenManager.ActiveInvites.TryRemove(request.Token, out var email))
         {
-            return BadRequest(new { message = "UngÃ¼ltiger oder abgelaufener Einladungslink." });
+            PluginLog.Warn($"AcceptInvite abgelehnt: Token '{request.Token}' ist ungültig oder abgelaufen.");
+            return BadRequest(new { message = "Ungültiger oder abgelaufener Einladungslink." });
         }
 
         try
         {
+            PluginLog.Info($"Prüfe ob Benutzer '{request.Username}' bereits existiert...");
             var existingUser = userManager.GetUserByName(request.Username);
             if (existingUser != null)
             {
+                PluginLog.Warn($"Benutzername '{request.Username}' ist bereits vergeben.");
                 return BadRequest(new { message = "Dieser Benutzername ist bereits vergeben." });
             }
 
-            // Create user
+            PluginLog.Info($"Erstelle neuen Jellyfin Benutzer '{request.Username}'...");
             var user = await userManager.CreateUserAsync(request.Username).ConfigureAwait(false);
+            PluginLog.Info($"Jellyfin Benutzer '{request.Username}' erfolgreich angelegt (ID: {user.Id}). Setze Passwort...");
             
             // Set password
             user.Password = cryptoProvider.CreatePasswordHash(request.Password).ToString();
             await userManager.UpdateUserAsync(user).ConfigureAwait(false);
+            PluginLog.Info("Passwort erfolgreich gesetzt und Benutzer aktualisiert.");
 
             // Clone Policy if provided
             if (Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.Commands.InviteTokenManager.InviteProfiles.TryRemove(request.Token, out var profileUserId) && profileUserId.HasValue)
             {
+                PluginLog.Info($"Profil-Cloning angefordert. Kopiere Rechte von Profile-User ID: '{profileUserId.Value}' auf neuen User '{user.Id}'...");
                 var profileUser = userManager.GetUserById(profileUserId.Value);
                 if (profileUser != null)
                 {
                     var profileDto = userManager.GetUserDto(profileUser, string.Empty);
                     await userManager.UpdatePolicyAsync(user.Id, profileDto.Policy).ConfigureAwait(false);
+                    PluginLog.Info("Rechte erfolgreich geklont.");
+                }
+                else
+                {
+                    PluginLog.Warn($"Profil-User mit ID '{profileUserId.Value}' wurde nicht gefunden. Rechte konnten nicht geklont werden.");
                 }
             }
+            else
+            {
+                PluginLog.Info("Kein Profil-Cloning für diesen Einladungslink konfiguriert.");
+            }
 
-            // Speichern der E-Mail im Plugin-Config (damit wir wissen, wem dieser Account gehÃ¶rt)
+            // Speichern der E-Mail im Plugin-Config (damit wir wissen, wem dieser Account gehört)
             var config = RiNnoFinPlugin.Instance?.Configuration;
             if (config != null)
             {
+                PluginLog.Info("Verknüpfe E-Mail-Adresse in Plugin-Konfiguration...");
                 if (config.TelegramUserLinks == null) config.TelegramUserLinks = new List<TelegramUserLink>();
                 var existingLink = config.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == user.Id);
                 if (existingLink != null)
@@ -338,6 +357,7 @@ public class RiNnoFinConfigController : ControllerBase
                     });
                 }
                 RiNnoFinPlugin.Instance?.UpdateConfiguration(config);
+                PluginLog.Info("E-Mail-Adresse erfolgreich verknüpft.");
 
                 // Send Welcome Email
                 string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplateWelcome)
@@ -345,22 +365,34 @@ public class RiNnoFinConfigController : ControllerBase
                     : $@"
                     <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
                         <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
-                            <h2 style='color: #2563eb;'>Willkommen an Bord! ðŸ§ðŸŽ¬</h2>
+                            <h2 style='color: #2563eb;'>Willkommen an Bord! 🍿</h2>
                             <p>Hallo <strong>{user.Username}</strong>,</p>
                             <p>Dein Account bei <strong>RiNnoFin Media</strong> wurde erfolgreich erstellt.</p>
-                            <p>Du kannst dich ab sofort mit deinem gewÃ¤hlten Passwort auf all deinen GerÃ¤ten einloggen.</p>
+                            <p>Du kannst dich ab sofort mit deinem gewählten Passwort auf all deinen Geräten einloggen.</p>
                             <br/>
-                            <p style='color: #9ca3af; font-size: 12px; text-align: center;'>Viel SpaÃŸ beim Streamen! ðŸ¿ Dein RiNnoFin-Team</p>
+                            <p style='color: #9ca3af; font-size: 12px; text-align: center;'>Viel Spaß beim Streamen! 🍿 Dein RiNnoFin-Team</p>
                         </div>
                     </div>";
 
-                try { await emailService.SendEmailAsync(config, email, "Willkommen bei RiNnoFin Media! ðŸ¿", htmlBody); } catch (Exception emailEx) { _logger.LogError(emailEx, "Konnte Willkommens-E-Mail nicht senden."); }
+                try 
+                {
+                    PluginLog.Info($"Sende Willkommens-E-Mail an '{email}'...");
+                    await emailService.SendEmailAsync(config, email, "Willkommen bei RiNnoFin Media! 🍿", htmlBody);
+                    PluginLog.Info("Willkommens-E-Mail erfolgreich versendet.");
+                } 
+                catch (Exception emailEx) 
+                {
+                    PluginLog.Error(emailEx, "Konnte Willkommens-E-Mail nicht senden.");
+                    _logger.LogError(emailEx, "Konnte Willkommens-E-Mail nicht senden."); 
+                }
             }
 
+            PluginLog.Info($"Registrierung für Benutzer '{request.Username}' erfolgreich abgeschlossen.");
             return Ok(new { message = "Account erfolgreich erstellt!" });
         }
         catch (Exception ex)
         {
+            PluginLog.Error(ex, $"Kritischer Fehler bei AcceptInvite für Username '{request.Username}'");
             _logger.LogError(ex, "Fehler beim Erstellen des Accounts für Einladung.");
             return BadRequest(new { message = "Fehler beim Erstellen des Accounts: " + ex.Message });
         }
@@ -506,7 +538,7 @@ public class RiNnoFinConfigController : ControllerBase
             foreach (var u in users)
             {
                 var link = config?.TelegramUserLinks != null ? config.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == u.Id) : null;
-                var uDto = userManager.GetUserDto(u, null);
+                var uDto = userManager.GetUserDto(u, string.Empty);
                 dtos.Add(new UserDto
                 {
                     Id = u.Id,
@@ -520,6 +552,13 @@ public class RiNnoFinConfigController : ControllerBase
             }
 
             return Ok(dtos.OrderBy(d => d.Username));
+        }
+
+        [HttpGet("GetLogs")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public ActionResult<IEnumerable<string>> GetLogs()
+        {
+            return Ok(PluginLog.GetLogs());
         }
 
         [HttpPost("AdminCreateInvite")]

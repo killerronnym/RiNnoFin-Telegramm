@@ -576,7 +576,13 @@
         <div id="tab-logs" class="rinnofin-tab">
             <fieldset class="verticalSection">
                 <legend><h3>Protokoll (Logs)</h3></legend>
-                <p>Hier werden Fehler und Systemereignisse protokolliert.</p>
+                <p style="color: #9ca3af; margin-bottom: 15px;">Hier werden Fehler und Systemereignisse des Plugins protokolliert.</p>
+                <div class="inputContainer">
+                    <textarea class="sso-text" id="PluginLogsArea" readonly rows="15" style="width: 100%; padding: 10px; font-family: monospace; background: rgba(0,0,0,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; resize: vertical;"></textarea>
+                </div>
+                <button class="raised button-alt block emby-button" id="RefreshLogsBtn" is="emby-button" type="button" style="margin-top: 15px;">
+                    <span>Logs aktualisieren</span>
+                </button>
             </fieldset>
         </div>
 

@@ -128,6 +128,33 @@ const tgConfigPage = {
             dataType: "json"
         }).then((users) => {
             tgConfigPage.populateUsers(page, users);
+        }).catch((err) => {
+            const profileSelect = page.querySelector("#InviteProfile");
+            if(profileSelect) {
+                profileSelect.innerHTML = '<option value="">Fehler beim Laden der Profile</option>';
+            }
+            const tbody = page.querySelector("#UserListTbody");
+            if(tbody) {
+                const msg = err?.responseJSON?.message || err?.responseText || "Unbekannter Fehler";
+                tbody.innerHTML = `<tr><td colspan="6" style="padding:10px;text-align:center;color:#ef4444;">Fehler beim Laden: ${msg}</td></tr>`;
+            }
+        });
+    },
+
+    loadLogs: (page) => {
+        window.ApiClient.ajax({
+            url: window.ApiClient.getUrl("/api/RiNnoFinConfig/GetLogs"),
+            type: "GET",
+            dataType: "json"
+        }).then((logs) => {
+            const logsArea = page.querySelector("#PluginLogsArea");
+            if (logsArea) {
+                logsArea.value = (logs && logs.length > 0) ? logs.join("\n") : "Keine Log-Einträge vorhanden.";
+                logsArea.scrollTop = logsArea.scrollHeight;
+            }
+        }).catch(() => {
+            const logsArea = page.querySelector("#PluginLogsArea");
+            if (logsArea) logsArea.value = "Fehler beim Laden der Logs.";
         });
     },
 
@@ -838,6 +865,7 @@ export default function (view) {
     tgConfigPage.loadConfiguration(view);
     tgConfigPage.loadRequests(view);
     tgConfigPage.loadUsers(view);
+    tgConfigPage.loadLogs(view);
 
     tgConfigPage.populateFolders(view).then(() => {
         const inputs = [
@@ -1004,6 +1032,11 @@ export default function (view) {
     view.querySelector("#RefreshUsersBtn")?.addEventListener("click", (e) => {
         e.preventDefault();
         tgConfigPage.loadUsers(view);
+    });
+
+    view.querySelector("#RefreshLogsBtn")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        tgConfigPage.loadLogs(view);
     });
 
     const inputElement = view.querySelector("#TgBotToken");
