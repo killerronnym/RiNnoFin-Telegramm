@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -86,7 +86,8 @@ public class TelegramLoginService
 
         // Benutzer-Telegram-Verbindung registrieren/aktualisieren
         var telegramUserId = long.Parse(userId);
-        var link = _config.TelegramUserLinks.FirstOrDefault(l => l.TelegramUserId == telegramUserId);
+        if (_config.TelegramUserLinks == null) _config.TelegramUserLinks = new List<TelegramUserLink>();
+        var link = _config.TelegramUserLinks?.FirstOrDefault(l => l.TelegramUserId == telegramUserId);
         if (link == null)
         {
             link = new TelegramUserLink
@@ -160,12 +161,12 @@ public class TelegramLoginService
             !fields.TryGetValue(Field.AuthDate, out var authDate) ||
             !fields.TryGetValue(Field.Hash, out var hash))
         {
-            return new TelegramAuthResult { ErrorMessage = "Daten enthalten unvollständige Felder." };
+            return new TelegramAuthResult { ErrorMessage = "Daten enthalten unvollstÃ¤ndige Felder." };
         }
 
         if (!long.TryParse(authDate, out var timestamp))
         {
-            return new TelegramAuthResult { ErrorMessage = "Ungültiges AuthDate-Format." };
+            return new TelegramAuthResult { ErrorMessage = "UngÃ¼ltiges AuthDate-Format." };
         }
 
         if (Math.Abs(DateTime.UtcNow.Subtract(UnixStart).TotalSeconds - timestamp) > AllowedTimeOffset)
@@ -175,7 +176,7 @@ public class TelegramLoginService
 
         if (hash is not { Length: 64 })
         {
-            return new TelegramAuthResult { ErrorMessage = "Ungültiger Hash." };
+            return new TelegramAuthResult { ErrorMessage = "UngÃ¼ltiger Hash." };
         }
 
         var orderedKeys = fields.Keys.Where(k => !string.Equals("hash", k, StringComparison.CurrentCultureIgnoreCase)).ToArray();
@@ -185,7 +186,7 @@ public class TelegramLoginService
         var signatureHex = Convert.ToHexString(signature).ToLowerInvariant();
         if (!string.Equals(signatureHex, hash, StringComparison.OrdinalIgnoreCase))
         {
-            return new TelegramAuthResult { ErrorMessage = "Ungültiger Signatur-Hash." };
+            return new TelegramAuthResult { ErrorMessage = "UngÃ¼ltiger Signatur-Hash." };
         }
 
         return new TelegramAuthResult { Ok = true };

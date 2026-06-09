@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
@@ -22,7 +22,7 @@ internal class CommandStart : ICommandBase
         if (message.Chat.Type == ChatType.Private)
         {
             var senderId = message.From?.Id;
-            var link = senderId.HasValue ? telegramBotService.Config.TelegramUserLinks.FirstOrDefault(l => l.TelegramUserId == senderId.Value) : null;
+            var link = senderId.HasValue ? telegramBotService.Config.TelegramUserLinks?.FirstOrDefault(l => l.TelegramUserId == senderId.Value) : null;
 
             var welcomeText = isAdmin 
                 ? Constants.PrivateAdminWelcomeMessage 
@@ -33,7 +33,7 @@ internal class CommandStart : ICommandBase
             {
                 if (string.IsNullOrEmpty(userUsername))
                 {
-                    welcomeText = "⚠️ *Achtung:* Du hast keinen Telegram-Benutzernamen gesetzt!\nBitte lege in den Telegram-Einstellungen einen Benutzernamen fest, damit du dich mit Jellyfin verknüpfen kannst.\n\n" + welcomeText;
+                    welcomeText = "âš ï¸ *Achtung:* Du hast keinen Telegram-Benutzernamen gesetzt!\nBitte lege in den Telegram-Einstellungen einen Benutzernamen fest, damit du dich mit Jellyfin verknÃ¼pfen kannst.\n\n" + welcomeText;
                 }
                 else
                 {
@@ -49,7 +49,7 @@ internal class CommandStart : ICommandBase
 
             if (link == null)
             {
-                welcomeText = "❌ Dein Telegram-Konto ist noch *nicht* mit einem Jellyfin-Konto verknüpft!\nUm alle Befehle nutzen zu können, verknüpfe bitte zuerst dein Konto:\n\n" + welcomeText;
+                welcomeText = "âŒ Dein Telegram-Konto ist noch *nicht* mit einem Jellyfin-Konto verknÃ¼pft!\nUm alle Befehle nutzen zu kÃ¶nnen, verknÃ¼pfe bitte zuerst dein Konto:\n\n" + welcomeText;
                 
                 var baseUrl = telegramBotService.Config.LoginBaseUrl?.TrimEnd('/');
                 var ssoUrl = string.IsNullOrEmpty(baseUrl) ? string.Empty : $"{baseUrl}/sso/Telegram";
@@ -61,13 +61,13 @@ internal class CommandStart : ICommandBase
                         RequestWriteAccess = true
                     };
                     replyMarkup = new global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(
-                        global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton.WithLoginUrl("🔗 Mit Jellyfin verknüpfen", loginUrl)
+                        global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton.WithLoginUrl("ðŸ”— Mit Jellyfin verknÃ¼pfen", loginUrl)
                     );
                 }
             }
             else
             {
-                welcomeText = "✅ Dein Konto ist erfolgreich mit Jellyfin verknüpft!\n\n" + welcomeText;
+                welcomeText = "âœ… Dein Konto ist erfolgreich mit Jellyfin verknÃ¼pft!\n\n" + welcomeText;
             }
 
             await botClient.SendMessage(

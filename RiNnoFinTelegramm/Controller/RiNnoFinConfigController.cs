@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net.Mime;
 using System.Threading;
@@ -55,7 +55,7 @@ public class RiNnoFinConfigController : ControllerBase
             
             // Versuche an Administratoren zu senden, die bereits mit dem Bot interagiert haben
             var config = RiNnoFinPlugin.Instance?.Configuration;
-            if (config != null && config.AdminUserNames.Count > 0 && config.TelegramUserLinks.Count > 0)
+            if (config != null && config.AdminUserNames != null && config.AdminUserNames.Count > 0 && config.TelegramUserLinks != null && config.TelegramUserLinks.Count > 0)
             {
                 var adminUsernamesLower = config.AdminUserNames.Select(u => u.ToLowerInvariant()).ToList();
                 var adminLinks = config.TelegramUserLinks
@@ -68,7 +68,7 @@ public class RiNnoFinConfigController : ControllerBase
                     {
                         await botClient.SendMessage(
                             link.TelegramUserId,
-                            "✅ *Test erfolgreich!*\nDein Jellyfin-Server hat den Bot-Token erfolgreich überprüft und sich mit Telegram verbunden.",
+                            "âœ… *Test erfolgreich!*\nDein Jellyfin-Server hat den Bot-Token erfolgreich Ã¼berprÃ¼ft und sich mit Telegram verbunden.",
                             global::Telegram.Bot.Types.Enums.ParseMode.Markdown,
                             cancellationToken: ct.Token
                         );
@@ -85,7 +85,7 @@ public class RiNnoFinConfigController : ControllerBase
         }
         catch (Exception)
         {
-            return StatusCode(500, new ValidateBotTokenResponse { ErrorMessage = "Ungültiger Token oder Verbindungsfehler" });
+            return StatusCode(500, new ValidateBotTokenResponse { ErrorMessage = "UngÃ¼ltiger Token oder Verbindungsfehler" });
         }
     }
 
@@ -182,7 +182,7 @@ public class RiNnoFinConfigController : ControllerBase
 
         if (group.TelegramGroupChat == null || group.TelegramGroupChat.TelegramChatId == 0)
         {
-            return BadRequest("Gruppe ist nicht mit Telegram verknüpft.");
+            return BadRequest("Gruppe ist nicht mit Telegram verknÃ¼pft.");
         }
 
         var botClient = _botClientWrapper.Client;
@@ -191,7 +191,7 @@ public class RiNnoFinConfigController : ControllerBase
             return BadRequest("Telegram Bot ist nicht aktiv.");
         }
 
-        // Topic ID ist optional – 0 oder null bedeutet: kein Topic (Hauptchat)
+        // Topic ID ist optional â€“ 0 oder null bedeutet: kein Topic (Hauptchat)
         int? quizThreadId = (group.TelegramGroupChat.QuizTopicId ?? 0) > 0
             ? group.TelegramGroupChat.QuizTopicId
             : null;
@@ -230,7 +230,7 @@ public class RiNnoFinConfigController : ControllerBase
         {
             var emailService = new EmailService(_logger);
             
-            // Erstelle eine temporäre Konfiguration für den Test
+            // Erstelle eine temporÃ¤re Konfiguration fÃ¼r den Test
             var tempConfig = new PluginConfiguration
             {
                 EnableEmail = true,
@@ -246,7 +246,7 @@ public class RiNnoFinConfigController : ControllerBase
             string htmlBody = $@"
                 <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
                     <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>
-                        <h2 style='color: #2c3e50;'>✅ Erfolgreiche Test-Verbindung</h2>
+                        <h2 style='color: #2c3e50;'>âœ… Erfolgreiche Test-Verbindung</h2>
                         <p>Hallo Admin,</p>
                         <p>Dein E-Mail Server (<strong>{request.SmtpServer}</strong>) funktioniert einwandfrei!</p>
                         <p>Das RiNnoFin Telegramm-Plugin kann nun automatisch Einladungen und Passwort-Reset-Links an deine Benutzer verschicken.</p>
@@ -258,7 +258,7 @@ public class RiNnoFinConfigController : ControllerBase
             var targetEmail = !string.IsNullOrWhiteSpace(request.TestEmailAddress) ? request.TestEmailAddress : request.SmtpUsername;
 
             // Sende Test-E-Mail an die angegebene Test-Adresse
-            await emailService.SendEmailAsync(tempConfig, targetEmail, "RiNnoFin Media - E-Mail Test erfolgreich! 🎉", htmlBody);
+            await emailService.SendEmailAsync(tempConfig, targetEmail, "RiNnoFin Media - E-Mail Test erfolgreich! ðŸŽ‰", htmlBody);
 
             return Ok(new { message = $"E-Mail erfolgreich an {targetEmail} versendet!" });
         }
@@ -283,12 +283,12 @@ public class RiNnoFinConfigController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(request.Token) || string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
         {
-            return BadRequest(new { message = "Alle Felder müssen ausgefüllt sein." });
+            return BadRequest(new { message = "Alle Felder mÃ¼ssen ausgefÃ¼llt sein." });
         }
 
         if (!Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.Commands.InviteTokenManager.ActiveInvites.TryRemove(request.Token, out var email))
         {
-            return BadRequest(new { message = "Ungültiger oder abgelaufener Einladungslink." });
+            return BadRequest(new { message = "UngÃ¼ltiger oder abgelaufener Einladungslink." });
         }
 
         try
@@ -311,11 +311,12 @@ public class RiNnoFinConfigController : ControllerBase
                 }
             }
 
-            // Speichern der E-Mail im Plugin-Config (damit wir wissen, wem dieser Account gehört)
+            // Speichern der E-Mail im Plugin-Config (damit wir wissen, wem dieser Account gehÃ¶rt)
             var config = RiNnoFinPlugin.Instance?.Configuration;
             if (config != null)
             {
-                var existingLink = config.TelegramUserLinks.FirstOrDefault(l => l.JellyfinUserId == user.Id);
+                if (config.TelegramUserLinks == null) config.TelegramUserLinks = new List<TelegramUserLink>();
+                var existingLink = config.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == user.Id);
                 if (existingLink != null)
                 {
                     existingLink.EmailAddress = email;
@@ -337,23 +338,23 @@ public class RiNnoFinConfigController : ControllerBase
                     : $@"
                     <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
                         <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
-                            <h2 style='color: #2563eb;'>Willkommen an Bord! 🐧🎬</h2>
+                            <h2 style='color: #2563eb;'>Willkommen an Bord! ðŸ§ðŸŽ¬</h2>
                             <p>Hallo <strong>{user.Username}</strong>,</p>
                             <p>Dein Account bei <strong>RiNnoFin Media</strong> wurde erfolgreich erstellt.</p>
-                            <p>Du kannst dich ab sofort mit deinem gewählten Passwort auf all deinen Geräten einloggen.</p>
+                            <p>Du kannst dich ab sofort mit deinem gewÃ¤hlten Passwort auf all deinen GerÃ¤ten einloggen.</p>
                             <br/>
-                            <p style='color: #9ca3af; font-size: 12px; text-align: center;'>Viel Spaß beim Streamen! 🍿 Dein RiNnoFin-Team</p>
+                            <p style='color: #9ca3af; font-size: 12px; text-align: center;'>Viel SpaÃŸ beim Streamen! ðŸ¿ Dein RiNnoFin-Team</p>
                         </div>
                     </div>";
 
-                await emailService.SendEmailAsync(config, email, "Willkommen bei RiNnoFin Media! 🍿", htmlBody);
+                await emailService.SendEmailAsync(config, email, "Willkommen bei RiNnoFin Media! ðŸ¿", htmlBody);
             }
 
             return Ok(new { message = "Account erfolgreich erstellt!" });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Fehler beim Erstellen des Accounts für Einladung.");
+            _logger.LogError(ex, "Fehler beim Erstellen des Accounts fÃ¼r Einladung.");
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Fehler beim Erstellen des Accounts: " + ex.Message });
         }
     }
@@ -379,9 +380,9 @@ public class RiNnoFinConfigController : ControllerBase
         }
 
         // Suche den User anhand der E-Mail
-        var userLink = config.TelegramUserLinks.FirstOrDefault(l => string.Equals(l.EmailAddress, request.Email, StringComparison.OrdinalIgnoreCase));
+        var userLink = config.TelegramUserLinks?.FirstOrDefault(l => string.Equals(l.EmailAddress, request.Email, StringComparison.OrdinalIgnoreCase));
         
-        // Aus Sicherheitsgründen immer OK zurückgeben, auch wenn E-Mail nicht existiert
+        // Aus SicherheitsgrÃ¼nden immer OK zurÃ¼ckgeben, auch wenn E-Mail nicht existiert
         if (userLink == null || userLink.JellyfinUserId == Guid.Empty)
         {
             return Ok();
@@ -400,12 +401,12 @@ public class RiNnoFinConfigController : ControllerBase
                 : $@"
                 <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
                     <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
-                        <h2 style='color: #2563eb;'>Passwort zurücksetzen 🔑</h2>
+                        <h2 style='color: #2563eb;'>Passwort zurÃ¼cksetzen ðŸ”‘</h2>
                         <p>Hallo <strong>{userLink.JellyfinUsername}</strong>,</p>
-                        <p>Jemand (vermutlich du) hat das Zurücksetzen des Passworts für deinen RiNnoFin-Account angefordert.</p>
+                        <p>Jemand (vermutlich du) hat das ZurÃ¼cksetzen des Passworts fÃ¼r deinen RiNnoFin-Account angefordert.</p>
                         <p>Klicke auf den untenstehenden Button, um ein neues Passwort festzulegen:</p>
                         <div style='text-align: center; margin: 30px 0;'>
-                            <a href='{resetLink}' style='background-color: #2563eb; color: #fff; padding: 14px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;'>Passwort zurücksetzen</a>
+                            <a href='{resetLink}' style='background-color: #2563eb; color: #fff; padding: 14px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;'>Passwort zurÃ¼cksetzen</a>
                         </div>
                         <p style='color: #6b7280; font-size: 13px;'>Wenn du das nicht warst, kannst du diese E-Mail einfach ignorieren.</p>
                         <hr style='border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;' />
@@ -413,7 +414,7 @@ public class RiNnoFinConfigController : ControllerBase
                     </div>
                 </div>";
 
-            await emailService.SendEmailAsync(config, userLink.EmailAddress, "Passwort zurücksetzen - RiNnoFin Media", htmlBody);
+            await emailService.SendEmailAsync(config, userLink.EmailAddress, "Passwort zurÃ¼cksetzen - RiNnoFin Media", htmlBody);
             
             return Ok();
         }
@@ -438,12 +439,12 @@ public class RiNnoFinConfigController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(request.Token) || string.IsNullOrWhiteSpace(request.NewPassword))
         {
-            return BadRequest(new { message = "Alle Felder müssen ausgefüllt sein." });
+            return BadRequest(new { message = "Alle Felder mÃ¼ssen ausgefÃ¼llt sein." });
         }
 
         if (!ResetTokenManager.ActiveResetTokens.TryRemove(request.Token, out var userId))
         {
-            return BadRequest(new { message = "Ungültiger oder abgelaufener Reset-Link." });
+            return BadRequest(new { message = "UngÃ¼ltiger oder abgelaufener Reset-Link." });
         }
 
         try
@@ -457,11 +458,11 @@ public class RiNnoFinConfigController : ControllerBase
             user.Password = cryptoProvider.CreatePasswordHash(request.NewPassword).ToString();
             await userManager.UpdateUserAsync(user).ConfigureAwait(false);
 
-            // Optional: Bestätigungsmail
+            // Optional: BestÃ¤tigungsmail
             var config = RiNnoFinPlugin.Instance?.Configuration;
             if (config != null)
             {
-                var userLink = config.TelegramUserLinks.FirstOrDefault(l => l.JellyfinUserId == userId);
+                var userLink = config.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == userId);
                 if (userLink != null && !string.IsNullOrEmpty(userLink.EmailAddress))
                 {
                     string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplatePasswordChanged)
@@ -469,22 +470,22 @@ public class RiNnoFinConfigController : ControllerBase
                         : $@"
                         <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
                             <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
-                                <h2 style='color: #22c55e;'>Passwort geändert ✅</h2>
+                                <h2 style='color: #22c55e;'>Passwort geÃ¤ndert âœ…</h2>
                                 <p>Hallo <strong>{user.Username}</strong>,</p>
-                                <p>Dein Passwort wurde erfolgreich geändert.</p>
+                                <p>Dein Passwort wurde erfolgreich geÃ¤ndert.</p>
                                 <p>Falls du dies nicht selbst getan hast, kontaktiere bitte umgehend deinen Administrator!</p>
                             </div>
                         </div>";
-                    await emailService.SendEmailAsync(config, userLink.EmailAddress, "Passwort erfolgreich geändert", htmlBody);
+                    await emailService.SendEmailAsync(config, userLink.EmailAddress, "Passwort erfolgreich geÃ¤ndert", htmlBody);
                 }
             }
 
-            return Ok(new { message = "Passwort erfolgreich geändert!" });
+            return Ok(new { message = "Passwort erfolgreich geÃ¤ndert!" });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Fehler beim Zurücksetzen des Passworts.");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Interner Fehler beim Zurücksetzen." });
+            _logger.LogError(ex, "Fehler beim ZurÃ¼cksetzen des Passworts.");
+            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Interner Fehler beim ZurÃ¼cksetzen." });
         }
     }
         [HttpGet("GetUsers")]
@@ -497,8 +498,8 @@ public class RiNnoFinConfigController : ControllerBase
 
             foreach (var u in users)
             {
-                var link = config?.TelegramUserLinks.FirstOrDefault(l => l.JellyfinUserId == u.Id);
-                var uDto = userManager.GetUserDto(u, string.Empty);
+                var link = config?.TelegramUserLinks != null ? config.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == u.Id) : null;
+                var uDto = userManager.GetUserDto(u, null);
                 dtos.Add(new UserDto
                 {
                     Id = u.Id,
@@ -539,7 +540,7 @@ public class RiNnoFinConfigController : ControllerBase
                 : $@"
                 <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
                     <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
-                        <h2 style='color: #3b82f6;'>Du wurdest eingeladen! 🎉</h2>
+                        <h2 style='color: #3b82f6;'>Du wurdest eingeladen! ðŸŽ‰</h2>
                         <p>Hallo,</p>
                         <p>Du wurdest eingeladen, einen Account auf unserem Media-Server zu erstellen.</p>
                         <p>Klicke auf den Button unten, um deinen Account einzurichten:</p>
@@ -596,7 +597,7 @@ public class RiNnoFinConfigController : ControllerBase
                     await userManager.DeleteUserAsync(id).ConfigureAwait(false);
                 }
             }
-            return Ok(new { message = "Benutzer erfolgreich gelöscht." });
+            return Ok(new { message = "Benutzer erfolgreich gelÃ¶scht." });
         }
 
         [HttpPost("AdminSendPasswordReset")]
@@ -614,7 +615,7 @@ public class RiNnoFinConfigController : ControllerBase
                 var user = userManager.GetUserById(id);
                 if (user == null) continue;
 
-                var userLink = config.TelegramUserLinks.FirstOrDefault(l => l.JellyfinUserId == id);
+                var userLink = config.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == id);
                 if (userLink == null || string.IsNullOrWhiteSpace(userLink.EmailAddress)) continue;
 
                 string token = Guid.NewGuid().ToString("N");
@@ -626,14 +627,14 @@ public class RiNnoFinConfigController : ControllerBase
                     : $@"
                     <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
                         <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
-                            <h2 style='color: #ef4444;'>Passwort zurücksetzen 🔑</h2>
+                            <h2 style='color: #ef4444;'>Passwort zurÃ¼cksetzen ðŸ”‘</h2>
                             <p>Hallo <strong>{user.Username}</strong>,</p>
-                            <p>Du hast das Zurücksetzen deines Passworts angefordert.</p>
-                            <a href='{resetUrl}' style='display: inline-block; padding: 10px 20px; margin-top: 20px; background-color: #ef4444; color: #fff; text-decoration: none; border-radius: 4px; font-weight: bold;'>Passwort jetzt zurücksetzen</a>
+                            <p>Du hast das ZurÃ¼cksetzen deines Passworts angefordert.</p>
+                            <a href='{resetUrl}' style='display: inline-block; padding: 10px 20px; margin-top: 20px; background-color: #ef4444; color: #fff; text-decoration: none; border-radius: 4px; font-weight: bold;'>Passwort jetzt zurÃ¼cksetzen</a>
                         </div>
                     </div>";
 
-                await emailService.SendEmailAsync(config, userLink.EmailAddress, "Passwort zurücksetzen", htmlBody);
+                await emailService.SendEmailAsync(config, userLink.EmailAddress, "Passwort zurÃ¼cksetzen", htmlBody);
                 sentCount++;
             }
 

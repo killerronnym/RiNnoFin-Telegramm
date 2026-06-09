@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
@@ -23,7 +23,7 @@ internal class CommandDeabonnieren : ICommandBase
         {
             await botClient.SendMessage(
                 message.Chat.Id,
-                "❌ Dieser Befehl ist nur in privaten Chats verfügbar.",
+                "âŒ Dieser Befehl ist nur in privaten Chats verfÃ¼gbar.",
                 cancellationToken: cancellationToken);
             return;
         }
@@ -31,7 +31,7 @@ internal class CommandDeabonnieren : ICommandBase
         var senderId = message.From?.Id;
         if (senderId == null) return;
 
-        var link = telegramBotService.Config.TelegramUserLinks.FirstOrDefault(l => l.TelegramUserId == senderId.Value);
+        var link = telegramBotService.Config.TelegramUserLinks?.FirstOrDefault(l => l.TelegramUserId == senderId.Value);
         if (link == null)
         {
             await telegramBotService.SendNotLinkedMessage(message.Chat.Id, cancellationToken);
@@ -43,7 +43,7 @@ internal class CommandDeabonnieren : ICommandBase
 
         await botClient.SendMessage(
             message.Chat.Id,
-            "🔕 *Erfolgreich abgemeldet!*\n\nDu erhältst keine weiteren Medienbenachrichtigungen mehr auf diesem Server.",
+            "ðŸ”• *Erfolgreich abgemeldet!*\n\nDu erhÃ¤ltst keine weiteren Medienbenachrichtigungen mehr auf diesem Server.",
             parseMode: ParseMode.Markdown,
             cancellationToken: cancellationToken);
     }
