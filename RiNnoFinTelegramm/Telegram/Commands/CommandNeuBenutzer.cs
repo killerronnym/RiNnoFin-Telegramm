@@ -145,4 +145,7 @@ public static class InviteTokenManager
 {
     // Key: Token, Value: Email
     public static readonly ConcurrentDictionary<string, string> ActiveInvites = new();
+    
+    // Key: Token, Value: Profile UserId (to clone permissions from)
+    public static readonly ConcurrentDictionary<string, Guid?> InviteProfiles = new();
 }

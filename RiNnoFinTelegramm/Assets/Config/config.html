@@ -454,6 +454,64 @@
                     </form>
                 </div>
 
+                <!-- Benutzerverwaltung (User Management) -->
+                <div class="block">
+                    <form id="UserManagementForm">
+                        <fieldset class="verticalSection">
+                            <legend><h3>Benutzerverwaltung (Konten & Einladungen)</h3></legend>
+                            <p>Hier kannst du Benutzer verwalten, einladen und ihre Accounts sperren/freischalten.</p>
+
+                            <div class="inputContainer">
+                                <h3>Einladung Erstellen</h3>
+                                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                                    <div style="flex: 1;">
+                                        <label class="inputLabel" for="InviteEmail">Senden An (E-Mail)</label>
+                                        <input class="sso-text" id="InviteEmail" is="emby-input" type="email" placeholder="example@example.com"/>
+                                    </div>
+                                    <div style="flex: 1;">
+                                        <label class="inputLabel" for="InviteProfile">Profil (Rechte klonen von)</label>
+                                        <select class="emby-select-withcolor emby-select" id="InviteProfile" is="emby-select">
+                                            <option value="">Wird geladen...</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button class="raised button-submit emby-button" id="CreateInviteBtn" is="emby-button" type="button" style="width: 100%;">
+                                    <span>Einladung Erstellen & Senden</span>
+                                </button>
+                            </div>
+
+                            <div style="margin-top: 2em;">
+                                <h3>Konten Übersicht</h3>
+                                <div style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
+                                    <button class="raised button-alt emby-button" id="AdminEnableUser" is="emby-button" type="button" style="background-color: #10b981; color: white;">Aktivieren</button>
+                                    <button class="raised button-alt emby-button" id="AdminDisableUser" is="emby-button" type="button" style="background-color: #d97706; color: white;">Deaktivieren</button>
+                                    <button class="raised button-delete emby-button" id="AdminDeleteUser" is="emby-button" type="button" style="background-color: #dc2626; color: white;">Löschen</button>
+                                    <button class="raised button-alt emby-button" id="AdminSendPasswordReset" is="emby-button" type="button" style="background-color: #8b5cf6; color: white;">Passwort-Reset Senden</button>
+                                    <button class="raised button-alt emby-button" id="RefreshUsersBtn" is="emby-button" type="button">Aktualisieren</button>
+                                </div>
+                                <div class="tableScrollSlider" style="overflow-x: auto;">
+                                    <table class="tableDetail" style="width: 100%; text-align: left; border-collapse: collapse;">
+                                        <thead>
+                                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.2);">
+                                                <th style="padding: 10px; width: 40px;"><input type="checkbox" id="SelectAllUsers" is="emby-checkbox"/></th>
+                                                <th style="padding: 10px;">Benutzername</th>
+                                                <th style="padding: 10px;">E-Mail Adresse</th>
+                                                <th style="padding: 10px;">Telegram</th>
+                                                <th style="padding: 10px;">Status</th>
+                                                <th style="padding: 10px;">Zuletzt aktiv</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="UserListTbody">
+                                            <!-- Dynamically filled -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                        </fieldset>
+                    </form>
+                </div>
+
             </div>
         </div>
     </div>

@@ -300,6 +300,17 @@ public class RiNnoFinConfigController : ControllerBase
             user.Password = cryptoProvider.CreatePasswordHash(request.Password).ToString();
             await userManager.UpdateUserAsync(user).ConfigureAwait(false);
 
+            // Clone Policy if provided
+            if (Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.Commands.InviteTokenManager.InviteProfiles.TryRemove(request.Token, out var profileUserId) && profileUserId.HasValue)
+            {
+                var profileUser = userManager.GetUserById(profileUserId.Value);
+                if (profileUser != null)
+                {
+                    var profileDto = userManager.GetUserDto(profileUser, string.Empty);
+                    await userManager.UpdatePolicyAsync(user.Id, profileDto.Policy).ConfigureAwait(false);
+                }
+            }
+
             // Speichern der E-Mail im Plugin-Config (damit wir wissen, wem dieser Account gehört)
             var config = RiNnoFinPlugin.Instance?.Configuration;
             if (config != null)
@@ -476,7 +487,159 @@ public class RiNnoFinConfigController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Interner Fehler beim Zurücksetzen." });
         }
     }
-}
+        [HttpGet("GetUsers")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public ActionResult<IEnumerable<UserDto>> GetUsers([FromServices] MediaBrowser.Controller.Library.IUserManager userManager)
+        {
+            var config = RiNnoFinPlugin.Instance?.Configuration;
+            var users = userManager.Users.ToList();
+            var dtos = new List<UserDto>();
+
+            foreach (var u in users)
+            {
+                var link = config?.TelegramUserLinks.FirstOrDefault(l => l.JellyfinUserId == u.Id);
+                var uDto = userManager.GetUserDto(u, string.Empty);
+                dtos.Add(new UserDto
+                {
+                    Id = u.Id,
+                    Username = u.Username,
+                    Email = link?.EmailAddress ?? "",
+                    HasTelegram = link?.TelegramUserId > 0,
+                    IsDisabled = uDto.Policy.IsDisabled,
+                    IsAdmin = uDto.Policy.IsAdministrator,
+                    LastActivityDate = u.LastActivityDate
+                });
+            }
+
+            return Ok(dtos.OrderBy(d => d.Username));
+        }
+
+        [HttpPost("AdminCreateInvite")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<ActionResult> AdminCreateInvite([FromBody] AdminCreateInviteRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Email))
+                return BadRequest(new { message = "E-Mail darf nicht leer sein." });
+
+            var config = RiNnoFinPlugin.Instance?.Configuration;
+            if (config == null || !config.EnableEmail)
+                return BadRequest(new { message = "E-Mail-Versand ist in der Konfiguration nicht aktiviert." });
+
+            string token = Guid.NewGuid().ToString("N");
+            Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.Commands.InviteTokenManager.ActiveInvites[token] = request.Email;
+            
+            if (Guid.TryParse(request.ProfileUserId, out var profileId))
+            {
+                Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.Commands.InviteTokenManager.InviteProfiles[token] = profileId;
+            }
+
+            string inviteUrl = $"{config.LoginBaseUrl?.TrimEnd('/')}/sso/Telegram/Register?token={token}";
+            string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplateInvite)
+                ? config.EmailTemplateInvite.Replace("{inviteLink}", inviteUrl)
+                : $@"
+                <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
+                    <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
+                        <h2 style='color: #3b82f6;'>Du wurdest eingeladen! 🎉</h2>
+                        <p>Hallo,</p>
+                        <p>Du wurdest eingeladen, einen Account auf unserem Media-Server zu erstellen.</p>
+                        <p>Klicke auf den Button unten, um deinen Account einzurichten:</p>
+                        <a href='{inviteUrl}' style='display: inline-block; padding: 10px 20px; margin-top: 20px; background-color: #3b82f6; color: #fff; text-decoration: none; border-radius: 4px; font-weight: bold;'>Account erstellen</a>
+                    </div>
+                </div>";
+
+            var emailService = new Jellyfin.Plugin.RiNnoFinTelegramm.Services.EmailService(_logger);
+            await emailService.SendEmailAsync(config, request.Email, "Einladung zum Media-Server", htmlBody);
+
+            return Ok(new { message = "Einladung erfolgreich versendet." });
+        }
+
+        [HttpPost("AdminEnableUser")]
+        public async Task<ActionResult> AdminEnableUser([FromServices] MediaBrowser.Controller.Library.IUserManager userManager, [FromBody] List<Guid> userIds)
+        {
+            foreach (var id in userIds)
+            {
+                var user = userManager.GetUserById(id);
+                if (user != null)
+                {
+                    var dto = userManager.GetUserDto(user, string.Empty);
+                    dto.Policy.IsDisabled = false;
+                    await userManager.UpdatePolicyAsync(id, dto.Policy).ConfigureAwait(false);
+                }
+            }
+            return Ok(new { message = "Benutzer erfolgreich aktiviert." });
+        }
+
+        [HttpPost("AdminDisableUser")]
+        public async Task<ActionResult> AdminDisableUser([FromServices] MediaBrowser.Controller.Library.IUserManager userManager, [FromBody] List<Guid> userIds)
+        {
+            foreach (var id in userIds)
+            {
+                var user = userManager.GetUserById(id);
+                if (user != null)
+                {
+                    var dto = userManager.GetUserDto(user, string.Empty);
+                    dto.Policy.IsDisabled = true;
+                    await userManager.UpdatePolicyAsync(id, dto.Policy).ConfigureAwait(false);
+                }
+            }
+            return Ok(new { message = "Benutzer erfolgreich deaktiviert." });
+        }
+
+        [HttpPost("AdminDeleteUser")]
+        public async Task<ActionResult> AdminDeleteUser([FromServices] MediaBrowser.Controller.Library.IUserManager userManager, [FromBody] List<Guid> userIds)
+        {
+            foreach (var id in userIds)
+            {
+                var user = userManager.GetUserById(id);
+                if (user != null)
+                {
+                    await userManager.DeleteUserAsync(id).ConfigureAwait(false);
+                }
+            }
+            return Ok(new { message = "Benutzer erfolgreich gelöscht." });
+        }
+
+        [HttpPost("AdminSendPasswordReset")]
+        public async Task<ActionResult> AdminSendPasswordReset([FromServices] MediaBrowser.Controller.Library.IUserManager userManager, [FromBody] List<Guid> userIds)
+        {
+            var config = RiNnoFinPlugin.Instance?.Configuration;
+            if (config == null || !config.EnableEmail)
+                return BadRequest(new { message = "E-Mail-Versand ist nicht aktiviert." });
+
+            var emailService = new Jellyfin.Plugin.RiNnoFinTelegramm.Services.EmailService(_logger);
+            int sentCount = 0;
+
+            foreach (var id in userIds)
+            {
+                var user = userManager.GetUserById(id);
+                if (user == null) continue;
+
+                var userLink = config.TelegramUserLinks.FirstOrDefault(l => l.JellyfinUserId == id);
+                if (userLink == null || string.IsNullOrWhiteSpace(userLink.EmailAddress)) continue;
+
+                string token = Guid.NewGuid().ToString("N");
+                ResetTokenManager.ActiveResetTokens[token] = id;
+                string resetUrl = $"{config.LoginBaseUrl?.TrimEnd('/')}/sso/Telegram/ResetPassword?token={token}";
+
+                string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplatePasswordReset)
+                    ? config.EmailTemplatePasswordReset.Replace("{resetLink}", resetUrl).Replace("{username}", user.Username)
+                    : $@"
+                    <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
+                        <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
+                            <h2 style='color: #ef4444;'>Passwort zurücksetzen 🔑</h2>
+                            <p>Hallo <strong>{user.Username}</strong>,</p>
+                            <p>Du hast das Zurücksetzen deines Passworts angefordert.</p>
+                            <a href='{resetUrl}' style='display: inline-block; padding: 10px 20px; margin-top: 20px; background-color: #ef4444; color: #fff; text-decoration: none; border-radius: 4px; font-weight: bold;'>Passwort jetzt zurücksetzen</a>
+                        </div>
+                    </div>";
+
+                await emailService.SendEmailAsync(config, userLink.EmailAddress, "Passwort zurücksetzen", htmlBody);
+                sentCount++;
+            }
+
+            return Ok(new { message = $"{sentCount} Reset-E-Mails erfolgreich versendet." });
+        }
+    }
 
 public class AddRequestRequest
 {
@@ -511,6 +674,23 @@ public class ResetPasswordRequest
 {
     public string Token { get; set; } = string.Empty;
     public string NewPassword { get; set; } = string.Empty;
+}
+
+public class AdminCreateInviteRequest
+{
+    public string Email { get; set; } = string.Empty;
+    public string ProfileUserId { get; set; } = string.Empty;
+}
+
+public class UserDto
+{
+    public Guid Id { get; set; }
+    public string Username { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public bool HasTelegram { get; set; }
+    public bool IsDisabled { get; set; }
+    public bool IsAdmin { get; set; }
+    public DateTime? LastActivityDate { get; set; }
 }
 
 public static class ResetTokenManager

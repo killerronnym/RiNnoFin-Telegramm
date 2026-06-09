@@ -119,6 +119,72 @@ const tgConfigPage = {
         });
     },
 
+    loadUsers: (page) => {
+        window.ApiClient.ajax({
+            url: window.ApiClient.getUrl("/api/RiNnoFinConfig/GetUsers"),
+            type: "GET",
+            dataType: "json"
+        }).then((users) => {
+            tgConfigPage.populateUsers(page, users);
+        });
+    },
+
+    populateUsers: (page, users) => {
+        const tbody = page.querySelector("#UserListTbody");
+        tbody.innerHTML = "";
+        
+        const profileSelect = page.querySelector("#InviteProfile");
+        profileSelect.innerHTML = '<option value="">Kein Profil (Leer)</option>';
+
+        if (!users || users.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="padding:10px;text-align:center;">Keine Benutzer gefunden.</td></tr>';
+            return;
+        }
+
+        users.forEach(user => {
+            const opt = document.createElement("option");
+            opt.value = user.Id;
+            opt.textContent = user.Username;
+            profileSelect.appendChild(opt);
+
+            const tr = document.createElement("tr");
+            tr.style.borderBottom = "1px solid rgba(255,255,255,0.1)";
+            
+            const checkboxTd = document.createElement("td");
+            checkboxTd.style.padding = "10px";
+            checkboxTd.innerHTML = `<input type="checkbox" class="user-checkbox" data-userid="${user.Id}" is="emby-checkbox"/>`;
+            tr.appendChild(checkboxTd);
+
+            const nameTd = document.createElement("td");
+            nameTd.style.padding = "10px";
+            nameTd.innerHTML = user.IsAdmin ? `<b>${user.Username}</b> <span style="background-color:#8b5cf6;color:white;padding:2px 6px;border-radius:4px;font-size:10px;">Admin</span>` : user.Username;
+            tr.appendChild(nameTd);
+
+            const emailTd = document.createElement("td");
+            emailTd.style.padding = "10px";
+            emailTd.textContent = user.Email || "-";
+            tr.appendChild(emailTd);
+
+            const tgTd = document.createElement("td");
+            tgTd.style.padding = "10px";
+            tgTd.textContent = user.HasTelegram ? "🔗" : "-";
+            tr.appendChild(tgTd);
+
+            const statusTd = document.createElement("td");
+            statusTd.style.padding = "10px";
+            statusTd.textContent = user.IsDisabled ? "Deaktiviert" : "Aktiv";
+            statusTd.style.color = user.IsDisabled ? "#d97706" : "#10b981";
+            tr.appendChild(statusTd);
+
+            const activeTd = document.createElement("td");
+            activeTd.style.padding = "10px";
+            activeTd.textContent = user.LastActivityDate ? new Date(user.LastActivityDate).toLocaleString() : "-";
+            tr.appendChild(activeTd);
+
+            tbody.appendChild(tr);
+        });
+    },
+
     deleteRequest: (page, imdbId) => {
         if (!confirm("Diese Medienanfrage wirklich löschen?")) return;
 
@@ -128,6 +194,61 @@ const tgConfigPage = {
         }).then(() => {
             tgConfigPage.loadRequests(page);
             window.Dashboard.alert('Medienanfrage erfolgreich gelöscht.');
+        });
+    },
+
+    getSelectedUserIds: (page) => {
+        const checkboxes = page.querySelectorAll(".user-checkbox:checked");
+        return Array.from(checkboxes).map(cb => cb.dataset.userid);
+    },
+
+    adminActionUsers: (page, actionName, confirmMsg) => {
+        const userIds = tgConfigPage.getSelectedUserIds(page);
+        if (userIds.length === 0) {
+            window.Dashboard.alert("Bitte wähle mindestens einen Benutzer aus.");
+            return;
+        }
+
+        if (confirmMsg && !confirm(confirmMsg)) return;
+
+        window.Dashboard.showLoadingMsg();
+        window.ApiClient.ajax({
+            url: window.ApiClient.getUrl(`/api/RiNnoFinConfig/${actionName}`),
+            type: "POST",
+            data: JSON.stringify(userIds),
+            contentType: "application/json"
+        }).then((res) => {
+            window.Dashboard.hideLoadingMsg();
+            window.Dashboard.alert(res.message || "Aktion erfolgreich.");
+            tgConfigPage.loadUsers(page);
+        }).catch(err => {
+            window.Dashboard.hideLoadingMsg();
+            window.Dashboard.alert("Fehler bei der Aktion: " + (err.responseJSON?.message || err.message || ""));
+        });
+    },
+
+    createInvite: (page) => {
+        const email = page.querySelector("#InviteEmail").value.trim();
+        const profileId = page.querySelector("#InviteProfile").value;
+
+        if (!email) {
+            window.Dashboard.alert("Bitte eine E-Mail-Adresse eingeben.");
+            return;
+        }
+
+        window.Dashboard.showLoadingMsg();
+        window.ApiClient.ajax({
+            url: window.ApiClient.getUrl("/api/RiNnoFinConfig/AdminCreateInvite"),
+            type: "POST",
+            data: JSON.stringify({ Email: email, ProfileUserId: profileId }),
+            contentType: "application/json"
+        }).then((res) => {
+            window.Dashboard.hideLoadingMsg();
+            window.Dashboard.alert("Einladung erfolgreich versendet!");
+            page.querySelector("#InviteEmail").value = "";
+        }).catch(err => {
+            window.Dashboard.hideLoadingMsg();
+            window.Dashboard.alert("Fehler: " + (err.responseJSON?.message || err.message || ""));
         });
     },
 
@@ -641,6 +762,7 @@ export default function (view) {
     tgConfigPage.addTextAreaStyle(view);
     tgConfigPage.loadConfiguration(view);
     tgConfigPage.loadRequests(view);
+    tgConfigPage.loadUsers(view);
 
     tgConfigPage.populateFolders(view).then(() => {
         const inputs = [
@@ -766,6 +888,42 @@ export default function (view) {
     view.querySelector("#AddManualRequest")?.addEventListener("click", (e) => {
         e.preventDefault();
         tgConfigPage.addRequest(view);
+    });
+
+    view.querySelector("#CreateInviteBtn")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        tgConfigPage.createInvite(view);
+    });
+
+    view.querySelector("#SelectAllUsers")?.addEventListener("change", (e) => {
+        const checked = e.target.checked;
+        const checkboxes = view.querySelectorAll(".user-checkbox");
+        checkboxes.forEach(cb => cb.checked = checked);
+    });
+
+    view.querySelector("#AdminEnableUser")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        tgConfigPage.adminActionUsers(view, "AdminEnableUser", "Möchtest du die ausgewählten Benutzer wirklich aktivieren?");
+    });
+
+    view.querySelector("#AdminDisableUser")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        tgConfigPage.adminActionUsers(view, "AdminDisableUser", "Möchtest du die ausgewählten Benutzer wirklich DEAKTIVIEREN?");
+    });
+
+    view.querySelector("#AdminDeleteUser")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        tgConfigPage.adminActionUsers(view, "AdminDeleteUser", "ACHTUNG: Möchtest du die ausgewählten Benutzer WIRKLICH LÖSCHEN? Dies kann nicht rückgängig gemacht werden!");
+    });
+
+    view.querySelector("#AdminSendPasswordReset")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        tgConfigPage.adminActionUsers(view, "AdminSendPasswordReset", "Möchtest du den ausgewählten Benutzern eine E-Mail zum Zurücksetzen des Passworts senden?");
+    });
+
+    view.querySelector("#RefreshUsersBtn")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        tgConfigPage.loadUsers(view);
     });
 
     const inputElement = view.querySelector("#TgBotToken");

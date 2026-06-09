@@ -9,12 +9,20 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.3.1",
+        "changelog": "Feat: Vollständige Benutzerverwaltung integriert! Administratoren können nun Jellyfin-Konten (inklusive Telegram-Verknüpfung) direkt im Plugin-Dashboard ansehen, verwalten (Aktivieren/Deaktivieren/Löschen), Passwörter zurücksetzen und neue Benutzer mit Rechte-Profil-Klonierung einladen.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "165917ADA25822F2A37BFE6BF33868F7",
+        "timestamp": "2026-06-09 19:30:00"
+      },
+      {
         "version": "1.0.3.0",
         "changelog": "Feat: Neues E-Mail-Template System implementiert! Administratoren können nun in den Plugin-Einstellungen das Aussehen und den Text der Einladungs-, Willkommens- und Passwort-E-Mails direkt bearbeiten. Zudem gibt es nun ein Feld, um die Test-E-Mail an eine spezifische Adresse zu senden.",
         "targetAbi": "10.9.0.0",
         "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
-        "checksum": "A5B6D6C7D27AE1B4017D9236C95C30C0",
-        "timestamp": "2026-06-09 16:08:00"
+        "checksum": "58FA482BEBE65E49EB56A1BD0F944CF2",
+        "timestamp": "2026-06-09 16:30:00"
       },
       {
         "version": "1.0.2.9",
