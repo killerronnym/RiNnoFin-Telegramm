@@ -19,9 +19,41 @@
                 <h3>Version: <b id="RiNnoFinVersion">1.0.0.1</b></h3>
             </div>
 
-            <div class="blocks">
-                <!-- Allgemeine Informationen -->
-                <div class="block">
+            
+<style>
+  .rinnofin-layout { display: flex; flex-direction: row; min-height: 80vh; margin-top: 10px; }
+  .rinnofin-sidebar { width: 250px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 15px; flex-shrink: 0; }
+  .rinnofin-content { flex: 1; padding-left: 20px; overflow-x: auto; }
+  .rinnofin-tab { display: none; }
+  .rinnofin-tab.active { display: block; }
+  .rinnofin-menu-item { padding: 10px 15px; margin-bottom: 5px; cursor: pointer; border-radius: 4px; transition: background 0.2s; }
+  .rinnofin-menu-item:hover { background: rgba(255,255,255,0.05); }
+  .rinnofin-menu-item.active { background: #00a4dc; color: #fff; font-weight: bold; }
+  .action-btn-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; }
+  .action-btn { background: #374151; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
+  .action-btn:hover { background: #4b5563; }
+  .action-btn.btn-green { background: #10b981; } .action-btn.btn-green:hover { background: #059669; }
+  .action-btn.btn-red { background: #ef4444; } .action-btn.btn-red:hover { background: #dc2626; }
+  .action-btn.btn-blue { background: #3b82f6; } .action-btn.btn-blue:hover { background: #2563eb; }
+  .action-btn.btn-yellow { background: #f59e0b; } .action-btn.btn-yellow:hover { background: #d97706; }
+  .action-btn.btn-purple { background: #8b5cf6; } .action-btn.btn-purple:hover { background: #7c3aed; }
+</style>
+
+<div class="rinnofin-layout">
+    <div class="rinnofin-sidebar" id="rinnofin-sidebar-menu">
+        <div class="rinnofin-menu-item active" data-tab="tab-general">🔌 Telegram & Allgemein</div>
+        <div class="rinnofin-menu-item" data-tab="tab-groups">👥 Gruppenverwaltung</div>
+        <div class="rinnofin-menu-item" data-tab="tab-users">👥 Benutzerverwaltung</div>
+        <div class="rinnofin-menu-item" data-tab="tab-user-settings">⚙️ Benutzereinstellungen</div>
+        <div class="rinnofin-menu-item" data-tab="tab-email">📧 E-Mail-Einstellungen</div>
+        <div class="rinnofin-menu-item" data-tab="tab-messages">✉️ Verlauf & Anfragen</div>
+        <div class="rinnofin-menu-item" data-tab="tab-logs">📋 Protokoll (Logs)</div>
+    </div>
+    
+    <div class="rinnofin-content">
+
+        <div id="tab-general" class="rinnofin-tab active block">
+            <div class="block">
                     <form id="InfoSectionForm">
                         <fieldset class="verticalSection">
                             <legend><h3>Allgemeine Informationen</h3></legend>
@@ -52,9 +84,7 @@
                         </fieldset>
                     </form>
                 </div>
-
-                <!-- Branding-Bereich -->
-                <div class="block">
+            <div class="block">
                     <form id="BrandingSectionForm">
                         <fieldset class="verticalSection">
                             <legend><h3>Branding-Informationen</h3></legend>
@@ -75,9 +105,7 @@
                         </fieldset>
                     </form>
                 </div>
-
-                <!-- Allgemeine Konfiguration -->
-                <div class="block">
+            <div class="block">
                     <form id="BasicConfigForm">
                         <fieldset class="verticalSection">
                             <legend><h3>Allgemeine Konfiguration</h3></legend>
@@ -279,9 +307,9 @@
                         </fieldset>
                     </form>
                 </div>
-
-                <!-- Gruppenverwaltung -->
-                <div class="block">
+        </div>
+        <div id="tab-groups" class="rinnofin-tab block">
+            <div class="block">
                     <form id="GroupManagementForm">
                         <fieldset class="verticalSection">
                             <legend><h3>Gruppenverwaltung</h3></legend>
@@ -411,9 +439,77 @@
                         </fieldset>
                     </form>
                 </div>
+        </div>
+        
+        <div id="tab-users" class="rinnofin-tab block">
+            <form id="UserManagementForm">
+                <fieldset class="verticalSection">
+                    <legend><h3>Benutzerverwaltung</h3></legend>
+                    
+                    <div class="action-btn-bar">
+                        <button class="action-btn" id="ActionLoadAll" type="button">Load All</button>
+                        <button class="action-btn btn-green" id="ActionAddUser" type="button">Benutzer hinzufügen</button>
+                        <button class="action-btn" id="ActionAnnounce" type="button">Ankündigen</button>
+                        <button class="action-btn" id="ActionSettings" type="button">Einstellungen ändern</button>
+                        <button class="action-btn" id="ActionRecommendations" type="button">Empfehlungen aktivieren</button>
+                        <button class="action-btn" id="ActionExpiry" type="button">Ablaufdatum</button>
+                        <button class="action-btn btn-yellow" id="AdminDisableUser" type="button">Deaktivieren / Aktivieren</button>
+                        <button class="action-btn btn-purple" id="AdminSendPasswordReset" type="button">Sende Passwortrücksetzung</button>
+                        <button class="action-btn btn-red" id="AdminDeleteUser" type="button">Benutzer löschen</button>
+                    </div>
 
-                <!-- Medienanfragen-Verwaltung -->
-                <div class="block">
+                    <div id="InviteUserPanel" style="display:none; background: rgba(0,0,0,0.1); padding: 15px; margin-bottom: 15px; border-radius: 6px;">
+                        <h3>Neuen Benutzer einladen</h3>
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <div style="flex: 1;">
+                                <label class="inputLabel" for="InviteEmail">E-Mail Adresse:</label>
+                                <input class="sso-text" id="InviteEmail" is="emby-input" type="email" placeholder="example@example.com"/>
+                            </div>
+                            <div style="flex: 1;">
+                                <label class="inputLabel" for="InviteProfile">Profil-Vorlage (Rechte klonen):</label>
+                                <select class="emby-select-withcolor emby-select" id="InviteProfile" is="emby-select">
+                                    <option value="">Lade Profile...</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button class="action-btn btn-green" id="CreateInviteBtn" type="button">Einladung Senden</button>
+                        <button class="action-btn" id="CancelInviteBtn" type="button">Abbrechen</button>
+                    </div>
+
+                    <div class="tableScrollSlider" style="overflow-x: auto;">
+                        <table class="tableDetail" style="width: 100%; text-align: left; border-collapse: collapse;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.2);">
+                                    <th style="padding: 10px; width: 40px;"><input type="checkbox" id="SelectAllUsers" is="emby-checkbox"/></th>
+                                    <th style="padding: 10px;">Benutzername</th>
+                                    <th style="padding: 10px;">Status</th>
+                                    <th style="padding: 10px;">E-Mail</th>
+                                    <th style="padding: 10px;">Telegram</th>
+                                    <th style="padding: 10px;">Letzter Zugriff</th>
+                                </tr>
+                            </thead>
+                            <tbody id="UserListTbody">
+                            </tbody>
+                        </table>
+                    </div>
+                </fieldset>
+            </form>
+        </div>
+
+        <div id="tab-user-settings" class="rinnofin-tab block">
+            <fieldset class="verticalSection">
+                <legend><h3>Benutzereinstellungen</h3></legend>
+                <p>Hier kommen künftig Standard-Ablaufdaten und globale Profil-Vorlagen hin.</p>
+            </fieldset>
+        </div>
+        <div id="tab-email" class="rinnofin-tab block">
+            <fieldset class="verticalSection">
+                <legend><h3>E-Mail-Einstellungen</h3></legend>
+                <p>Die SMTP-Einstellungen findest du aktuell noch im Reiter 'Telegram & Allgemein'. Sie werden in Zukunft hierher ausgelagert.</p>
+            </fieldset>
+        </div>
+        <div id="tab-messages" class="rinnofin-tab block">
+            <div class="block">
                     <form id="RequestManagementForm">
                         <fieldset class="verticalSection">
                             <legend><h3>Anfragenverwaltung</h3></legend>
@@ -453,66 +549,17 @@
                         </fieldset>
                     </form>
                 </div>
+        </div>
+        <div id="tab-logs" class="rinnofin-tab block">
+            <fieldset class="verticalSection">
+                <legend><h3>Protokoll (Logs)</h3></legend>
+                <p>Hier werden Fehler und Systemereignisse protokolliert.</p>
+            </fieldset>
+        </div>
 
-                <!-- Benutzerverwaltung (User Management) -->
-                <div class="block">
-                    <form id="UserManagementForm">
-                        <fieldset class="verticalSection">
-                            <legend><h3>Benutzerverwaltung (Konten & Einladungen)</h3></legend>
-                            <p>Hier kannst du Benutzer verwalten, einladen und ihre Accounts sperren/freischalten.</p>
+    </div>
+</div>
 
-                            <div class="inputContainer">
-                                <h3>Einladung Erstellen</h3>
-                                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                                    <div style="flex: 1;">
-                                        <label class="inputLabel" for="InviteEmail">Senden An (E-Mail)</label>
-                                        <input class="sso-text" id="InviteEmail" is="emby-input" type="email" placeholder="example@example.com"/>
-                                    </div>
-                                    <div style="flex: 1;">
-                                        <label class="inputLabel" for="InviteProfile">Profil (Rechte klonen von)</label>
-                                        <select class="emby-select-withcolor emby-select" id="InviteProfile" is="emby-select">
-                                            <option value="">Wird geladen...</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <button class="raised button-submit emby-button" id="CreateInviteBtn" is="emby-button" type="button" style="width: 100%;">
-                                    <span>Einladung Erstellen & Senden</span>
-                                </button>
-                            </div>
-
-                            <div style="margin-top: 2em;">
-                                <h3>Konten Übersicht</h3>
-                                <div style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
-                                    <button class="raised button-alt emby-button" id="AdminEnableUser" is="emby-button" type="button" style="background-color: #10b981; color: white;">Aktivieren</button>
-                                    <button class="raised button-alt emby-button" id="AdminDisableUser" is="emby-button" type="button" style="background-color: #d97706; color: white;">Deaktivieren</button>
-                                    <button class="raised button-delete emby-button" id="AdminDeleteUser" is="emby-button" type="button" style="background-color: #dc2626; color: white;">Löschen</button>
-                                    <button class="raised button-alt emby-button" id="AdminSendPasswordReset" is="emby-button" type="button" style="background-color: #8b5cf6; color: white;">Passwort-Reset Senden</button>
-                                    <button class="raised button-alt emby-button" id="RefreshUsersBtn" is="emby-button" type="button">Aktualisieren</button>
-                                </div>
-                                <div class="tableScrollSlider" style="overflow-x: auto;">
-                                    <table class="tableDetail" style="width: 100%; text-align: left; border-collapse: collapse;">
-                                        <thead>
-                                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.2);">
-                                                <th style="padding: 10px; width: 40px;"><input type="checkbox" id="SelectAllUsers" is="emby-checkbox"/></th>
-                                                <th style="padding: 10px;">Benutzername</th>
-                                                <th style="padding: 10px;">E-Mail Adresse</th>
-                                                <th style="padding: 10px;">Telegram</th>
-                                                <th style="padding: 10px;">Status</th>
-                                                <th style="padding: 10px;">Zuletzt aktiv</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="UserListTbody">
-                                            <!-- Dynamically filled -->
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-
-                        </fieldset>
-                    </form>
-                </div>
-
-            </div>
         </div>
     </div>
 </div>

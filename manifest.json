@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.3.2",
+        "changelog": "Feat: Neues Tab-Layout (Seitenmenü) im Dashboard. Tabelle mit neuen Spalten (Name, Status, E-Mail, Telegram, Letzter Zugriff) und interaktiven Buttons (Benutzer hinzufügen, Deaktivieren, etc.) ähnlich wie JFA-Go hinzugefügt.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "5429477F1FF5989404E2DF503B49F176",
+        "timestamp": "2026-06-09 20:30:00"
+      },
+      {
         "version": "1.0.3.1",
         "changelog": "Feat: Vollständige Benutzerverwaltung integriert! Administratoren können nun Jellyfin-Konten (inklusive Telegram-Verknüpfung) direkt im Plugin-Dashboard ansehen, verwalten (Aktivieren/Deaktivieren/Löschen), Passwörter zurücksetzen und neue Benutzer mit Rechte-Profil-Klonierung einladen.",
         "targetAbi": "10.9.0.0",

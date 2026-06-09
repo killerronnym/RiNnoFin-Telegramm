@@ -134,72 +134,64 @@ const tgConfigPage = {
         tbody.innerHTML = "";
         
         const profileSelect = page.querySelector("#InviteProfile");
-        profileSelect.innerHTML = '<option value="">Kein Profil (Leer)</option>';
+        if(profileSelect) {
+            profileSelect.innerHTML = '<option value="">Lade Profile...</option>';
+        }
 
         if (!users || users.length === 0) {
             tbody.innerHTML = '<tr><td colspan="6" style="padding:10px;text-align:center;">Keine Benutzer gefunden.</td></tr>';
             return;
         }
 
+        if(profileSelect) {
+            profileSelect.innerHTML = '<option value="">Kein Profil (Leer)</option>';
+        }
+
         users.forEach(user => {
-            const opt = document.createElement("option");
-            opt.value = user.Id;
-            opt.textContent = user.Username;
-            profileSelect.appendChild(opt);
+            if(profileSelect) {
+                const opt = document.createElement("option");
+                opt.value = user.Id;
+                opt.textContent = user.Name || user.Username;
+                profileSelect.appendChild(opt);
+            }
 
             const tr = document.createElement("tr");
             tr.style.borderBottom = "1px solid rgba(255,255,255,0.1)";
             
             const checkboxTd = document.createElement("td");
             checkboxTd.style.padding = "10px";
-            checkboxTd.innerHTML = `<input type="checkbox" class="user-checkbox" data-userid="${user.Id}" is="emby-checkbox"/>`;
-            tr.appendChild(checkboxTd);
-
+            checkboxTd.innerHTML = `<input type="checkbox" class="user-checkbox emby-checkbox" data-userid="${user.Id}" is="emby-checkbox"/>`;
+            
             const nameTd = document.createElement("td");
             nameTd.style.padding = "10px";
-            nameTd.innerHTML = user.IsAdmin ? `<b>${user.Username}</b> <span style="background-color:#8b5cf6;color:white;padding:2px 6px;border-radius:4px;font-size:10px;">Admin</span>` : user.Username;
-            tr.appendChild(nameTd);
-
-            const emailTd = document.createElement("td");
-            emailTd.style.padding = "10px";
-            emailTd.textContent = user.Email || "-";
-            tr.appendChild(emailTd);
-
-            const tgTd = document.createElement("td");
-            tgTd.style.padding = "10px";
-            tgTd.textContent = user.HasTelegram ? "🔗" : "-";
-            tr.appendChild(tgTd);
+            nameTd.textContent = user.Name || user.Username || 'Unbekannt';
 
             const statusTd = document.createElement("td");
             statusTd.style.padding = "10px";
-            statusTd.textContent = user.IsDisabled ? "Deaktiviert" : "Aktiv";
-            statusTd.style.color = user.IsDisabled ? "#d97706" : "#10b981";
-            tr.appendChild(statusTd);
+            statusTd.textContent = user.IsDisabled ? 'Deaktiviert' : 'Aktiv';
+            if(user.IsDisabled) statusTd.style.color = '#ef4444';
 
-            const activeTd = document.createElement("td");
-            activeTd.style.padding = "10px";
-            activeTd.textContent = user.LastActivityDate ? new Date(user.LastActivityDate).toLocaleString() : "-";
-            tr.appendChild(activeTd);
+            const emailTd = document.createElement("td");
+            emailTd.style.padding = "10px";
+            emailTd.textContent = user.Email || '-'; 
+
+            const telegramTd = document.createElement("td");
+            telegramTd.style.padding = "10px";
+            telegramTd.textContent = user.HasTelegram ? 'Verbunden' : 'Nein';
+
+            const lastAccessTd = document.createElement("td");
+            lastAccessTd.style.padding = "10px";
+            lastAccessTd.textContent = user.LastActivityDate ? new Date(user.LastActivityDate).toLocaleString('de-DE') : 'Niemals';
+
+            tr.appendChild(checkboxTd);
+            tr.appendChild(nameTd);
+            tr.appendChild(statusTd);
+            tr.appendChild(emailTd);
+            tr.appendChild(telegramTd);
+            tr.appendChild(lastAccessTd);
 
             tbody.appendChild(tr);
         });
-    },
-
-    deleteRequest: (page, imdbId) => {
-        if (!confirm("Diese Medienanfrage wirklich löschen?")) return;
-
-        window.ApiClient.ajax({
-            url: window.ApiClient.getUrl(`/api/RiNnoFinConfig/RemoveRequest/${encodeURIComponent(imdbId)}`),
-            type: "DELETE"
-        }).then(() => {
-            tgConfigPage.loadRequests(page);
-            window.Dashboard.alert('Medienanfrage erfolgreich gelöscht.');
-        });
-    },
-
-    getSelectedUserIds: (page) => {
-        const checkboxes = page.querySelectorAll(".user-checkbox:checked");
-        return Array.from(checkboxes).map(cb => cb.dataset.userid);
     },
 
     adminActionUsers: (page, actionName, confirmMsg) => {
@@ -757,6 +749,85 @@ const tgTokenHelper = {
 }
 
 export default function (view) {
+
+    const tabItems = view.querySelectorAll('.rinnofin-menu-item');
+    tabItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            const tabId = e.currentTarget.getAttribute('data-tab');
+            view.querySelectorAll('.rinnofin-menu-item').forEach(el => el.classList.remove('active'));
+            view.querySelectorAll('.rinnofin-tab').forEach(el => el.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+            const targetTab = view.querySelector('#' + tabId);
+            if(targetTab) targetTab.classList.add('active');
+        });
+    });
+
+    view.querySelector('#ActionLoadAll')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        tgConfigPage.loadUsers(view);
+    });
+
+    view.querySelector('#ActionAddUser')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        const panel = view.querySelector('#InviteUserPanel');
+        if(panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    });
+
+    view.querySelector('#CancelInviteBtn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        const panel = view.querySelector('#InviteUserPanel');
+        if(panel) panel.style.display = 'none';
+    });
+
+    view.querySelector('#CreateInviteBtn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        const email = view.querySelector('#InviteEmail').value;
+        const profileId = view.querySelector('#InviteProfile').value;
+        
+        if (!email) {
+            window.Dashboard.alert('Bitte eine E-Mail Adresse eingeben.');
+            return;
+        }
+
+        window.Dashboard.showLoadingMsg();
+        window.ApiClient.ajax({
+            url: window.ApiClient.getUrl('/api/RiNnoFinConfig/AdminCreateInvite'),
+            type: 'POST',
+            data: JSON.stringify({ Email: email, ProfileUserId: profileId }),
+            contentType: 'application/json'
+        }).then(() => {
+            window.Dashboard.hideLoadingMsg();
+            window.Dashboard.alert('Einladung erfolgreich gesendet!');
+            view.querySelector('#InviteUserPanel').style.display = 'none';
+            view.querySelector('#InviteEmail').value = '';
+            tgConfigPage.loadUsers(view);
+        }).catch(err => {
+            window.Dashboard.hideLoadingMsg();
+            const msg = err?.responseJSON?.message || 'Unbekannter Fehler';
+            window.Dashboard.alert('Fehler beim Senden der Einladung: ' + msg);
+        });
+    });
+
+    view.querySelector('#ActionAnnounce')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.Dashboard.alert('Ankündigen-Funktion ist in Entwicklung.');
+    });
+
+    view.querySelector('#ActionSettings')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.Dashboard.alert('Einstellungen ändern ist in Entwicklung.');
+    });
+
+    view.querySelector('#ActionRecommendations')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.Dashboard.alert('Empfehlungen aktivieren ist in Entwicklung.');
+    });
+
+    view.querySelector('#ActionExpiry')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.Dashboard.alert('Ablaufdatum-Funktion ist in Entwicklung.');
+    });
+
     window.Dashboard.showLoadingMsg();
 
     tgConfigPage.addTextAreaStyle(view);
