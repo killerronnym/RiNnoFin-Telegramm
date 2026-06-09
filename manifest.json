@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.3.6",
+        "changelog": "UI Update & Bugfix: Die Einladungs-, Passwort-Vergessen- und Passwort-Zurücksetzen-Seiten wurden vollständig an das elegante Jellyfin Design angepasst. Außerdem wurde ein Fehler ('Unexpected token E...') beim Erstellen von Accounts behoben, der auftrat, wenn der gewählte Benutzername bereits vergeben war.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "26A821E96BCF7168EC98CE78628F407E",
+        "timestamp": "2026-06-09 20:55:00"
+      },
+      {
         "version": "1.0.3.5",
         "changelog": "Hotfix: Fehlerhaften Link in der Einladungs-E-Mail korrigiert. Die E-Mails führen nun auf die korrekte Seite '/sso/Telegram/invite' anstatt 'Register'.",
         "targetAbi": "10.9.0.0",

@@ -293,6 +293,12 @@ public class RiNnoFinConfigController : ControllerBase
 
         try
         {
+            var existingUser = userManager.GetUserByName(request.Username);
+            if (existingUser != null)
+            {
+                return BadRequest(new { message = "Dieser Benutzername ist bereits vergeben." });
+            }
+
             // Create user
             var user = await userManager.CreateUserAsync(request.Username).ConfigureAwait(false);
             

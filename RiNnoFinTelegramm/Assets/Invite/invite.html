@@ -1,230 +1,177 @@
 <!DOCTYPE html>
-<html lang="de">
+<html class="layout-mobile" lang="de">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Willkommen bei RinnoFin</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        
-        body {
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            color: #f8fafc;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-        }
-
-        .glass-container {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 40px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            text-align: center;
-        }
-
-        .logo {
-            width: 80px;
-            height: 80px;
-            margin-bottom: 20px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.5);
-        }
-
-        h1 {
-            margin: 0 0 10px;
-            font-size: 24px;
-            font-weight: 700;
-        }
-
-        p {
-            margin: 0 0 30px;
-            color: #94a3b8;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        .input-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 13px;
-            font-weight: 500;
-            color: #cbd5e1;
-        }
-
-        .input-group input {
-            width: 100%;
-            padding: 12px 16px;
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            color: #fff;
-            font-size: 15px;
-            font-family: inherit;
-            box-sizing: border-box;
-            transition: all 0.2s ease;
-        }
-
-        .input-group input:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
-        }
-
-        button {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            border: none;
-            border-radius: 10px;
-            color: #fff;
-            font-size: 16px;
-            font-weight: 600;
-            font-family: inherit;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.4);
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.5);
-        }
-
-        button:active {
-            transform: translateY(0);
-        }
-
-        .error-message {
-            color: #ef4444;
-            font-size: 13px;
-            margin-top: 15px;
-            display: none;
-        }
-
-        .success-state {
-            display: none;
-        }
-
-        .success-icon {
-            font-size: 60px;
-            margin-bottom: 20px;
-        }
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+    <meta content="Jellyfin" name="application-name">
+    <meta content="noindex, nofollow, noarchive" name="robots">
+    <title>Jellyfin - Account erstellen</title>
+    <link href="/web/themes/dark/theme.css" rel="stylesheet" type="text/css"/>
+    <link href="/sso/Telegram/login.css" rel="stylesheet" type="text/css"/>
+    <link href="/web/favicon.ico" rel="icon" type="image/x-icon"/>
+    <style id="cssBranding">
+        /*{{CUSTOM_CSS}}*/
+        .inputContainer { margin-bottom: 1.5em; text-align: left; }
+        .inputLabel { display: block; margin-bottom: 0.5em; font-size: 1.1em; color: rgba(255, 255, 255, 0.7); }
+        .inputLabelFocused { color: #00a4dc; }
+        .emby-input { width: 100%; padding: 0.8em; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 4px; color: #fff; font-size: 1.1em; }
+        .emby-input:focus { border-color: #00a4dc; outline: none; }
+        .success-state { display: none; text-align: center; }
+        .success-state h1 { color: #00a4dc; margin-bottom: 1em; }
+        .error-message { color: #cc3333; margin-top: 1em; display: none; font-size: 1.1em; }
     </style>
 </head>
-<body>
+<body class="force-scroll hideMainDrawer">
+<div class="backdropContainer"></div>
+<div class="backgroundContainer"></div>
 
-    <div class="glass-container" id="form-container">
-        <div class="logo">🍿</div>
-        <h1>Willkommen bei RinnoFin</h1>
-        <p>Erstelle deinen persönlichen Account, um Filme und Serien zu streamen.</p>
-
-        <form id="inviteForm">
-            <div class="input-group">
-                <label for="username">Benutzername</label>
-                <input type="text" id="username" placeholder="z.B. max_mustermann" required autocomplete="username">
-            </div>
-
-            <div class="input-group">
-                <label for="password">Passwort</label>
-                <input type="password" id="password" placeholder="Mindestens 8 Zeichen" required autocomplete="new-password">
-            </div>
-
-            <div class="input-group" style="margin-bottom: 30px;">
-                <label for="password_confirm">Passwort wiederholen</label>
-                <input type="password" id="password_confirm" placeholder="Passwort bestätigen" required autocomplete="new-password">
-            </div>
-
-            <button type="submit" id="submitBtn">Account erstellen</button>
-            <div id="errorMsg" class="error-message"></div>
-        </form>
+<div class="skinHeader skinHeader-blurred semiTransparent noHeaderRight">
+    <div class="flex align-items-center flex-grow headerTop">
+        <div class="headerLeft">
+            <h3 class="pageTitle pageTitleWithLogo pageTitleWithDefaultLogo"></h3>
+        </div>
     </div>
+</div>
 
-    <div class="glass-container success-state" id="success-container">
-        <div class="success-icon">🎉</div>
-        <h1>Account erfolgreich erstellt!</h1>
-        <p>Dein RinnoFin-Zugang wurde freigeschaltet. Du kannst dich jetzt in der App oder im Web einloggen.</p>
-        <button onclick="window.location.href='/web/index.html'">Jetzt einloggen</button>
+<div class="mainAnimatedPages skinBody">
+    <div class="page standalonePage mainAnimatedPage rinnofin-page" data-role="page" data-type="login" id="loginPage">
+        <div class="padded-left padded-right padded-bottom-page margin-auto-y">
+            <div class="readOnlyContent">
+                <div class="loginCard">
+                    <div class="padded-left padded-right flex flex-direction-column align-items-center justify-content-center">
+                        <div class="linkLogos flex flex-direction-row align-items-center justify-content-center" style="margin-bottom: 2em;">
+                            <img src="/sso/Telegram/RiNnoFinLogo.png" alt="RiNnoFin Logo" class="brand-logo" />
+                            <span class="material-symbols-outlined" style="margin: 0 20px; font-size: 2em;">person_add</span>
+                            <svg aria-label="Jellyfin" role="img" style="height:3.8em;" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+                                <rect fill="#ffffff" height="512" rx="15%" width="512"/>
+                                <defs>
+                                    <path d="M190.56 329.07c8.63 17.3 122.4 17.12 130.93 0 8.52-17.1-47.9-119.78-65.46-119.8-17.57 0-74.1 102.5-65.47 119.8z" id="A"/>
+                                    <linearGradient gradientUnits="userSpaceOnUse" id="B" x1="126.15" x2="457.68" y1="219.32" y2="410.73">
+                                        <stop offset="0%" stop-color="#aa5cc3"/>
+                                        <stop offset="100%" stop-color="#00a4dc"/>
+                                    </linearGradient>
+                                    <path d="M58.75 417.03c25.97 52.15 368.86 51.55 394.55 0S308.93 56.08 256.03 56.08c-52.92 0-223.25 308.8-197.28 360.95zm68.04-45.25c-17.02-34.17 94.6-236.5 129.26-236.5 34.67 0 146.1 202.7 129.26 236.5-16.83 33.8-241.5 34.17-258.52 0z" id="C"/>
+                                </defs>
+                                <use fill="url(#B)" xlink:href="#A"/>
+                                <use fill="url(#B)" xlink:href="#C"/>
+                            </svg>
+                        </div>
+                        <h1 class="sectionTitle">Willkommen</h1>
+                        <p class="subtitle" id="formSubtitle">Erstelle deinen persönlichen Account, um Filme und Serien zu streamen.</p>
+                    </div>
+
+                    <div class="spacedContent padded-left padded-right" id="form-container">
+                        <form id="inviteForm">
+                            <div class="inputContainer">
+                                <label class="inputLabel" for="username">Benutzername</label>
+                                <input class="emby-input" type="text" id="username" required autocomplete="username">
+                            </div>
+                            <div class="inputContainer">
+                                <label class="inputLabel" for="password">Passwort</label>
+                                <input class="emby-input" type="password" id="password" required autocomplete="new-password">
+                            </div>
+                            <div class="inputContainer" style="margin-bottom: 30px;">
+                                <label class="inputLabel" for="password_confirm">Passwort wiederholen</label>
+                                <input class="emby-input" type="password" id="password_confirm" required autocomplete="new-password">
+                            </div>
+
+                            <button class="raised submit emby-button block" id="submitBtn" is="emby-button" type="submit">
+                                <span>Account erstellen</span>
+                            </button>
+                            <div id="errorMsg" class="error-message"></div>
+                        </form>
+                    </div>
+
+                    <div class="spacedContent padded-left padded-right success-state" id="success-container">
+                        <h1>Account erfolgreich erstellt!</h1>
+                        <p style="font-size: 1.1em; margin-bottom: 2em; line-height: 1.5;">Dein Zugang wurde freigeschaltet. Du kannst dich jetzt in der App oder im Web einloggen.</p>
+                        <button class="raised submit emby-button block" is="emby-button" onclick="window.location.replace('/web/index.html')" type="button">
+                            <span>Jetzt einloggen</span>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
     </div>
+</div>
 
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get('token');
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
 
-        if (!token) {
-            document.getElementById('errorMsg').innerText = "Ungültiger oder fehlender Einladungslink.";
-            document.getElementById('errorMsg').style.display = 'block';
-            document.getElementById('submitBtn').disabled = true;
-            document.getElementById('submitBtn').style.opacity = '0.5';
+    if (!token) {
+        document.getElementById('errorMsg').innerText = "Ungültiger oder fehlender Einladungslink.";
+        document.getElementById('errorMsg').style.display = 'block';
+        document.getElementById('submitBtn').disabled = true;
+    }
+
+    const inputs = document.querySelectorAll('.emby-input');
+    inputs.forEach(input => {
+        input.addEventListener('focus', (e) => {
+            e.target.previousElementSibling.classList.add('inputLabelFocused');
+        });
+        input.addEventListener('blur', (e) => {
+            e.target.previousElementSibling.classList.remove('inputLabelFocused');
+        });
+    });
+
+    document.getElementById('inviteForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const passwordConfirm = document.getElementById('password_confirm').value;
+        const errorMsg = document.getElementById('errorMsg');
+        const submitBtn = document.getElementById('submitBtn');
+
+        if (password !== passwordConfirm) {
+            errorMsg.innerText = "Die Passwörter stimmen nicht überein.";
+            errorMsg.style.display = 'block';
+            return;
         }
 
-        document.getElementById('inviteForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const passwordConfirm = document.getElementById('password_confirm').value;
-            const errorMsg = document.getElementById('errorMsg');
-            const submitBtn = document.getElementById('submitBtn');
+        if (password.length < 6) {
+            errorMsg.innerText = "Das Passwort muss mindestens 6 Zeichen lang sein.";
+            errorMsg.style.display = 'block';
+            return;
+        }
 
-            if (password !== passwordConfirm) {
-                errorMsg.innerText = "Die Passwörter stimmen nicht überein.";
-                errorMsg.style.display = 'block';
-                return;
-            }
+        errorMsg.style.display = 'none';
+        submitBtn.querySelector('span').innerText = "Bitte warten...";
+        submitBtn.disabled = true;
 
-            if (password.length < 6) {
-                errorMsg.innerText = "Das Passwort muss mindestens 6 Zeichen lang sein.";
-                errorMsg.style.display = 'block';
-                return;
-            }
+        try {
+            const response = await fetch('/api/RiNnoFinConfig/AcceptInvite', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ Token: token, Username: username, Password: password })
+            });
 
-            errorMsg.style.display = 'none';
-            submitBtn.innerText = "Bitte warten...";
-            submitBtn.disabled = true;
-
-            try {
-                const response = await fetch('/api/RiNnoFinConfig/AcceptInvite', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ Token: token, Username: username, Password: password })
-                });
-
-                if (response.ok) {
-                    document.getElementById('form-container').style.display = 'none';
-                    document.getElementById('success-container').style.display = 'block';
-                } else {
+            if (response.ok) {
+                document.getElementById('form-container').style.display = 'none';
+                document.getElementById('formSubtitle').style.display = 'none';
+                document.getElementById('success-container').style.display = 'block';
+            } else {
+                let errorText = "Fehler bei der Erstellung des Accounts.";
+                try {
                     const data = await response.json();
-                    throw new Error(data.message || "Fehler bei der Erstellung des Accounts.");
+                    if(data.message) errorText = data.message;
+                } catch(e) {
+                    const text = await response.text();
+                    if(text) errorText = text;
                 }
-            } catch (err) {
-                errorMsg.innerText = err.message;
-                errorMsg.style.display = 'block';
-                submitBtn.innerText = "Account erstellen";
-                submitBtn.disabled = false;
+                throw new Error(errorText);
             }
-        });
-    </script>
+        } catch (err) {
+            errorMsg.innerText = err.message;
+            errorMsg.style.display = 'block';
+            submitBtn.querySelector('span').innerText = "Account erstellen";
+            submitBtn.disabled = false;
+        }
+    });
+</script>
 </body>
 </html>
