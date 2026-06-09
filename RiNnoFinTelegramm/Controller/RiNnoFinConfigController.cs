@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Mime;
 using System.Threading;
@@ -534,7 +534,7 @@ public class RiNnoFinConfigController : ControllerBase
                 Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.Commands.InviteTokenManager.InviteProfiles[token] = profileId;
             }
 
-            string inviteUrl = $"{config.LoginBaseUrl?.TrimEnd('/')}/sso/Telegram/Register?token={token}";
+            string inviteUrl = $"{config.LoginBaseUrl?.TrimEnd('/')}/sso/Telegram/invite?token={token}";
             string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplateInvite)
                 ? config.EmailTemplateInvite.Replace("{inviteLink}", inviteUrl)
                 : $@"

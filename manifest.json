@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.3.5",
+        "changelog": "Hotfix: Fehlerhaften Link in der Einladungs-E-Mail korrigiert. Die E-Mails führen nun auf die korrekte Seite '/sso/Telegram/invite' anstatt 'Register'.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "22E0E375F6E75707BE4F78DA768822E8",
+        "timestamp": "2026-06-09 20:50:00"
+      },
+      {
         "version": "1.0.3.4",
         "changelog": "Hotfix: Behebt einen kritischen Server-Fehler, der verhinderte, dass die Benutzerliste im Admin-Dashboard geladen wurde, wenn die Telegram-Verknüpfungen noch nicht initialisiert waren. Das Profil-Klonen-Dropdown funktioniert nun wieder wie vorgesehen.",
         "targetAbi": "10.9.0.0",
