@@ -4,6 +4,7 @@ using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
+using System.IO;
 using Jellyfin.Plugin.RiNnoFinTelegramm.Classes;
 using Jellyfin.Plugin.RiNnoFinTelegramm.Services;
 using Jellyfin.Plugin.RiNnoFinTelegramm.Telegram;
@@ -646,7 +647,47 @@ public class RiNnoFinConfigController : ControllerBase
 
             return Ok(new { message = $"{sentCount} Reset-E-Mails erfolgreich versendet." });
         }
+    [HttpPost("UploadLogo")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UploadLogo([FromForm] IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest("Keine Datei hochgeladen.");
+        }
+
+        var plugin = RiNnoFinPlugin.Instance;
+        if (plugin == null) return StatusCode(500, "Plugin Instanz ist null.");
+
+        var customLogoPath = Path.Combine(plugin.ApplicationPaths.PluginsPath, Constants.PluginName, Constants.PluginDataFolder, "CustomLogo.png");
+        var dir = Path.GetDirectoryName(customLogoPath);
+        if (dir != null && !Directory.Exists(dir))
+        {
+            Directory.CreateDirectory(dir);
+        }
+
+        await using var stream = new FileStream(customLogoPath, FileMode.Create);
+        await file.CopyToAsync(stream);
+
+        return Ok(new { message = "Logo erfolgreich hochgeladen." });
     }
+
+    [HttpPost("ResetLogo")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public IActionResult ResetLogo()
+    {
+        var plugin = RiNnoFinPlugin.Instance;
+        if (plugin == null) return StatusCode(500, "Plugin Instanz ist null.");
+
+        var customLogoPath = Path.Combine(plugin.ApplicationPaths.PluginsPath, Constants.PluginName, Constants.PluginDataFolder, "CustomLogo.png");
+        if (System.IO.File.Exists(customLogoPath))
+        {
+            System.IO.File.Delete(customLogoPath);
+        }
+        return Ok(new { message = "Logo erfolgreich zurückgesetzt." });
+    }
+}
 
 public class AddRequestRequest
 {

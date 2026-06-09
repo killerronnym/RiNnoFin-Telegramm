@@ -1007,7 +1007,61 @@ export default function (view) {
     });
 
     const inputElement = view.querySelector("#TgBotToken");
-    
+    const saveBtn = view.querySelector("#SaveConfig");
+    saveBtn.addEventListener("click", () => {
+        tgConfigPage.saveConfig(view);
+    });
+
+    const btnUploadLogo = view.querySelector("#btnUploadLogo");
+    if(btnUploadLogo) {
+        btnUploadLogo.addEventListener("click", async () => {
+            const fileInput = view.querySelector("#logoUpload");
+            if(!fileInput.files || fileInput.files.length === 0) {
+                window.Dashboard.alert("Bitte wähle zuerst ein Bild aus.");
+                return;
+            }
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+            
+            window.Dashboard.showLoadingMsg();
+            try {
+                const response = await fetch('/api/RiNnoFinConfig/UploadLogo', {
+                    method: 'POST',
+                    body: formData
+                });
+                if(response.ok) {
+                    window.Dashboard.alert("Logo erfolgreich hochgeladen! Die Änderungen sind sofort sichtbar.");
+                    fileInput.value = "";
+                } else {
+                    throw new Error("Fehler beim Hochladen.");
+                }
+            } catch(e) {
+                window.Dashboard.alert("Fehler beim Hochladen des Logos.");
+            } finally {
+                window.Dashboard.hideLoadingMsg();
+            }
+        });
+    }
+
+    const btnResetLogo = view.querySelector("#btnResetLogo");
+    if(btnResetLogo) {
+        btnResetLogo.addEventListener("click", async () => {
+            window.Dashboard.showLoadingMsg();
+            try {
+                const response = await fetch('/api/RiNnoFinConfig/ResetLogo', { method: 'POST' });
+                if(response.ok) {
+                    window.Dashboard.alert("Logo wurde erfolgreich auf den Standard zurückgesetzt.");
+                } else {
+                    throw new Error("Fehler");
+                }
+            } catch(e) {
+                window.Dashboard.alert("Fehler beim Zurücksetzen des Logos.");
+            } finally {
+                window.Dashboard.hideLoadingMsg();
+            }
+        });
+    }
+
     view.querySelector("#TestSmtpBtn")?.addEventListener("click", async (e) => {
         e.preventDefault();
         window.Dashboard.showLoadingMsg();

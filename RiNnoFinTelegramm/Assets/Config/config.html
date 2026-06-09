@@ -186,6 +186,17 @@
                                     Hilfreich, wenn dein Jellyfin hinter einem Reverse Proxy betrieben wird, welcher SSL-Terminierung durchführt (z.B. Traefik/Nginx). Wenn unsicher, wähle "Keines".
                                 </div>
                             </div>
+                            
+                            <!-- SSO Logo Customization -->
+                            <div class="inputContainer">
+                                <h3 class="checkboxListLabel" style="margin-top: 1.5em; font-size: 1.2em;">Benutzerdefiniertes SSO Logo</h3>
+                                <div style="display: flex; flex-direction: row; gap: 10px; align-items: center; margin-top: 0.5em;">
+                                    <input type="file" id="logoUpload" accept="image/png, image/jpeg" style="flex-grow: 1;" class="emby-input" />
+                                    <button id="btnUploadLogo" type="button" is="emby-button" class="raised button-submit block emby-button" style="width: auto;">Hochladen</button>
+                                    <button id="btnResetLogo" type="button" is="emby-button" class="raised button-cancel block emby-button" style="width: auto;">Zurücksetzen</button>
+                                </div>
+                                <div class="fieldDescription">Lade ein eigenes Bild (PNG, JPG) hoch, das auf der Login- und Einladungsseite angezeigt wird, oder setze es auf das Standardlogo zurück.</div>
+                            </div>
 
                             <button class="raised button-submit block emby-button"
                                     id="SaveConfig"

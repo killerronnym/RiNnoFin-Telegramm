@@ -67,6 +67,15 @@ public class TelegramController : ControllerBase
         var mimeType = MimeTypes.GetMimeType(view.EmbeddedResourcePath);
         if (!view.NeedsReplacement)
         {
+            if (view.Name == Constants.DefaultUserImageExtraFile)
+            {
+                var customLogoPath = Path.Combine(_instance.ApplicationPaths.PluginsPath, Constants.PluginName, Constants.PluginDataFolder, "CustomLogo.png");
+                if (System.IO.File.Exists(customLogoPath))
+                {
+                    return PhysicalFile(customLogoPath, mimeType);
+                }
+            }
+
             var binaryStream = GetType().Assembly.GetManifestResourceStream(view.EmbeddedResourcePath);
             if (binaryStream == null)
             {
