@@ -10,6 +10,11 @@ public class EmailService
 {
     private readonly ILogger _logger;
 
+    public EmailService(ILogger<EmailService> logger)
+    {
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
+
     public EmailService(ILogger logger)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));

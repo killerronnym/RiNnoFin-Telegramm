@@ -9,12 +9,12 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
-        "version": "1.0.4.1",
-        "changelog": "Feature & Fix: Verschiebt Registrierungs- und Passwort-Zurücksetzungs-Endpunkte in einen öffentlichen Controller, um die Jellyfin-Admin-Rechte-Sperre (RequiresElevation) zu umgehen. Registrierungen über Einladungs-Links funktionieren nun fehlerfrei und ohne 'Error processing request.' Sperren. Der HTTP-Statuscode wird bei Fehlern im Formular mit ausgegeben.",
+        "version": "1.0.4.2",
+        "changelog": "Hotfix: Behebt den 500-Fehler bei der Registrierung durch Hinzufügen eines ILogger<EmailService> Konstruktors im EmailService. Dadurch kann Jellyfin den EmailService im öffentlichen Controller korrekt instanziieren und auflösen.",
         "targetAbi": "10.9.0.0",
         "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
-        "checksum": "5BD47BCA4E2BCB5C2BAE98BB7708C551",
-        "timestamp": "2026-06-09 21:25:00"
+        "checksum": "BDAB19A5EDF7F3A17BD816F9A491EC00",
+        "timestamp": "2026-06-09 21:30:00"
       },
       {
         "version": "1.0.3.9",
