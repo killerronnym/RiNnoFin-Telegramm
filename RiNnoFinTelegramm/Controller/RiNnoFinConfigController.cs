@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net.Mime;
 using System.Threading;
@@ -354,15 +354,15 @@ public class RiNnoFinConfigController : ControllerBase
                         </div>
                     </div>";
 
-                await emailService.SendEmailAsync(config, email, "Willkommen bei RiNnoFin Media! ðŸ¿", htmlBody);
+                try { await emailService.SendEmailAsync(config, email, "Willkommen bei RiNnoFin Media! ðŸ¿", htmlBody); } catch (Exception emailEx) { _logger.LogError(emailEx, "Konnte Willkommens-E-Mail nicht senden."); }
             }
 
             return Ok(new { message = "Account erfolgreich erstellt!" });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Fehler beim Erstellen des Accounts fÃ¼r Einladung.");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Fehler beim Erstellen des Accounts: " + ex.Message });
+            _logger.LogError(ex, "Fehler beim Erstellen des Accounts für Einladung.");
+            return BadRequest(new { message = "Fehler beim Erstellen des Accounts: " + ex.Message });
         }
     }
     [AllowAnonymous]
@@ -428,7 +428,7 @@ public class RiNnoFinConfigController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Fehler beim Senden der Reset-E-Mail.");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Fehler beim Senden der E-Mail." });
+            return BadRequest(new { message = "Fehler beim Senden der E-Mail." });
         }
     }
 
@@ -491,8 +491,8 @@ public class RiNnoFinConfigController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Fehler beim ZurÃ¼cksetzen des Passworts.");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Interner Fehler beim ZurÃ¼cksetzen." });
+            _logger.LogError(ex, "Fehler beim Zurücksetzen des Passworts.");
+            return BadRequest(new { message = "Interner Fehler beim Zurücksetzen." });
         }
     }
         [HttpGet("GetUsers")]

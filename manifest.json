@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.3.9",
+        "changelog": "Hotfix: Behebt das 'Error processing request.'-Problem bei der Registrierung. Fehler beim E-Mail-Versand (z.B. falsche SMTP-Daten) blockieren nun nicht mehr die erfolgreiche Accounterstellung. Zusätzlich werden generelle Fehler jetzt sauber im Web-Frontend angezeigt statt als 500-Error abzustürzen.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "53045C2E38A32624B2312F49DAB0E6B9",
+        "timestamp": "2026-06-09 21:10:00"
+      },
+      {
         "version": "1.0.3.8",
         "changelog": "Feature: Im Plugin-Dashboard (Reiter 'Allgemein') kann nun ein eigenes, benutzerdefiniertes Logo für die SSO- und Einladungsseiten hochgeladen werden. Es ersetzt das Standardlogo und kann jederzeit wieder zurückgesetzt werden.",
         "targetAbi": "10.9.0.0",
