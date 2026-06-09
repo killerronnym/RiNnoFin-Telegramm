@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.3.3",
+        "changelog": "Fix: Plugin-Ordner (Icon) wird nun im Jellyfin Dashboard Menü korrekt angezeigt. Reiter-Navigation der Konfigurationsseite vollständig repariert (Tabs blenden nun korrekt ein/aus). Neues separates E-Mail-Menü für alle SMTP-Einstellungen und hinzugefügte Vorlagen für Account-Aktivierung und Deaktivierung. Bug beim Klonen von Standard-Profilen (doppelte Dropdowns) behoben.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "948F6C72D3D5B3C1ED086D7E28559D31",
+        "timestamp": "2026-06-09 20:34:00"
+      },
+      {
         "version": "1.0.3.2",
         "changelog": "Feat: Neues Tab-Layout (Seitenmenü) im Dashboard. Tabelle mit neuen Spalten (Name, Status, E-Mail, Telegram, Letzter Zugriff) und interaktiven Buttons (Benutzer hinzufügen, Deaktivieren, etc.) ähnlich wie JFA-Go hinzugefügt.",
         "targetAbi": "10.9.0.0",

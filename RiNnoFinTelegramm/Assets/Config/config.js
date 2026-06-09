@@ -40,6 +40,8 @@ const tgConfigPage = {
         page.querySelector("#EmailTemplateWelcome").value = config.EmailTemplateWelcome ?? '';
         page.querySelector("#EmailTemplatePasswordReset").value = config.EmailTemplatePasswordReset ?? '';
         page.querySelector("#EmailTemplatePasswordChanged").value = config.EmailTemplatePasswordChanged ?? '';
+        page.querySelector("#EmailTemplateAccountEnabled").value = config.EmailTemplateAccountEnabled ?? '';
+        page.querySelector("#EmailTemplateAccountDisabled").value = config.EmailTemplateAccountDisabled ?? '';
     },
 
     populateGroups: (page, config) => {
@@ -297,6 +299,8 @@ const tgConfigPage = {
                 config.EmailTemplateWelcome = (page.querySelector("#EmailTemplateWelcome").value ?? "").trim() || undefined;
                 config.EmailTemplatePasswordReset = (page.querySelector("#EmailTemplatePasswordReset").value ?? "").trim() || undefined;
                 config.EmailTemplatePasswordChanged = (page.querySelector("#EmailTemplatePasswordChanged").value ?? "").trim() || undefined;
+                config.EmailTemplateAccountEnabled = (page.querySelector("#EmailTemplateAccountEnabled").value ?? "").trim() || undefined;
+                config.EmailTemplateAccountDisabled = (page.querySelector("#EmailTemplateAccountDisabled").value ?? "").trim() || undefined;
 
                 window.ApiClient.updatePluginConfiguration(
                     tgConfigPage.pluginUniqueId,
@@ -919,6 +923,11 @@ export default function (view) {
     });
 
     view.querySelector("#SaveConfig")?.addEventListener("click", async (e) => {
+        e.preventDefault();
+        await tgConfigPage.saveConfig(view);
+    });
+
+    view.querySelector("#SaveConfigEmail")?.addEventListener("click", async (e) => {
         e.preventDefault();
         await tgConfigPage.saveConfig(view);
     });

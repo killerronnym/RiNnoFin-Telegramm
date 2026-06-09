@@ -52,7 +52,7 @@
     
     <div class="rinnofin-content">
 
-        <div id="tab-general" class="rinnofin-tab active block">
+        <div id="tab-general" class="rinnofin-tab active">
             <div class="block">
                     <form id="InfoSectionForm">
                         <fieldset class="verticalSection">
@@ -168,118 +168,7 @@
                                 </div>
                             </div>
 
-                            <!-- E-Mail / SMTP Configuration -->
-                            <h3 style="margin-top:2em;">E-Mail Server (SMTP) Einstellungen</h3>
-                            <p>Hier legst du fest, über welchen Server das Plugin Einladungen und Passwort-Reset-Mails verschickt.</p>
-                            
-                            <div class="inputContainer">
-                                <label>
-                                    <input id="EnableEmail"
-                                           is="emby-checkbox"
-                                           type="checkbox"/>
-                                    <span>E-Mail Versand aktivieren</span>
-                                </label>
-                            </div>
 
-                            <div class="inputContainer">
-                                <div>
-                                    <label class="inputLabel inputLabelUnfocused" for="SmtpServer">SMTP Server-Adresse:</label>
-                                    <input class="sso-text" id="SmtpServer" is="emby-input" maxlength="200" type="text" placeholder="z.B. smtp.strato.de"/>
-                                </div>
-                            </div>
-
-                            <div class="inputContainer">
-                                <div>
-                                    <label class="inputLabel inputLabelUnfocused" for="SmtpPort">SMTP Port:</label>
-                                    <input class="sso-text" id="SmtpPort" is="emby-input" type="number" placeholder="z.B. 587"/>
-                                </div>
-                            </div>
-
-                            <div class="inputContainer">
-                                <label>
-                                    <input id="SmtpUseSsl"
-                                           is="emby-checkbox"
-                                           type="checkbox"/>
-                                    <span>STARTTLS / SSL verwenden (Empfohlen)</span>
-                                </label>
-                            </div>
-
-                            <div class="inputContainer">
-                                <div>
-                                    <label class="inputLabel inputLabelUnfocused" for="SmtpUsername">SMTP Benutzername:</label>
-                                    <input class="sso-text" id="SmtpUsername" is="emby-input" maxlength="200" type="text"/>
-                                </div>
-                            </div>
-
-                            <div class="inputContainer">
-                                <div>
-                                    <label class="inputLabel inputLabelUnfocused" for="SmtpPassword">SMTP Passwort:</label>
-                                    <input class="sso-text" id="SmtpPassword" is="emby-input" maxlength="200" type="password"/>
-                                </div>
-                            </div>
-
-                            <div class="inputContainer">
-                                <div>
-                                    <label class="inputLabel inputLabelUnfocused" for="EmailSenderAddress">Absender E-Mail-Adresse:</label>
-                                    <input class="sso-text" id="EmailSenderAddress" is="emby-input" maxlength="200" type="email" placeholder="z.B. RinnoFin@brainless-rp.de"/>
-                                    <div class="fieldDescription">Die Adresse, die Empfängern als Absender angezeigt wird.</div>
-                                </div>
-                            </div>
-
-                            <div class="inputContainer">
-                                <div>
-                                    <label class="inputLabel inputLabelUnfocused" for="EmailSenderName">Absender Name:</label>
-                                    <input class="sso-text" id="EmailSenderName" is="emby-input" maxlength="200" type="text" placeholder="z.B. Rinno Einladungssystem"/>
-                                    <div class="fieldDescription">Der Anzeigename, z.B. "Rinno Einladungssystem".</div>
-                                </div>
-                            </div>
-
-                            <div class="inputContainer">
-                                <div>
-                                    <label class="inputLabel inputLabelUnfocused" for="TestEmailAddress">E-Mail für den Testversand:</label>
-                                    <input class="sso-text" id="TestEmailAddress" is="emby-input" maxlength="200" type="email" placeholder="z.B. deine@email.de"/>
-                                    <div class="fieldDescription">An diese Adresse wird die Test-E-Mail gesendet.</div>
-                                </div>
-                            </div>
-
-                            <button class="raised button-alt emby-button block"
-                                    id="TestSmtpBtn"
-                                    is="emby-button"
-                                    type="button">
-                                <span>Test E-Mail senden</span>
-                            </button>
-                            
-                            <hr style="margin: 30px 0; border: 1px solid rgba(255, 255, 255, 0.1);" />
-                            <legend><h3>E-Mail Vorlagen (HTML erlaubt)</h3></legend>
-                            <p style="margin-bottom: 20px; font-size: 13px; color: #9ca3af;">Du kannst HTML verwenden. Ersetzbare Variablen: {inviteLink}, {resetLink}, {username}</p>
-
-                            <div class="inputContainer">
-                                <div>
-                                    <label class="inputLabel inputLabelUnfocused" for="EmailTemplateInvite">Einladungs-E-Mail (Variable: {inviteLink}):</label>
-                                    <textarea class="sso-text" id="EmailTemplateInvite" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
-                                </div>
-                            </div>
-
-                            <div class="inputContainer">
-                                <div>
-                                    <label class="inputLabel inputLabelUnfocused" for="EmailTemplateWelcome">Willkommens-E-Mail nach Setup (Variable: {username}):</label>
-                                    <textarea class="sso-text" id="EmailTemplateWelcome" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
-                                </div>
-                            </div>
-
-                            <div class="inputContainer">
-                                <div>
-                                    <label class="inputLabel inputLabelUnfocused" for="EmailTemplatePasswordReset">Passwort-Reset E-Mail (Variable: {resetLink}, {username}):</label>
-                                    <textarea class="sso-text" id="EmailTemplatePasswordReset" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
-                                </div>
-                            </div>
-
-                            <div class="inputContainer">
-                                <div>
-                                    <label class="inputLabel inputLabelUnfocused" for="EmailTemplatePasswordChanged">Passwort Erfolgreich Geändert (Variable: {username}):</label>
-                                    <textarea class="sso-text" id="EmailTemplatePasswordChanged" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
-                                </div>
-                            </div>
 
                             <!-- Forced URL Scheme -->
                             <div class="inputContainer">
@@ -308,7 +197,7 @@
                     </form>
                 </div>
         </div>
-        <div id="tab-groups" class="rinnofin-tab block">
+        <div id="tab-groups" class="rinnofin-tab">
             <div class="block">
                     <form id="GroupManagementForm">
                         <fieldset class="verticalSection">
@@ -441,7 +330,7 @@
                 </div>
         </div>
         
-        <div id="tab-users" class="rinnofin-tab block">
+        <div id="tab-users" class="rinnofin-tab">
             <form id="UserManagementForm">
                 <fieldset class="verticalSection">
                     <legend><h3>Benutzerverwaltung</h3></legend>
@@ -467,7 +356,7 @@
                             </div>
                             <div style="flex: 1;">
                                 <label class="inputLabel" for="InviteProfile">Profil-Vorlage (Rechte klonen):</label>
-                                <select class="emby-select-withcolor emby-select" id="InviteProfile" is="emby-select">
+                                <select class="emby-select-withcolor emby-select" id="InviteProfile">
                                     <option value="">Lade Profile...</option>
                                 </select>
                             </div>
@@ -496,19 +385,142 @@
             </form>
         </div>
 
-        <div id="tab-user-settings" class="rinnofin-tab block">
+        <div id="tab-user-settings" class="rinnofin-tab">
             <fieldset class="verticalSection">
                 <legend><h3>Benutzereinstellungen</h3></legend>
                 <p>Hier kommen künftig Standard-Ablaufdaten und globale Profil-Vorlagen hin.</p>
             </fieldset>
         </div>
-        <div id="tab-email" class="rinnofin-tab block">
+        <div id="tab-email" class="rinnofin-tab">
             <fieldset class="verticalSection">
                 <legend><h3>E-Mail-Einstellungen</h3></legend>
-                <p>Die SMTP-Einstellungen findest du aktuell noch im Reiter 'Telegram & Allgemein'. Sie werden in Zukunft hierher ausgelagert.</p>
+                
+                <h3 style="margin-top:1em;">E-Mail Server (SMTP) Einstellungen</h3>
+                <p>Hier legst du fest, über welchen Server das Plugin Einladungen und Passwort-Reset-Mails verschickt.</p>
+                
+                <div class="inputContainer">
+                    <label>
+                        <input id="EnableEmail" is="emby-checkbox" type="checkbox"/>
+                        <span>E-Mail Versand aktivieren</span>
+                    </label>
+                </div>
+
+                <div class="inputContainer">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="SmtpServer">SMTP Server-Adresse:</label>
+                        <input class="sso-text" id="SmtpServer" is="emby-input" maxlength="200" type="text" placeholder="z.B. smtp.strato.de"/>
+                    </div>
+                </div>
+
+                <div class="inputContainer">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="SmtpPort">SMTP Port:</label>
+                        <input class="sso-text" id="SmtpPort" is="emby-input" type="number" placeholder="z.B. 587"/>
+                    </div>
+                </div>
+
+                <div class="inputContainer">
+                    <label>
+                        <input id="SmtpUseSsl" is="emby-checkbox" type="checkbox"/>
+                        <span>STARTTLS / SSL verwenden (Empfohlen)</span>
+                    </label>
+                </div>
+
+                <div class="inputContainer">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="SmtpUsername">SMTP Benutzername:</label>
+                        <input class="sso-text" id="SmtpUsername" is="emby-input" maxlength="200" type="text"/>
+                    </div>
+                </div>
+
+                <div class="inputContainer">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="SmtpPassword">SMTP Passwort:</label>
+                        <input class="sso-text" id="SmtpPassword" is="emby-input" maxlength="200" type="password"/>
+                    </div>
+                </div>
+
+                <div class="inputContainer">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailSenderAddress">Absender E-Mail-Adresse:</label>
+                        <input class="sso-text" id="EmailSenderAddress" is="emby-input" maxlength="200" type="email" placeholder="z.B. RinnoFin@brainless-rp.de"/>
+                        <div class="fieldDescription">Die Adresse, die Empfängern als Absender angezeigt wird.</div>
+                    </div>
+                </div>
+
+                <div class="inputContainer">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailSenderName">Absender Name:</label>
+                        <input class="sso-text" id="EmailSenderName" is="emby-input" maxlength="200" type="text" placeholder="z.B. Rinno Einladungssystem"/>
+                        <div class="fieldDescription">Der Anzeigename, z.B. "Rinno Einladungssystem".</div>
+                    </div>
+                </div>
+
+                <div class="inputContainer">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="TestEmailAddress">E-Mail für den Testversand:</label>
+                        <input class="sso-text" id="TestEmailAddress" is="emby-input" maxlength="200" type="email" placeholder="z.B. deine@email.de"/>
+                        <div class="fieldDescription">An diese Adresse wird die Test-E-Mail gesendet.</div>
+                    </div>
+                </div>
+
+                <button class="raised button-alt emby-button block" id="TestSmtpBtn" is="emby-button" type="button">
+                    <span>Test E-Mail senden</span>
+                </button>
+                
+                <hr style="margin: 30px 0; border: 1px solid rgba(255, 255, 255, 0.1);" />
+                <legend><h3>E-Mail Vorlagen (HTML erlaubt)</h3></legend>
+                <p style="margin-bottom: 20px; font-size: 13px; color: #9ca3af;">Du kannst HTML verwenden. Ersetzbare Variablen: {inviteLink}, {resetLink}, {username}</p>
+
+                <div class="inputContainer">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailTemplateInvite">Einladungs-E-Mail (Variable: {inviteLink}):</label>
+                        <textarea class="sso-text" id="EmailTemplateInvite" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+                    </div>
+                </div>
+
+                <div class="inputContainer">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailTemplateWelcome">Willkommens-E-Mail nach Setup (Variable: {username}):</label>
+                        <textarea class="sso-text" id="EmailTemplateWelcome" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+                    </div>
+                </div>
+
+                <div class="inputContainer">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailTemplatePasswordReset">Passwort-Reset E-Mail (Variable: {resetLink}, {username}):</label>
+                        <textarea class="sso-text" id="EmailTemplatePasswordReset" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+                    </div>
+                </div>
+
+                <div class="inputContainer">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailTemplatePasswordChanged">Passwort Erfolgreich Geändert (Variable: {username}):</label>
+                        <textarea class="sso-text" id="EmailTemplatePasswordChanged" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+                    </div>
+                </div>
+
+                <div class="inputContainer">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailTemplateAccountEnabled">Account Aktiviert (Variable: {username}):</label>
+                        <textarea class="sso-text" id="EmailTemplateAccountEnabled" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+                    </div>
+                </div>
+
+                <div class="inputContainer">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailTemplateAccountDisabled">Account Deaktiviert (Variable: {username}):</label>
+                        <textarea class="sso-text" id="EmailTemplateAccountDisabled" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+                    </div>
+                </div>
+
+                <button class="raised button-submit block emby-button" id="SaveConfigEmail" is="emby-button" type="button">
+                    <span>E-Mail Konfiguration speichern</span>
+                </button>
+
             </fieldset>
         </div>
-        <div id="tab-messages" class="rinnofin-tab block">
+        <div id="tab-messages" class="rinnofin-tab">
             <div class="block">
                     <form id="RequestManagementForm">
                         <fieldset class="verticalSection">
@@ -550,7 +562,7 @@
                     </form>
                 </div>
         </div>
-        <div id="tab-logs" class="rinnofin-tab block">
+        <div id="tab-logs" class="rinnofin-tab">
             <fieldset class="verticalSection">
                 <legend><h3>Protokoll (Logs)</h3></legend>
                 <p>Hier werden Fehler und Systemereignisse protokolliert.</p>

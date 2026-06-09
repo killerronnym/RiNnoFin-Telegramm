@@ -90,6 +90,28 @@ public class PluginConfiguration : BasePluginConfiguration
     </div>
 </div>";
 
+    public string EmailTemplateAccountEnabled { get; set; } = @"
+<div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
+    <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
+        <h2 style='color: #22c55e;'>🎉 Dein RinnoFin Account wurde wieder aktiviert!</h2>
+        <p>Hallo <strong>{username}</strong>,</p>
+        <p>Dein Account wurde soeben reaktiviert. Du kannst dich nun wieder einloggen.</p>
+        <br/>
+        <p style='color: #9ca3af; font-size: 12px; text-align: center;'>Dein RiNnoFin-Team</p>
+    </div>
+</div>";
+
+    public string EmailTemplateAccountDisabled { get; set; } = @"
+<div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
+    <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
+        <h2 style='color: #ef4444;'>⚠️ Dein RinnoFin Account wurde deaktiviert</h2>
+        <p>Hallo <strong>{username}</strong>,</p>
+        <p>Dein Account wurde deaktiviert. Bitte kontaktiere einen Administrator für weitere Informationen.</p>
+        <br/>
+        <p style='color: #9ca3af; font-size: 12px; text-align: center;'>Dein RiNnoFin-Team</p>
+    </div>
+</div>";
+
     [XmlArray("TelegramGroups")]
     [XmlArrayItem(typeof(TelegramGroup), ElementName = "TelegramGroups")]
     public List<TelegramGroup> TelegramGroups { get; set; } = [];
