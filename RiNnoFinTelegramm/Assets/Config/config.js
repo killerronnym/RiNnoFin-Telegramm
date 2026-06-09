@@ -9,6 +9,7 @@ const tgConfigPage = {
     loadConfiguration: (page) => {
         ApiClient.getPluginConfiguration(tgConfigPage.pluginUniqueId).then(
             (config) => {
+                tgConfigPage.config = config;
                 tgConfigPage.populateConfiguration(page, config);
                 tgConfigPage.populateGroups(page, config);
             }
@@ -27,6 +28,7 @@ const tgConfigPage = {
         page.querySelector("#LoginBaseUrl").value = config.LoginBaseUrl ?? '';
         page.querySelector("#TgAdministrators").value = config.AdminUserNames?.join("\r\n") || "";
         page.querySelector("#ForcedUrlScheme").value = config.ForcedUrlScheme || "none";
+        page.querySelector("#RegistrationTheme").value = config.RegistrationTheme || "jellyfin";
         page.querySelector("#EnableEmail").checked = config.EnableEmail ?? false;
         page.querySelector("#SmtpServer").value = config.SmtpServer ?? '';
         page.querySelector("#SmtpPort").value = config.SmtpPort ?? '587';
@@ -163,8 +165,12 @@ const tgConfigPage = {
         tbody.innerHTML = "";
         
         const profileSelect = page.querySelector("#InviteProfile");
+        const defaultProfileSelect = page.querySelector("#DefaultProfileUserId");
         if(profileSelect) {
             profileSelect.innerHTML = '<option value="">Lade Profile...</option>';
+        }
+        if(defaultProfileSelect) {
+            defaultProfileSelect.innerHTML = '<option value="">Lade Profile...</option>';
         }
 
         if (!users || users.length === 0) {
@@ -175,6 +181,9 @@ const tgConfigPage = {
         if(profileSelect) {
             profileSelect.innerHTML = '<option value="">Kein Profil (Leer)</option>';
         }
+        if(defaultProfileSelect) {
+            defaultProfileSelect.innerHTML = '<option value="">Keines (Standard-Jellyfin-Rechte)</option>';
+        }
 
         users.forEach(user => {
             if(profileSelect) {
@@ -182,6 +191,12 @@ const tgConfigPage = {
                 opt.value = user.Id;
                 opt.textContent = user.Name || user.Username;
                 profileSelect.appendChild(opt);
+            }
+            if(defaultProfileSelect) {
+                const opt = document.createElement("option");
+                opt.value = user.Id;
+                opt.textContent = user.Name || user.Username;
+                defaultProfileSelect.appendChild(opt);
             }
 
             const tr = document.createElement("tr");
@@ -221,6 +236,10 @@ const tgConfigPage = {
 
             tbody.appendChild(tr);
         });
+
+        if (defaultProfileSelect && tgConfigPage.config?.DefaultProfileUserId) {
+            defaultProfileSelect.value = tgConfigPage.config.DefaultProfileUserId;
+        }
     },
 
     adminActionUsers: (page, actionName, confirmMsg) => {
@@ -313,6 +332,8 @@ const tgConfigPage = {
                 config.LoginBaseUrl = finalBaseUrl;
                 config.AdminUserNames = tgConfigPage.parseTextList(page.querySelector("#TgAdministrators"));
                 config.ForcedUrlScheme = page.querySelector("#ForcedUrlScheme").value || "none";
+                config.DefaultProfileUserId = page.querySelector("#DefaultProfileUserId").value || undefined;
+                config.RegistrationTheme = page.querySelector("#RegistrationTheme").value || "jellyfin";
                 config.EnableEmail = page.querySelector("#EnableEmail").checked;
                 config.SmtpServer = (page.querySelector("#SmtpServer").value ?? "").trim();
                 config.SmtpPort = parseInt(page.querySelector("#SmtpPort").value) || 587;
@@ -956,6 +977,11 @@ export default function (view) {
     });
 
     view.querySelector("#SaveConfigEmail")?.addEventListener("click", async (e) => {
+        e.preventDefault();
+        await tgConfigPage.saveConfig(view);
+    });
+
+    view.querySelector("#SaveConfigUsers")?.addEventListener("click", async (e) => {
         e.preventDefault();
         await tgConfigPage.saveConfig(view);
     });

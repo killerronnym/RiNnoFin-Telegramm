@@ -68,20 +68,49 @@ public class RiNnoFinPublicController : ControllerBase
             await userManager.UpdateUserAsync(user).ConfigureAwait(false);
             PluginLog.Info("[PublicAPI] Passwort erfolgreich gesetzt und Benutzer aktualisiert.");
 
-            // Clone Policy if provided
-            if (profileUserId.HasValue)
+            // Clone Policy and Configuration if provided (or fallback to global default)
+            var config = RiNnoFinPlugin.Instance?.Configuration;
+            Guid? actualProfileUserId = profileUserId;
+            if (!actualProfileUserId.HasValue && config != null && !string.IsNullOrEmpty(config.DefaultProfileUserId) && Guid.TryParse(config.DefaultProfileUserId, out var defaultId))
             {
-                PluginLog.Info($"[PublicAPI] Profil-Cloning angefordert. Kopiere Rechte von Profile-User ID: '{profileUserId.Value}' auf neuen User '{user.Id}'...");
-                var profileUser = userManager.GetUserById(profileUserId.Value);
+                actualProfileUserId = defaultId;
+                PluginLog.Info($"[PublicAPI] Kein spezifisches Profil übergeben. Verwende globales Standard-Profil mit ID '{defaultId}'.");
+            }
+
+            if (actualProfileUserId.HasValue)
+            {
+                PluginLog.Info($"[PublicAPI] Profil-Cloning angefordert. Kopiere Rechte von Profile-User ID: '{actualProfileUserId.Value}' auf neuen User '{user.Id}'...");
+                var profileUser = userManager.GetUserById(actualProfileUserId.Value);
                 if (profileUser != null)
                 {
+                    // 1. Copy policy and force the user to not be disabled
                     var profileDto = userManager.GetUserDto(profileUser, string.Empty);
+                    profileDto.Policy.IsDisabled = false;
                     await userManager.UpdatePolicyAsync(user.Id, profileDto.Policy).ConfigureAwait(false);
-                    PluginLog.Info("[PublicAPI] Rechte erfolgreich geklont.");
+                    PluginLog.Info("[PublicAPI] Policy-Rechte erfolgreich geklont und Status auf Aktiv gesetzt.");
+
+                    // 2. Copy user configuration
+                    try
+                    {
+                        if (profileDto.Configuration != null)
+                        {
+                            var clonedConfigJson = System.Text.Json.JsonSerializer.Serialize(profileDto.Configuration);
+                            var clonedConfig = System.Text.Json.JsonSerializer.Deserialize<MediaBrowser.Model.Configuration.UserConfiguration>(clonedConfigJson);
+                            if (clonedConfig != null)
+                            {
+                                await userManager.UpdateConfigurationAsync(user.Id, clonedConfig).ConfigureAwait(false);
+                                PluginLog.Info("[PublicAPI] User-Konfiguration erfolgreich geklont.");
+                            }
+                        }
+                    }
+                    catch (Exception configEx)
+                    {
+                        PluginLog.Error(configEx, "[PublicAPI] Fehler beim Klonen der User-Konfiguration.");
+                    }
                 }
                 else
                 {
-                    PluginLog.Warn($"[PublicAPI] Profil-User mit ID '{profileUserId.Value}' wurde nicht gefunden. Rechte konnten nicht geklont werden.");
+                    PluginLog.Warn($"[PublicAPI] Profil-User mit ID '{actualProfileUserId.Value}' wurde nicht gefunden. Rechte konnten nicht geklont werden.");
                 }
             }
             else
@@ -90,7 +119,6 @@ public class RiNnoFinPublicController : ControllerBase
             }
 
             // Speichern der E-Mail im Plugin-Config (damit wir wissen, wem dieser Account gehört)
-            var config = RiNnoFinPlugin.Instance?.Configuration;
             if (config != null)
             {
                 PluginLog.Info("[PublicAPI] Verknüpfe E-Mail-Adresse in Plugin-Konfiguration...");

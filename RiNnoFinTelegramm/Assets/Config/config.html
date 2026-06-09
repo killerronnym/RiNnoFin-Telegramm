@@ -397,10 +397,36 @@
         </div>
 
         <div id="tab-user-settings" class="rinnofin-tab">
-            <fieldset class="verticalSection">
-                <legend><h3>Benutzereinstellungen</h3></legend>
-                <p>Hier kommen künftig Standard-Ablaufdaten und globale Profil-Vorlagen hin.</p>
-            </fieldset>
+            <form class="rinnofin-form">
+                <fieldset class="verticalSection">
+                    <legend><h3>Benutzereinstellungen &amp; Design</h3></legend>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel" for="DefaultProfileUserId">Globales Standard-Profil (Rechte &amp; Einstellungen klonen):</label>
+                        <select class="emby-select-withcolor emby-select" id="DefaultProfileUserId">
+                            <option value="">Keines (Standard-Jellyfin-Rechte)</option>
+                        </select>
+                        <div class="fieldDescription">Dieses Profil wird kopiert, wenn neue Benutzer eingeladen werden (z. B. via Telegram oder wenn keine spezifische Vorlage ausgewählt wird).</div>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel" for="RegistrationTheme">Design der Registrierungs- &amp; Passwort-Seiten:</label>
+                        <select class="emby-select-withcolor emby-select" id="RegistrationTheme">
+                            <option value="jellyfin">Standard (Jellyfin Lila/Blau Gradient)</option>
+                            <option value="dark">Dark (Nachtmodus Dunkelgrau)</option>
+                            <option value="light">Light (Klassisch Hell)</option>
+                            <option value="blue">Blue (Ocean Blue)</option>
+                            <option value="green">Green (Emerald)</option>
+                            <option value="red">Red (Crimson)</option>
+                        </select>
+                        <div class="fieldDescription">Wähle das Farbschema für das öffentliche Registrierungs- und Passwort-Rücksetz-Portal aus.</div>
+                    </div>
+
+                    <div style="margin-top: 2em; display: flex; gap: 10px;">
+                        <button class="action-btn btn-green" id="SaveConfigUsers" type="button">Speichern</button>
+                    </div>
+                </fieldset>
+            </form>
         </div>
         <div id="tab-email" class="rinnofin-tab">
             <fieldset class="verticalSection">

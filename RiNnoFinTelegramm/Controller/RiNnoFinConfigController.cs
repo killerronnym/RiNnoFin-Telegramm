@@ -275,27 +275,42 @@ public class RiNnoFinConfigController : ControllerBase
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<UserDto>> GetUsers([FromServices] MediaBrowser.Controller.Library.IUserManager userManager)
         {
-            var config = RiNnoFinPlugin.Instance?.Configuration;
-            var users = userManager.Users.ToList();
-            var dtos = new List<UserDto>();
-
-            foreach (var u in users)
+            try
             {
-                var link = config?.TelegramUserLinks != null ? config.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == u.Id) : null;
-                var uDto = userManager.GetUserDto(u, string.Empty);
-                dtos.Add(new UserDto
-                {
-                    Id = u.Id,
-                    Username = u.Username,
-                    Email = link?.EmailAddress ?? "",
-                    HasTelegram = link?.TelegramUserId > 0,
-                    IsDisabled = uDto.Policy.IsDisabled,
-                    IsAdmin = uDto.Policy.IsAdministrator,
-                    LastActivityDate = u.LastActivityDate
-                });
-            }
+                var config = RiNnoFinPlugin.Instance?.Configuration;
+                var users = userManager.Users.ToList();
+                var dtos = new List<UserDto>();
 
-            return Ok(dtos.OrderBy(d => d.Username));
+                foreach (var u in users)
+                {
+                    try
+                    {
+                        var link = config?.TelegramUserLinks != null ? config.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == u.Id) : null;
+                        var uDto = userManager.GetUserDto(u, string.Empty);
+                        dtos.Add(new UserDto
+                        {
+                            Id = u.Id,
+                            Username = u.Username,
+                            Email = link?.EmailAddress ?? "",
+                            HasTelegram = link?.TelegramUserId > 0,
+                            IsDisabled = uDto?.Policy?.IsDisabled ?? false,
+                            IsAdmin = uDto?.Policy?.IsAdministrator ?? false,
+                            LastActivityDate = u.LastActivityDate
+                        });
+                    }
+                    catch (Exception innerEx)
+                    {
+                        PluginLog.Error(innerEx, $"Fehler beim Verarbeiten des Benutzers '{u?.Username ?? "Unbekannt"}'");
+                    }
+                }
+
+                return Ok(dtos.OrderBy(d => d.Username));
+            }
+            catch (Exception ex)
+            {
+                PluginLog.Error(ex, "Fehler in GetUsers");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
+            }
         }
 
         [HttpGet("GetLogs")]

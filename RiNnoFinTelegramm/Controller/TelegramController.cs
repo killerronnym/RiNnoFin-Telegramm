@@ -94,12 +94,74 @@ public class TelegramController : ControllerBase
             return StatusCode(500, $"Ressource konnte nicht geladen werden: {view.EmbeddedResourcePath}");
         }
 
+        var theme = _instance.Configuration.RegistrationTheme ?? "jellyfin";
+        var themeCss = string.Empty;
+        if (theme == "dark")
+        {
+            themeCss = @"
+:root {
+    --primary-gradient: linear-gradient(135deg, #4b5563 0%, #111827 100%);
+    --bg-dark: #030712;
+    --card-bg: rgba(17, 24, 39, 0.8);
+    --border-color: rgba(255, 255, 255, 0.05);
+}";
+        }
+        else if (theme == "light")
+        {
+            themeCss = @"
+:root {
+    --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    --bg-dark: #f3f4f6;
+    --card-bg: rgba(255, 255, 255, 0.95);
+    --border-color: rgba(0, 0, 0, 0.08);
+    --text-primary: #1f2937;
+    --text-secondary: #4b5563;
+}
+body::before, body::after { display: none; }
+.loginCard { box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.8); }
+.emby-input { background: rgba(0, 0, 0, 0.03) !important; border-color: rgba(0, 0, 0, 0.1) !important; color: #1f2937 !important; }
+.emby-input:focus { border-color: #3b82f6 !important; }
+.inputLabel { color: rgba(0, 0, 0, 0.6) !important; }
+.emby-button.block { background: rgba(0, 0, 0, 0.03) !important; border-color: rgba(0, 0, 0, 0.08) !important; color: #1f2937 !important; }
+.emby-button.block:hover { background: rgba(0, 0, 0, 0.06) !important; }";
+        }
+        else if (theme == "blue")
+        {
+            themeCss = @"
+:root {
+    --primary-gradient: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+    --bg-dark: #083344;
+    --card-bg: rgba(15, 23, 42, 0.7);
+    --border-color: rgba(6, 182, 212, 0.15);
+}";
+        }
+        else if (theme == "green")
+        {
+            themeCss = @"
+:root {
+    --primary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    --bg-dark: #064e3b;
+    --card-bg: rgba(2, 48, 32, 0.7);
+    --border-color: rgba(16, 185, 129, 0.15);
+}";
+        }
+        else if (theme == "red")
+        {
+            themeCss = @"
+:root {
+    --primary-gradient: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+    --bg-dark: #450a0a;
+    --card-bg: rgba(24, 9, 9, 0.75);
+    --border-color: rgba(239, 68, 68, 0.15);
+}";
+        }
+
         using var reader = new StreamReader(textStream);
         var html = await reader.ReadToEndAsync();
         var replaced = html
             .Replace("{{SERVER_URL}}", serverUrl)
             .Replace("{{TELEGRAM_BOT_NAME}}", botUsername)
-            .Replace("/*{{CUSTOM_CSS}}*/", _brandingOptions.CustomCss ?? string.Empty);
+            .Replace("/*{{CUSTOM_CSS}}*/", themeCss + "\n" + (_brandingOptions.CustomCss ?? string.Empty));
 
         return Content(replaced, mimeType);
     }

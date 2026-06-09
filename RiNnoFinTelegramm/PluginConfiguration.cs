@@ -22,6 +22,10 @@ public class PluginConfiguration : BasePluginConfiguration
 
     public string ForcedUrlScheme { get; set; } = "none";
 
+    public string? DefaultProfileUserId { get; set; }
+
+    public string RegistrationTheme { get; set; } = "jellyfin";
+
 
 
     // Neue SMTP & E-Mail Einstellungen
