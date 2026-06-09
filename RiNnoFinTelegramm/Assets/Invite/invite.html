@@ -142,7 +142,7 @@
         submitBtn.disabled = true;
 
         try {
-            const response = await fetch('/api/RiNnoFinConfig/AcceptInvite', {
+            const response = await fetch('/api/RiNnoFinPublic/AcceptInvite', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -163,7 +163,7 @@
                 } catch(e) {
                     if(text) errorText = text;
                 }
-                throw new Error(errorText);
+                throw new Error(`${errorText} (Status: ${response.status})`);
             }
         } catch (err) {
             errorMsg.innerText = err.message;
