@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 using Jellyfin.Plugin.RiNnoFinTelegramm.Telegram;
@@ -119,4 +120,20 @@ public class PluginConfiguration : BasePluginConfiguration
     [XmlArray("TelegramUserLinks")]
     [XmlArrayItem(typeof(TelegramUserLink), ElementName = "TelegramUserLinks")]
     public List<TelegramUserLink> TelegramUserLinks { get; set; } = [];
+
+    public List<PersistedInvite> PersistedInvites { get; set; } = [];
+    public List<PersistedResetToken> PersistedResetTokens { get; set; } = [];
+}
+
+public class PersistedInvite
+{
+    public string Token { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string? ProfileUserId { get; set; }
+}
+
+public class PersistedResetToken
+{
+    public string Token { get; set; } = string.Empty;
+    public Guid JellyfinUserId { get; set; }
 }

@@ -43,7 +43,7 @@ public class RiNnoFinPublicController : ControllerBase
             return BadRequest(new { message = "Alle Felder müssen ausgefüllt sein." });
         }
 
-        if (!Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.Commands.InviteTokenManager.ActiveInvites.TryRemove(request.Token, out var email))
+        if (!Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.Commands.InviteTokenManager.TryGetAndRemoveInvite(request.Token, out var email, out var profileUserId))
         {
             PluginLog.Warn($"[PublicAPI] AcceptInvite abgelehnt: Token '{request.Token}' ist ungültig oder abgelaufen.");
             return BadRequest(new { message = "Ungültiger oder abgelaufener Einladungslink." });
@@ -69,7 +69,7 @@ public class RiNnoFinPublicController : ControllerBase
             PluginLog.Info("[PublicAPI] Passwort erfolgreich gesetzt und Benutzer aktualisiert.");
 
             // Clone Policy if provided
-            if (Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.Commands.InviteTokenManager.InviteProfiles.TryRemove(request.Token, out var profileUserId) && profileUserId.HasValue)
+            if (profileUserId.HasValue)
             {
                 PluginLog.Info($"[PublicAPI] Profil-Cloning angefordert. Kopiere Rechte von Profile-User ID: '{profileUserId.Value}' auf neuen User '{user.Id}'...");
                 var profileUser = userManager.GetUserById(profileUserId.Value);
@@ -180,7 +180,7 @@ public class RiNnoFinPublicController : ControllerBase
         try
         {
             var token = Guid.NewGuid().ToString("N");
-            ResetTokenManager.ActiveResetTokens[token] = userLink.JellyfinUserId;
+            ResetTokenManager.AddResetToken(token, userLink.JellyfinUserId);
 
             var baseUrl = config.LoginBaseUrl?.TrimEnd('/') ?? "http://localhost:8096";
             var resetLink = $"{baseUrl}/sso/Telegram/reset?token={token}";
@@ -230,7 +230,7 @@ public class RiNnoFinPublicController : ControllerBase
             return BadRequest(new { message = "Alle Felder müssen ausgefüllt sein." });
         }
 
-        if (!ResetTokenManager.ActiveResetTokens.TryRemove(request.Token, out var userId))
+        if (!ResetTokenManager.TryGetAndRemoveResetToken(request.Token, out var userId))
         {
             return BadRequest(new { message = "Ungültiger oder abgelaufener Reset-Link." });
         }

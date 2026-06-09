@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.3",
+        "changelog": "Hotfix: Persistiert Einladungs- und Passwort-Reset-Token in der Plugin-Konfiguration. Dadurch bleiben sie auch nach Server-Neustarts und Plugin-Updates gültig und verfallen nicht mehr ungeplant.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "79D3F0CFC2744D926CF299AB154167FD",
+        "timestamp": "2026-06-09 21:40:00"
+      },
+      {
         "version": "1.0.4.2",
         "changelog": "Hotfix: Behebt den 500-Fehler bei der Registrierung durch Hinzufügen eines ILogger<EmailService> Konstruktors im EmailService. Dadurch kann Jellyfin den EmailService im öffentlichen Controller korrekt instanziieren und auflösen.",
         "targetAbi": "10.9.0.0",

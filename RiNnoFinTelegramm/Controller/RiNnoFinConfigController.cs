@@ -317,12 +317,7 @@ public class RiNnoFinConfigController : ControllerBase
                 return BadRequest(new { message = "E-Mail-Versand ist in der Konfiguration nicht aktiviert." });
 
             string token = Guid.NewGuid().ToString("N");
-            Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.Commands.InviteTokenManager.ActiveInvites[token] = request.Email;
-            
-            if (Guid.TryParse(request.ProfileUserId, out var profileId))
-            {
-                Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.Commands.InviteTokenManager.InviteProfiles[token] = profileId;
-            }
+            Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.Commands.InviteTokenManager.AddInvite(token, request.Email, request.ProfileUserId);
 
             string inviteUrl = $"{config.LoginBaseUrl?.TrimEnd('/')}/sso/Telegram/invite?token={token}";
             string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplateInvite)
@@ -409,7 +404,7 @@ public class RiNnoFinConfigController : ControllerBase
                 if (userLink == null || string.IsNullOrWhiteSpace(userLink.EmailAddress)) continue;
 
                 string token = Guid.NewGuid().ToString("N");
-                ResetTokenManager.ActiveResetTokens[token] = id;
+                ResetTokenManager.AddResetToken(token, id);
                 string resetUrl = $"{config.LoginBaseUrl?.TrimEnd('/')}/sso/Telegram/ResetPassword?token={token}";
 
                 string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplatePasswordReset)
@@ -526,6 +521,35 @@ public class UserDto
 
 public static class ResetTokenManager
 {
-    // Key: Token, Value: Jellyfin UserId
-    public static readonly System.Collections.Concurrent.ConcurrentDictionary<string, Guid> ActiveResetTokens = new();
+    public static void AddResetToken(string token, Guid jellyfinUserId)
+    {
+        var config = RiNnoFinPlugin.Instance?.Configuration;
+        if (config != null)
+        {
+            if (config.PersistedResetTokens == null) config.PersistedResetTokens = new();
+            config.PersistedResetTokens.Add(new PersistedResetToken
+            {
+                Token = token,
+                JellyfinUserId = jellyfinUserId
+            });
+            RiNnoFinPlugin.Instance?.SaveConfiguration(config);
+            PluginLog.Info($"[ResetTokenManager] Passwort-Reset-Token für User ID '{jellyfinUserId}' hinzugefügt und persistiert.");
+        }
+    }
+
+    public static bool TryGetAndRemoveResetToken(string token, out Guid jellyfinUserId)
+    {
+        jellyfinUserId = Guid.Empty;
+        var config = RiNnoFinPlugin.Instance?.Configuration;
+        if (config == null || config.PersistedResetTokens == null) return false;
+
+        var resetToken = config.PersistedResetTokens.FirstOrDefault(t => t.Token == token);
+        if (resetToken == null) return false;
+
+        jellyfinUserId = resetToken.JellyfinUserId;
+        config.PersistedResetTokens.Remove(resetToken);
+        RiNnoFinPlugin.Instance?.SaveConfiguration(config);
+        PluginLog.Info($"[ResetTokenManager] Passwort-Reset-Token für User ID '{jellyfinUserId}' verbraucht und aus Persistenz entfernt.");
+        return true;
+    }
 }

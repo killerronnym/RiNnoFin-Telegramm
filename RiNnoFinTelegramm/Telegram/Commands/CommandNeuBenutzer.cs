@@ -8,6 +8,8 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 using System.Collections.Concurrent;
+using System.Linq;
+using Jellyfin.Plugin.RiNnoFinTelegramm.Classes;
 
 namespace Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.Commands;
 
@@ -98,7 +100,7 @@ internal class CommandNeuBenutzerStep : ICommandBase
         try
         {
             var token = Guid.NewGuid().ToString("N");
-            InviteTokenManager.ActiveInvites[token] = email;
+            InviteTokenManager.AddInvite(token, email);
 
             var baseUrl = config.LoginBaseUrl?.TrimEnd('/') ?? "http://localhost:8096";
             var inviteLink = $"{baseUrl}/sso/Telegram/invite?token={token}";
@@ -143,9 +145,42 @@ internal class CommandNeuBenutzerStep : ICommandBase
 
 public static class InviteTokenManager
 {
-    // Key: Token, Value: Email
-    public static readonly ConcurrentDictionary<string, string> ActiveInvites = new();
-    
-    // Key: Token, Value: Profile UserId (to clone permissions from)
-    public static readonly ConcurrentDictionary<string, Guid?> InviteProfiles = new();
+    public static void AddInvite(string token, string email, string? profileUserId = null)
+    {
+        var config = RiNnoFinPlugin.Instance?.Configuration;
+        if (config != null)
+        {
+            if (config.PersistedInvites == null) config.PersistedInvites = new();
+            config.PersistedInvites.Add(new PersistedInvite
+            {
+                Token = token,
+                Email = email,
+                ProfileUserId = profileUserId
+            });
+            RiNnoFinPlugin.Instance?.SaveConfiguration(config);
+            PluginLog.Info($"[InviteTokenManager] Einladung hinzugefügt und persistiert: {email} (Token: {token})");
+        }
+    }
+
+    public static bool TryGetAndRemoveInvite(string token, out string email, out Guid? profileUserId)
+    {
+        email = string.Empty;
+        profileUserId = null;
+        var config = RiNnoFinPlugin.Instance?.Configuration;
+        if (config == null || config.PersistedInvites == null) return false;
+
+        var invite = config.PersistedInvites.FirstOrDefault(i => i.Token == token);
+        if (invite == null) return false;
+
+        email = invite.Email;
+        if (!string.IsNullOrEmpty(invite.ProfileUserId) && Guid.TryParse(invite.ProfileUserId, out var pId))
+        {
+            profileUserId = pId;
+        }
+
+        config.PersistedInvites.Remove(invite);
+        RiNnoFinPlugin.Instance?.SaveConfiguration(config);
+        PluginLog.Info($"[InviteTokenManager] Einladung für {email} verbraucht und aus Persistenz entfernt.");
+        return true;
+    }
 }
