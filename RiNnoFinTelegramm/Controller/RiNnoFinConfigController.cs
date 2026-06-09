@@ -255,10 +255,12 @@ public class RiNnoFinConfigController : ControllerBase
                     </div>
                 </div>";
 
-            // Sende Test-E-Mail an die Absender-Adresse selbst
-            await emailService.SendEmailAsync(tempConfig, request.SmtpUsername, "RiNnoFin Media - E-Mail Test erfolgreich! 🎉", htmlBody);
+            var targetEmail = !string.IsNullOrWhiteSpace(request.TestEmailAddress) ? request.TestEmailAddress : request.SmtpUsername;
 
-            return Ok(new { message = "E-Mail erfolgreich versendet!" });
+            // Sende Test-E-Mail an die angegebene Test-Adresse
+            await emailService.SendEmailAsync(tempConfig, targetEmail, "RiNnoFin Media - E-Mail Test erfolgreich! 🎉", htmlBody);
+
+            return Ok(new { message = $"E-Mail erfolgreich an {targetEmail} versendet!" });
         }
         catch (Exception ex)
         {
@@ -319,7 +321,9 @@ public class RiNnoFinConfigController : ControllerBase
                 RiNnoFinPlugin.Instance?.UpdateConfiguration(config);
 
                 // Send Welcome Email
-                string htmlBody = $@"
+                string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplateWelcome)
+                    ? config.EmailTemplateWelcome.Replace("{username}", user.Username)
+                    : $@"
                     <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
                         <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
                             <h2 style='color: #2563eb;'>Willkommen an Bord! 🐧🎬</h2>
@@ -380,7 +384,9 @@ public class RiNnoFinConfigController : ControllerBase
             var baseUrl = config.LoginBaseUrl?.TrimEnd('/') ?? "http://localhost:8096";
             var resetLink = $"{baseUrl}/sso/Telegram/reset?token={token}";
 
-            string htmlBody = $@"
+            string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplatePasswordReset)
+                ? config.EmailTemplatePasswordReset.Replace("{resetLink}", resetLink).Replace("{username}", userLink.JellyfinUsername ?? "")
+                : $@"
                 <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
                     <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
                         <h2 style='color: #2563eb;'>Passwort zurücksetzen 🔑</h2>
@@ -447,7 +453,9 @@ public class RiNnoFinConfigController : ControllerBase
                 var userLink = config.TelegramUserLinks.FirstOrDefault(l => l.JellyfinUserId == userId);
                 if (userLink != null && !string.IsNullOrEmpty(userLink.EmailAddress))
                 {
-                    string htmlBody = $@"
+                    string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplatePasswordChanged)
+                        ? config.EmailTemplatePasswordChanged.Replace("{username}", user.Username)
+                        : $@"
                         <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
                             <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
                                 <h2 style='color: #22c55e;'>Passwort geändert ✅</h2>
@@ -483,6 +491,7 @@ public class TestSmtpRequest
     public string SmtpPassword { get; set; } = string.Empty;
     public string EmailSenderAddress { get; set; } = string.Empty;
     public string EmailSenderName { get; set; } = string.Empty;
+    public string TestEmailAddress { get; set; } = string.Empty;
     public bool SmtpUseSsl { get; set; }
 }
 

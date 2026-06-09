@@ -104,7 +104,9 @@ internal class CommandPasswort : ICommandBase
                 try
                 {
                     var emailService = new EmailService(telegramBotService.Logger);
-                    string htmlBody = $@"
+                    string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplatePasswordChanged)
+                        ? config.EmailTemplatePasswordChanged.Replace("{username}", user.Username)
+                        : $@"
                         <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
                             <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
                                 <h2 style='color: #22c55e;'>Passwort geändert ✅</h2>

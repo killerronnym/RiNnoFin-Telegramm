@@ -104,18 +104,21 @@ internal class CommandNeuBenutzerStep : ICommandBase
             var inviteLink = $"{baseUrl}/sso/Telegram/invite?token={token}";
 
             var emailService = new EmailService(telegramBotService.Logger);
-            string htmlBody = $@"
+            string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplateInvite) 
+                ? config.EmailTemplateInvite.Replace("{inviteLink}", inviteLink)
+                : $@"
                 <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
                     <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
-                        <h2 style='color: #2563eb;'>Hallo! 🎉</h2>
-                        <p>Du wurdest herzlich eingeladen, unserem Jellyfin-Server <strong>RiNnoFin Media</strong> beizutreten.</p>
-                        <p>Klicke auf den untenstehenden Button, um dir einen Benutzernamen auszusuchen und dein Passwort festzulegen:</p>
+                        <h2 style='color: #2563eb;'>Du wurdest eingeladen! 🍿</h2>
+                        <p>Hallo!</p>
+                        <p>Du wurdest eingeladen, Teil unserer <strong>RiNnoFin Media</strong> Community zu werden.</p>
+                        <p>Klicke auf den untenstehenden Button, um deinen Benutzernamen und dein Passwort festzulegen:</p>
                         <div style='text-align: center; margin: 30px 0;'>
-                            <a href='{inviteLink}' style='background-color: #2563eb; color: #fff; padding: 14px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;'>Jetzt Account erstellen</a>
+                            <a href='{inviteLink}' style='background-color: #2563eb; color: #fff; padding: 14px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;'>Account erstellen</a>
                         </div>
-                        <p style='color: #6b7280; font-size: 13px;'>Dieser Link ist nur einmalig gültig.</p>
+                        <p style='color: #6b7280; font-size: 13px;'>Dieser Link ist einmalig gültig.</p>
                         <hr style='border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;' />
-                        <p style='color: #9ca3af; font-size: 12px; text-align: center;'>Viel Spaß beim Streamen! 🍿 Dein RiNnoFin-Team</p>
+                        <p style='color: #9ca3af; font-size: 12px; text-align: center;'>Dein RiNnoFin-Team</p>
                     </div>
                 </div>";
 

@@ -36,6 +36,10 @@ const tgConfigPage = {
         page.querySelector("#EmailSenderName").value = config.EmailSenderName ?? '';
         page.querySelector("#SmtpUseSsl").checked = config.SmtpUseSsl ?? true;
         page.querySelector("#EnableBotService").checked = config.EnableBotService ?? true;
+        page.querySelector("#EmailTemplateInvite").value = config.EmailTemplateInvite ?? '';
+        page.querySelector("#EmailTemplateWelcome").value = config.EmailTemplateWelcome ?? '';
+        page.querySelector("#EmailTemplatePasswordReset").value = config.EmailTemplatePasswordReset ?? '';
+        page.querySelector("#EmailTemplatePasswordChanged").value = config.EmailTemplatePasswordChanged ?? '';
     },
 
     populateGroups: (page, config) => {
@@ -176,6 +180,10 @@ const tgConfigPage = {
                 config.EmailSenderName = (page.querySelector("#EmailSenderName").value ?? "").trim();
                 config.SmtpUseSsl = page.querySelector("#SmtpUseSsl").checked;
                 config.EnableBotService = page.querySelector("#EnableBotService").checked;
+                config.EmailTemplateInvite = (page.querySelector("#EmailTemplateInvite").value ?? "").trim() || undefined;
+                config.EmailTemplateWelcome = (page.querySelector("#EmailTemplateWelcome").value ?? "").trim() || undefined;
+                config.EmailTemplatePasswordReset = (page.querySelector("#EmailTemplatePasswordReset").value ?? "").trim() || undefined;
+                config.EmailTemplatePasswordChanged = (page.querySelector("#EmailTemplatePasswordChanged").value ?? "").trim() || undefined;
 
                 window.ApiClient.updatePluginConfiguration(
                     tgConfigPage.pluginUniqueId,
@@ -773,6 +781,7 @@ export default function (view) {
             SmtpPassword: (view.querySelector("#SmtpPassword").value ?? "").trim(),
             EmailSenderAddress: (view.querySelector("#EmailSenderAddress").value ?? "").trim(),
             EmailSenderName: (view.querySelector("#EmailSenderName").value ?? "").trim(),
+            TestEmailAddress: (view.querySelector("#TestEmailAddress").value ?? "").trim(),
             SmtpUseSsl: view.querySelector("#SmtpUseSsl").checked
         };
         

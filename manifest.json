@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.3.0",
+        "changelog": "Feat: Neues E-Mail-Template System implementiert! Administratoren können nun in den Plugin-Einstellungen das Aussehen und den Text der Einladungs-, Willkommens- und Passwort-E-Mails direkt bearbeiten. Zudem gibt es nun ein Feld, um die Test-E-Mail an eine spezifische Adresse zu senden.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "A5B6D6C7D27AE1B4017D9236C95C30C0",
+        "timestamp": "2026-06-09 16:08:00"
+      },
+      {
         "version": "1.0.2.9",
         "changelog": "Feat: JFA-Go Integration komplett entfernt und durch internes Plugin-System mit nativer E-Mail-Unterstützung (SMTP) ersetzt. Die gesamte Benutzererstellung, Einladungen und Passwort-Resets laufen nun über moderne Web-Schnittstellen (invite.html, forgot.html, reset.html) direkt vom Plugin.",
         "targetAbi": "10.9.0.0",

@@ -206,12 +206,52 @@
                                 </div>
                             </div>
 
+                            <div class="inputContainer">
+                                <div>
+                                    <label class="inputLabel inputLabelUnfocused" for="TestEmailAddress">E-Mail für den Testversand:</label>
+                                    <input class="sso-text" id="TestEmailAddress" is="emby-input" maxlength="200" type="email" placeholder="z.B. deine@email.de"/>
+                                    <div class="fieldDescription">An diese Adresse wird die Test-E-Mail gesendet.</div>
+                                </div>
+                            </div>
+
                             <button class="raised button-alt emby-button block"
                                     id="TestSmtpBtn"
                                     is="emby-button"
                                     type="button">
                                 <span>Test E-Mail senden</span>
                             </button>
+                            
+                            <hr style="margin: 30px 0; border: 1px solid rgba(255, 255, 255, 0.1);" />
+                            <legend><h3>E-Mail Vorlagen (HTML erlaubt)</h3></legend>
+                            <p style="margin-bottom: 20px; font-size: 13px; color: #9ca3af;">Du kannst HTML verwenden. Ersetzbare Variablen: {inviteLink}, {resetLink}, {username}</p>
+
+                            <div class="inputContainer">
+                                <div>
+                                    <label class="inputLabel inputLabelUnfocused" for="EmailTemplateInvite">Einladungs-E-Mail (Variable: {inviteLink}):</label>
+                                    <textarea class="sso-text" id="EmailTemplateInvite" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="inputContainer">
+                                <div>
+                                    <label class="inputLabel inputLabelUnfocused" for="EmailTemplateWelcome">Willkommens-E-Mail nach Setup (Variable: {username}):</label>
+                                    <textarea class="sso-text" id="EmailTemplateWelcome" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="inputContainer">
+                                <div>
+                                    <label class="inputLabel inputLabelUnfocused" for="EmailTemplatePasswordReset">Passwort-Reset E-Mail (Variable: {resetLink}, {username}):</label>
+                                    <textarea class="sso-text" id="EmailTemplatePasswordReset" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="inputContainer">
+                                <div>
+                                    <label class="inputLabel inputLabelUnfocused" for="EmailTemplatePasswordChanged">Passwort Erfolgreich Geändert (Variable: {username}):</label>
+                                    <textarea class="sso-text" id="EmailTemplatePasswordChanged" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+                                </div>
+                            </div>
 
                             <!-- Forced URL Scheme -->
                             <div class="inputContainer">
