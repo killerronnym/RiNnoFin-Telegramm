@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.2.7",
+        "changelog": "Feat: Multi-Step Dialog für das Zurücksetzen von Passwörtern mit Sicherheitsabfrage via Buttons hinzugefügt.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "E82B7896FB7C87222C97E2587015DD1B",
+        "timestamp": "2026-06-09 14:55:00"
+      },
+      {
         "version": "1.0.2.6",
         "changelog": "Fix: JFA-Go JSON-Payload auf Bindestrich-Format ('send-to', 'no-limit', 'remaining-uses') umgestellt. E-Mail-Versand und Limitierungen (unbegrenzt) funktionieren nun korrekt.",
         "targetAbi": "10.9.0.0",

@@ -45,26 +45,46 @@ internal class CommandPasswort : ICommandBase
             return;
         }
 
-        var text = message.Text ?? string.Empty;
-        var parts = text.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length < 2)
+        var inlineKeyboard = new global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(new[]
         {
-            await botClient.SendMessage(
-                message.Chat.Id,
-                "🔑 *Passwort ändern*\n\n" +
-                "Bitte gib dein neues Passwort wie folgt an:\n" +
-                "`/passwort <DeinNeuesPasswort>`",
-                parseMode: ParseMode.Markdown,
-                cancellationToken: cancellationToken);
-            return;
-        }
+            new []
+            {
+                global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton.WithCallbackData("Ja", "passwort_confirm_yes"),
+                global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton.WithCallbackData("Nein", "passwort_confirm_no"),
+            }
+        });
 
-        var newPassword = parts[1];
-        if (newPassword.Length < 4)
+        await botClient.SendMessage(
+            message.Chat.Id,
+            $"Möchten Sie wirklich das Passwort zurücksetzen?\n\nEs geht um diesen Account: *{link.JellyfinUsername}*",
+            parseMode: ParseMode.Markdown,
+            replyMarkup: inlineKeyboard,
+            cancellationToken: cancellationToken);
+    }
+}
+
+internal class CommandPasswortStep2 : ICommandBase
+{
+    public string Command => "passwort_step2";
+    public bool NeedsAdmin => false;
+
+    public async Task Execute(ITelegramBotService telegramBotService, Message message, bool isAdmin, CancellationToken cancellationToken)
+    {
+        var botClient = telegramBotService.BotClientWrapper.Client;
+        if (botClient == null) return;
+
+        var senderId = message.From?.Id;
+        if (senderId == null) return;
+
+        var link = telegramBotService.Config.TelegramUserLinks.FirstOrDefault(l => l.TelegramUserId == senderId.Value);
+        if (link == null) return;
+
+        var newPassword = message.Text?.Trim();
+        if (string.IsNullOrEmpty(newPassword) || newPassword.Length < 4)
         {
             await botClient.SendMessage(
                 message.Chat.Id,
-                "❌ Das Passwort ist zu kurz. Es muss aus Sicherheitsgründen mindestens 4 Zeichen lang sein.",
+                "❌ Das Passwort ist zu kurz. Es muss aus Sicherheitsgründen mindestens 4 Zeichen lang sein. Bitte rufe /passwort erneut auf.",
                 cancellationToken: cancellationToken);
             return;
         }
@@ -90,8 +110,7 @@ internal class CommandPasswort : ICommandBase
 
             await botClient.SendMessage(
                 message.Chat.Id,
-                "✅ *Erfolgreich!* Dein Jellyfin-Passwort wurde geändert. Du kannst dich jetzt mit deinem neuen Passwort bei Jellyfin anmelden.",
-                parseMode: ParseMode.Markdown,
+                "✅ Das Passwort wurde erfolgreich zurückgesetzt.",
                 cancellationToken: cancellationToken);
         }
         catch (Exception ex)

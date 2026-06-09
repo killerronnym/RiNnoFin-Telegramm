@@ -325,6 +325,8 @@ internal sealed class TelegramBotService : ITelegramBotService
                 commandText = "neubenutzer_step1";
             else if (replyText.Contains("Bitte E-Mail eingeben"))
                 commandText = "neubenutzer_step2";
+            else if (replyText.Contains("Geben Sie bitte das neue Passwort ein"))
+                commandText = "passwort_step2";
         }
 
         if (commandText == null)
@@ -386,6 +388,25 @@ internal sealed class TelegramBotService : ITelegramBotService
                         parseMode: ParseMode.Markdown,
                         cancellationToken: cancellationToken);
                 }
+            }
+            else if (data == "passwort_confirm_yes")
+            {
+                await botClient.DeleteMessage(callbackQuery.Message!.Chat.Id, callbackQuery.Message.MessageId, cancellationToken: cancellationToken);
+                await botClient.SendMessage(
+                    callbackQuery.Message.Chat.Id,
+                    "Geben Sie bitte das neue Passwort ein:",
+                    replyMarkup: new global::Telegram.Bot.Types.ReplyMarkups.ForceReplyMarkup { Selective = true },
+                    cancellationToken: cancellationToken);
+                await botClient.AnswerCallbackQuery(callbackQuery.Id, cancellationToken: cancellationToken);
+            }
+            else if (data == "passwort_confirm_no")
+            {
+                await botClient.EditMessageText(
+                    callbackQuery.Message!.Chat.Id,
+                    callbackQuery.Message.MessageId,
+                    "Vorgang abgebrochen.",
+                    cancellationToken: cancellationToken);
+                await botClient.AnswerCallbackQuery(callbackQuery.Id, cancellationToken: cancellationToken);
             }
         }
         catch (Exception ex)
