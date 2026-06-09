@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.3.7",
+        "changelog": "Hotfix: Behebt einen Fehler im Web-Frontend (body stream already read), der verhinderte, dass die korrekte Fehlermeldung 'Benutzername ist bereits vergeben' angezeigt wurde, wenn ein Benutzerkonto bereits existierte.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "371317AC6B559FD4FF255BA40F0091D8",
+        "timestamp": "2026-06-09 21:00:00"
+      },
+      {
         "version": "1.0.3.6",
         "changelog": "UI Update & Bugfix: Die Einladungs-, Passwort-Vergessen- und Passwort-Zurücksetzen-Seiten wurden vollständig an das elegante Jellyfin Design angepasst. Außerdem wurde ein Fehler ('Unexpected token E...') beim Erstellen von Accounts behoben, der auftrat, wenn der gewählte Benutzername bereits vergeben war.",
         "targetAbi": "10.9.0.0",

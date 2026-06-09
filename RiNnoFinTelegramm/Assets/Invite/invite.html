@@ -156,11 +156,11 @@
                 document.getElementById('success-container').style.display = 'block';
             } else {
                 let errorText = "Fehler bei der Erstellung des Accounts.";
+                const text = await response.text();
                 try {
-                    const data = await response.json();
+                    const data = JSON.parse(text);
                     if(data.message) errorText = data.message;
                 } catch(e) {
-                    const text = await response.text();
                     if(text) errorText = text;
                 }
                 throw new Error(errorText);
