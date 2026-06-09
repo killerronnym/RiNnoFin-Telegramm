@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.2.8",
+        "changelog": "Fix: Beim Passwort-Reset über /passwort wird nun explizit der Jellyfin-Benutzername und die (falls vorhanden) in JFA-Go hinterlegte E-Mail-Adresse angezeigt, um Verwirrungen durch den SSO-Auto-Namen zu vermeiden.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "C907FB3889E40B2C914CADF225DAA045",
+        "timestamp": "2026-06-09 15:08:00"
+      },
+      {
         "version": "1.0.2.7",
         "changelog": "Feat: Multi-Step Dialog für das Zurücksetzen von Passwörtern mit Sicherheitsabfrage via Buttons hinzugefügt.",
         "targetAbi": "10.9.0.0",

@@ -45,6 +45,67 @@ internal class CommandPasswort : ICommandBase
             return;
         }
 
+        var config = RiNnoFinPlugin.Instance?.Configuration;
+        string email = "Nicht in JFA-Go hinterlegt oder JFA-Go nicht konfiguriert";
+
+        if (config != null && !string.IsNullOrWhiteSpace(config.JfaGoUrl) && !string.IsNullOrWhiteSpace(config.JfaGoUsername))
+        {
+            try
+            {
+                var jfaGoUrl = config.JfaGoUrl.TrimEnd('/');
+                using var httpClient = new System.Net.Http.HttpClient();
+                
+                var loginRequest = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Get, $"{jfaGoUrl}/token/login");
+                var authBytes = System.Text.Encoding.UTF8.GetBytes($"{config.JfaGoUsername}:{config.JfaGoPassword ?? ""}");
+                loginRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(authBytes));
+                
+                var loginResponse = await httpClient.SendAsync(loginRequest, cancellationToken);
+                if (loginResponse.IsSuccessStatusCode)
+                {
+                    var loginResponseContent = await loginResponse.Content.ReadAsStringAsync(cancellationToken);
+                    string? token = null;
+                    try
+                    {
+                        var doc = System.Text.Json.JsonDocument.Parse(loginResponseContent);
+                        if (doc.RootElement.TryGetProperty("token", out var tokenProp))
+                            token = tokenProp.GetString();
+                    }
+                    catch { }
+
+                    if (!string.IsNullOrEmpty(token))
+                    {
+                        var usersReq = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Get, $"{jfaGoUrl}/users");
+                        usersReq.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                        var usersRes = await httpClient.SendAsync(usersReq, cancellationToken);
+                        if (usersRes.IsSuccessStatusCode)
+                        {
+                            var usersJson = await usersRes.Content.ReadAsStringAsync(cancellationToken);
+                            var usersDoc = System.Text.Json.JsonDocument.Parse(usersJson);
+                            
+                            foreach (var u in usersDoc.RootElement.EnumerateArray())
+                            {
+                                if (u.TryGetProperty("name", out var nameProp) && string.Equals(nameProp.GetString(), link.JellyfinUsername, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    if (u.TryGetProperty("email", out var emailProp) && emailProp.ValueKind == System.Text.Json.JsonValueKind.String)
+                                        email = emailProp.GetString() ?? email;
+                                    else if (u.TryGetProperty("emailAddress", out var emailAddrProp) && emailAddrProp.ValueKind == System.Text.Json.JsonValueKind.String)
+                                        email = emailAddrProp.GetString() ?? email;
+                                    else if (u.TryGetProperty("email_address", out var emailAddrProp2) && emailAddrProp2.ValueKind == System.Text.Json.JsonValueKind.String)
+                                        email = emailAddrProp2.GetString() ?? email;
+                                        
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                telegramBotService.Logger.LogWarning(ex, "Konnte JFA-Go E-Mail für Benutzer {User} nicht abrufen.", link.JellyfinUsername);
+            }
+        }
+
         var inlineKeyboard = new global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(new[]
         {
             new []
@@ -56,7 +117,7 @@ internal class CommandPasswort : ICommandBase
 
         await botClient.SendMessage(
             message.Chat.Id,
-            $"Möchten Sie wirklich das Passwort zurücksetzen?\n\nEs geht um diesen Account: *{link.JellyfinUsername}*",
+            $"Möchten Sie wirklich das Passwort zurücksetzen?\n\n*Jellyfin-Benutzername:* {link.JellyfinUsername}\n*JFA-Go E-Mail:* {email}",
             parseMode: ParseMode.Markdown,
             replyMarkup: inlineKeyboard,
             cancellationToken: cancellationToken);
