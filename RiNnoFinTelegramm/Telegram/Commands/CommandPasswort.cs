@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Jellyfin.Plugin.RiNnoFinTelegramm.Services;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Cryptography;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,114 +39,37 @@ internal class CommandPasswort : ICommandBase
         if (senderId == null) return;
 
         // Prüfen, ob das Telegram-Konto verknüpft ist
-        var link = telegramBotService.Config.TelegramUserLinks.FirstOrDefault(l => l.TelegramUserId == senderId.Value);
+        var config = RiNnoFinPlugin.Instance?.Configuration;
+        if (config == null) return;
+        
+        var link = config.TelegramUserLinks.FirstOrDefault(l => l.TelegramUserId == senderId.Value);
         if (link == null)
         {
             await telegramBotService.SendNotLinkedMessage(message.Chat.Id, cancellationToken);
             return;
         }
 
-        var config = RiNnoFinPlugin.Instance?.Configuration;
-        string email = "Nicht in JFA-Go hinterlegt oder JFA-Go nicht konfiguriert";
+        var messageText = message.Text?.Trim() ?? string.Empty;
+        var parts = messageText.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
 
-        if (config != null && !string.IsNullOrWhiteSpace(config.JfaGoUrl) && !string.IsNullOrWhiteSpace(config.JfaGoUsername))
-        {
-            try
-            {
-                var jfaGoUrl = config.JfaGoUrl.TrimEnd('/');
-                using var httpClient = new System.Net.Http.HttpClient();
-                
-                var loginRequest = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Get, $"{jfaGoUrl}/token/login");
-                var authBytes = System.Text.Encoding.UTF8.GetBytes($"{config.JfaGoUsername}:{config.JfaGoPassword ?? ""}");
-                loginRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(authBytes));
-                
-                var loginResponse = await httpClient.SendAsync(loginRequest, cancellationToken);
-                if (loginResponse.IsSuccessStatusCode)
-                {
-                    var loginResponseContent = await loginResponse.Content.ReadAsStringAsync(cancellationToken);
-                    string? token = null;
-                    try
-                    {
-                        var doc = System.Text.Json.JsonDocument.Parse(loginResponseContent);
-                        if (doc.RootElement.TryGetProperty("token", out var tokenProp))
-                            token = tokenProp.GetString();
-                    }
-                    catch { }
-
-                    if (!string.IsNullOrEmpty(token))
-                    {
-                        var usersReq = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Get, $"{jfaGoUrl}/users");
-                        usersReq.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-                        var usersRes = await httpClient.SendAsync(usersReq, cancellationToken);
-                        if (usersRes.IsSuccessStatusCode)
-                        {
-                            var usersJson = await usersRes.Content.ReadAsStringAsync(cancellationToken);
-                            var usersDoc = System.Text.Json.JsonDocument.Parse(usersJson);
-                            
-                            foreach (var u in usersDoc.RootElement.EnumerateArray())
-                            {
-                                if (u.TryGetProperty("name", out var nameProp) && string.Equals(nameProp.GetString(), link.JellyfinUsername, StringComparison.OrdinalIgnoreCase))
-                                {
-                                    if (u.TryGetProperty("email", out var emailProp) && emailProp.ValueKind == System.Text.Json.JsonValueKind.String)
-                                        email = emailProp.GetString() ?? email;
-                                    else if (u.TryGetProperty("emailAddress", out var emailAddrProp) && emailAddrProp.ValueKind == System.Text.Json.JsonValueKind.String)
-                                        email = emailAddrProp.GetString() ?? email;
-                                    else if (u.TryGetProperty("email_address", out var emailAddrProp2) && emailAddrProp2.ValueKind == System.Text.Json.JsonValueKind.String)
-                                        email = emailAddrProp2.GetString() ?? email;
-                                        
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                telegramBotService.Logger.LogWarning(ex, "Konnte JFA-Go E-Mail für Benutzer {User} nicht abrufen.", link.JellyfinUsername);
-            }
-        }
-
-        var inlineKeyboard = new global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(new[]
-        {
-            new []
-            {
-                global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton.WithCallbackData("Ja", "passwort_confirm_yes"),
-                global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton.WithCallbackData("Nein", "passwort_confirm_no"),
-            }
-        });
-
-        await botClient.SendMessage(
-            message.Chat.Id,
-            $"Möchten Sie wirklich das Passwort zurücksetzen?\n\n*Jellyfin-Benutzername:* {link.JellyfinUsername}\n*JFA-Go E-Mail:* {email}",
-            parseMode: ParseMode.Markdown,
-            replyMarkup: inlineKeyboard,
-            cancellationToken: cancellationToken);
-    }
-}
-
-internal class CommandPasswortStep2 : ICommandBase
-{
-    public string Command => "passwort_step2";
-    public bool NeedsAdmin => false;
-
-    public async Task Execute(ITelegramBotService telegramBotService, Message message, bool isAdmin, CancellationToken cancellationToken)
-    {
-        var botClient = telegramBotService.BotClientWrapper.Client;
-        if (botClient == null) return;
-
-        var senderId = message.From?.Id;
-        if (senderId == null) return;
-
-        var link = telegramBotService.Config.TelegramUserLinks.FirstOrDefault(l => l.TelegramUserId == senderId.Value);
-        if (link == null) return;
-
-        var newPassword = message.Text?.Trim();
-        if (string.IsNullOrEmpty(newPassword) || newPassword.Length < 4)
+        if (parts.Length < 2)
         {
             await botClient.SendMessage(
                 message.Chat.Id,
-                "❌ Das Passwort ist zu kurz. Es muss aus Sicherheitsgründen mindestens 4 Zeichen lang sein. Bitte rufe /passwort erneut auf.",
+                "⚠️ Bitte gib das neue Passwort an. Format: `/passwort <NeuesPasswort>`",
+                parseMode: ParseMode.Markdown,
+                cancellationToken: cancellationToken);
+            return;
+        }
+
+        var newPassword = parts[1];
+
+        // Passwort validieren (Beispiel: Mindestlänge 6 Zeichen)
+        if (newPassword.Length < 6)
+        {
+            await botClient.SendMessage(
+                message.Chat.Id,
+                "⚠️ Das neue Passwort muss mindestens 6 Zeichen lang sein.",
                 cancellationToken: cancellationToken);
             return;
         }
@@ -173,6 +97,32 @@ internal class CommandPasswortStep2 : ICommandBase
                 message.Chat.Id,
                 "✅ Das Passwort wurde erfolgreich zurückgesetzt.",
                 cancellationToken: cancellationToken);
+
+            // Benachrichtigungs-E-Mail senden
+            if (config.EnableEmail && !string.IsNullOrWhiteSpace(link.EmailAddress))
+            {
+                try
+                {
+                    var emailService = new EmailService(telegramBotService.Logger);
+                    string htmlBody = $@"
+                        <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
+                            <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
+                                <h2 style='color: #22c55e;'>Passwort geändert ✅</h2>
+                                <p>Hallo <strong>{user.Username}</strong>,</p>
+                                <p>Wir haben registriert, dass dein Passwort über den Telegram-Bot geändert wurde.</p>
+                                <p>Falls du dies nicht selbst getan hast, kontaktiere bitte umgehend deinen Administrator!</p>
+                                <br/>
+                                <p style='color: #9ca3af; font-size: 12px; text-align: center;'>Dein RiNnoFin-Team</p>
+                            </div>
+                        </div>";
+                    
+                    await emailService.SendEmailAsync(config, link.EmailAddress, "Passwort-Änderung (Telegram)", htmlBody);
+                }
+                catch (Exception ex)
+                {
+                    telegramBotService.Logger.LogWarning(ex, "Konnte keine Bestätigungs-E-Mail versenden.");
+                }
+            }
         }
         catch (Exception ex)
         {

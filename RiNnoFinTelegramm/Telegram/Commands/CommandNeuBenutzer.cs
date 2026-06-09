@@ -1,11 +1,8 @@
 using System;
-using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Jellyfin.Plugin.RiNnoFinTelegramm.Services;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -16,7 +13,6 @@ namespace Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.Commands;
 
 internal class CommandNeuBenutzer : ICommandBase
 {
-    // Akzeptiert sowohl NeuerBenutzer als auch NeuBenutzer falls der Nutzer sich vertippt
     public string Command => "NeuerBenutzer";
     public bool NeedsAdmin => true;
 
@@ -26,21 +22,31 @@ internal class CommandNeuBenutzer : ICommandBase
         if (botClient == null) return;
 
         var config = RiNnoFinPlugin.Instance?.Configuration;
-        if (config == null || string.IsNullOrWhiteSpace(config.JfaGoUrl) || string.IsNullOrWhiteSpace(config.JfaGoUsername))
+        if (config == null || !config.EnableEmail)
         {
             await botClient.SendMessage(
                 message.Chat.Id,
-                "⚠️ JFA-Go ist noch nicht konfiguriert. Bitte trage die JFA-Go URL, Benutzername und Passwort in den Plugin-Einstellungen ein.",
+                "⚠️ Der E-Mail-Versand ist deaktiviert. Bitte richte zuerst den SMTP-Server in den Plugin-Einstellungen ein.",
                 cancellationToken: cancellationToken);
             return;
         }
 
-        // Start step
-        await botClient.SendMessage(
-            message.Chat.Id,
-            "Bitte Benutzername eingeben für den neuen Account:",
-            replyMarkup: new ForceReplyMarkup { Selective = true },
-            cancellationToken: cancellationToken);
+        var parts = message.Text?.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts != null && parts.Length > 1)
+        {
+            // Email was provided in command: /NeuerBenutzer max@beispiel.de
+            var email = parts[1];
+            await CommandNeuBenutzerStep.HandleEmailInput(telegramBotService, message, email, cancellationToken);
+        }
+        else
+        {
+            // Ask for email
+            await botClient.SendMessage(
+                message.Chat.Id,
+                "Bitte gib die E-Mail-Adresse für die neue Einladung ein:",
+                replyMarkup: new ForceReplyMarkup { Selective = true },
+                cancellationToken: cancellationToken);
+        }
     }
 }
 
@@ -56,176 +62,84 @@ internal class CommandNeuBenutzerAlias : ICommandBase
     }
 }
 
-internal class CommandNeuBenutzerStep1 : ICommandBase
+internal class CommandNeuBenutzerStep : ICommandBase
 {
-    public string Command => "neubenutzer_step1";
+    public string Command => "neuerbenutzer_step"; // internal state
     public bool NeedsAdmin => true;
-
-    // We use a shared dictionary from a static class or just store it here
-    public static readonly ConcurrentDictionary<long, string> PendingUsernames = new();
 
     public async Task Execute(ITelegramBotService telegramBotService, Message message, bool isAdmin, CancellationToken cancellationToken)
     {
         var botClient = telegramBotService.BotClientWrapper.Client;
         if (botClient == null) return;
-
-        var username = message.Text?.Trim();
-        if (string.IsNullOrWhiteSpace(username)) return;
-
-        PendingUsernames[message.From!.Id] = username;
-
-        await botClient.SendMessage(
-            message.Chat.Id,
-            $"Benutzername '{username}' gespeichert.\nBitte E-Mail eingeben:",
-            replyMarkup: new ForceReplyMarkup { Selective = true },
-            cancellationToken: cancellationToken);
-    }
-}
-
-internal class CommandNeuBenutzerStep2 : ICommandBase
-{
-    public string Command => "neubenutzer_step2";
-    public bool NeedsAdmin => true;
-
-    private static readonly HttpClient HttpClient = new();
-
-    public async Task Execute(ITelegramBotService telegramBotService, Message message, bool isAdmin, CancellationToken cancellationToken)
-    {
-        var botClient = telegramBotService.BotClientWrapper.Client;
-        if (botClient == null) return;
-
-        var config = RiNnoFinPlugin.Instance?.Configuration;
-        if (config == null || string.IsNullOrWhiteSpace(config.JfaGoUrl) || string.IsNullOrWhiteSpace(config.JfaGoUsername))
-        {
-            return;
-        }
 
         var email = message.Text?.Trim();
         if (string.IsNullOrWhiteSpace(email)) return;
 
-        // E-Mail Validierung
-        if (!System.Text.RegularExpressions.Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+        await HandleEmailInput(telegramBotService, message, email, cancellationToken);
+    }
+
+    public static async Task HandleEmailInput(ITelegramBotService telegramBotService, Message message, string email, CancellationToken cancellationToken)
+    {
+        var botClient = telegramBotService.BotClientWrapper.Client;
+        if (botClient == null) return;
+
+        if (!Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
         {
             await botClient.SendMessage(
                 message.Chat.Id,
-                "⚠️ Die eingegebene E-Mail-Adresse scheint ungültig zu sein. Bitte antworte erneut auf diese Nachricht mit einer korrekten E-Mail-Adresse.",
-                replyMarkup: new ForceReplyMarkup { Selective = true },
+                "⚠️ Die eingegebene E-Mail-Adresse scheint ungültig zu sein. Bitte versuche es erneut mit /NeuerBenutzer.",
                 cancellationToken: cancellationToken);
             return;
         }
 
-        if (!CommandNeuBenutzerStep1.PendingUsernames.TryRemove(message.From!.Id, out var username))
-        {
-            await botClient.SendMessage(
-                message.Chat.Id,
-                "⚠️ Entschuldigung, der Benutzername wurde nicht gefunden. Bitte starte mit /NeuerBenutzer erneut.",
-                cancellationToken: cancellationToken);
-            return;
-        }
+        var config = RiNnoFinPlugin.Instance?.Configuration;
+        if (config == null) return;
 
         try
         {
-            var jfaGoUrl = config.JfaGoUrl.TrimEnd('/');
-            
-            // 1. Authenticate with JFA-Go using username/password via GET /token/login
-            var loginRequest = new HttpRequestMessage(HttpMethod.Get, $"{jfaGoUrl}/token/login");
-            var authBytes = Encoding.UTF8.GetBytes($"{config.JfaGoUsername}:{config.JfaGoPassword ?? ""}");
-            loginRequest.Headers.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(authBytes));
+            var token = Guid.NewGuid().ToString("N");
+            InviteTokenManager.ActiveInvites[token] = email;
 
-            var loginResponse = await HttpClient.SendAsync(loginRequest, cancellationToken);
-            var loginResponseContent = await loginResponse.Content.ReadAsStringAsync(cancellationToken);
+            var baseUrl = config.LoginBaseUrl?.TrimEnd('/') ?? "http://localhost:8096";
+            var inviteLink = $"{baseUrl}/sso/Telegram/invite?token={token}";
 
-            if (!loginResponse.IsSuccessStatusCode)
-            {
-                telegramBotService.Logger.LogWarning("JFA-Go Login fehlgeschlagen: {Status} - {Response}", loginResponse.StatusCode, loginResponseContent);
-                
-                string errorMsg = loginResponse.StatusCode == System.Net.HttpStatusCode.Unauthorized
-                    ? "❌ JFA-Go Login fehlgeschlagen (401 Unauthorized). Bitte überprüfe Benutzername und Passwort in den Plugin-Einstellungen."
-                    : loginResponse.StatusCode == System.Net.HttpStatusCode.NotFound
-                    ? "❌ JFA-Go Login-Endpunkt nicht gefunden (404 NotFound). Möglicherweise ist der API-Endpunkt 'GET /token/login' für deine JFA-Go Version nicht korrekt."
-                    : $"❌ JFA-Go Login fehlgeschlagen (Status {loginResponse.StatusCode}).";
+            var emailService = new EmailService(telegramBotService.Logger);
+            string htmlBody = $@"
+                <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
+                    <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
+                        <h2 style='color: #2563eb;'>Hallo! 🎉</h2>
+                        <p>Du wurdest herzlich eingeladen, unserem Jellyfin-Server <strong>RiNnoFin Media</strong> beizutreten.</p>
+                        <p>Klicke auf den untenstehenden Button, um dir einen Benutzernamen auszusuchen und dein Passwort festzulegen:</p>
+                        <div style='text-align: center; margin: 30px 0;'>
+                            <a href='{inviteLink}' style='background-color: #2563eb; color: #fff; padding: 14px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;'>Jetzt Account erstellen</a>
+                        </div>
+                        <p style='color: #6b7280; font-size: 13px;'>Dieser Link ist nur einmalig gültig.</p>
+                        <hr style='border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;' />
+                        <p style='color: #9ca3af; font-size: 12px; text-align: center;'>Viel Spaß beim Streamen! 🍿 Dein RiNnoFin-Team</p>
+                    </div>
+                </div>";
 
-                await botClient.SendMessage(
-                    message.Chat.Id,
-                    errorMsg,
-                    cancellationToken: cancellationToken);
-                return;
-            }
+            await emailService.SendEmailAsync(config, email, "Deine Einladung zu RiNnoFin Media 🍿", htmlBody);
 
-            // Extract token
-            string? token = null;
-            try
-            {
-                var doc = JsonDocument.Parse(loginResponseContent);
-                if (doc.RootElement.TryGetProperty("token", out var tokenProp))
-                {
-                    token = tokenProp.GetString();
-                }
-            }
-            catch { }
-
-            if (string.IsNullOrWhiteSpace(token))
-            {
-                await botClient.SendMessage(
-                    message.Chat.Id,
-                    "❌ Konnte kein Token von JFA-Go erhalten.",
-                    cancellationToken: cancellationToken);
-                return;
-            }
-
-            // 2. Create Invite (mit Dictionary für Bindestrich-Schlüssel)
-            var invitePayload = new System.Collections.Generic.Dictionary<string, object>
-            {
-                { "email", email },
-                { "label", username },
-                { "profile", "Standard User" },
-                { "send-to", email },
-                { "user-expiry", false },
-                { "multiple-uses", true },
-                { "no-limit", true },
-                { "remaining-uses", 0 },
-                { "months", 0 },
-                { "days", 0 }, // Kein Ablaufdatum (no-limit)
-                { "hours", 0 },
-                { "minutes", 0 },
-                { "user_label", "" }
-            };
-
-            var inviteJson = JsonSerializer.Serialize(invitePayload);
-            var inviteContent = new StringContent(inviteJson, Encoding.UTF8, "application/json");
-
-            var inviteRequest = new HttpRequestMessage(HttpMethod.Post, $"{jfaGoUrl}/invites");
-            inviteRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            inviteRequest.Content = inviteContent;
-
-            var inviteResponse = await HttpClient.SendAsync(inviteRequest, cancellationToken);
-            var inviteResponseContent = await inviteResponse.Content.ReadAsStringAsync(cancellationToken);
-
-            if (inviteResponse.IsSuccessStatusCode)
-            {
-                await botClient.SendMessage(
-                    message.Chat.Id,
-                    $"✅ Einladung für *{username}* (Profil: Standard User) wurde erfolgreich erstellt und an *{email}* gesendet!",
-                    parseMode: global::Telegram.Bot.Types.Enums.ParseMode.Markdown,
-                    cancellationToken: cancellationToken);
-            }
-            else
-            {
-                telegramBotService.Logger.LogWarning("JFA-Go Invite fehlgeschlagen: {Status} - {Response}", inviteResponse.StatusCode, inviteResponseContent);
-                
-                await botClient.SendMessage(
-                    message.Chat.Id,
-                    $"❌ Fehler beim Erstellen der Einladung in JFA-Go.\nStatus: {inviteResponse.StatusCode}\nNachricht: {inviteResponseContent}",
-                    cancellationToken: cancellationToken);
-            }
+            await botClient.SendMessage(
+                message.Chat.Id,
+                $"✅ Die Einladungs-E-Mail wurde erfolgreich an *{email}* gesendet!\nDer Nutzer kann nun über den Link seinen Account erstellen.",
+                parseMode: global::Telegram.Bot.Types.Enums.ParseMode.Markdown,
+                cancellationToken: cancellationToken);
         }
         catch (Exception ex)
         {
-            telegramBotService.Logger.LogError(ex, "Fehler beim Aufruf der JFA-Go API.");
+            telegramBotService.Logger.LogError(ex, "Fehler beim Senden der Einladung.");
             await botClient.SendMessage(
                 message.Chat.Id,
-                $"❌ Verbindungsfehler zu JFA-Go:\n{ex.Message}",
+                $"❌ Fehler beim Versenden der E-Mail:\n{ex.Message}",
                 cancellationToken: cancellationToken);
         }
     }
+}
+
+public static class InviteTokenManager
+{
+    // Key: Token, Value: Email
+    public static readonly ConcurrentDictionary<string, string> ActiveInvites = new();
 }

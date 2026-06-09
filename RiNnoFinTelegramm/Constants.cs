@@ -44,7 +44,10 @@ public static class Constants
         new() { Name = "login.css", EmbeddedResourcePath = "Jellyfin.Plugin.RiNnoFinTelegramm.Assets.Login.login.css", NeedsReplacement = true },
         new() { Name = "login.js", EmbeddedResourcePath = "Jellyfin.Plugin.RiNnoFinTelegramm.Assets.Login.login.js", NeedsReplacement = true },
         new() { Name = "material_icons.woff2", EmbeddedResourcePath = "Jellyfin.Plugin.RiNnoFinTelegramm.Assets.Login.material_icons.woff2" },
-        new() { Name = DefaultUserImageExtraFile, EmbeddedResourcePath = "Jellyfin.Plugin.RiNnoFinTelegramm.Assets.Login.RiNnoFinLogo.png" }
+        new() { Name = DefaultUserImageExtraFile, EmbeddedResourcePath = "Jellyfin.Plugin.RiNnoFinTelegramm.Assets.Login.RiNnoFinLogo.png" },
+        new() { Name = "invite", EmbeddedResourcePath = "Jellyfin.Plugin.RiNnoFinTelegramm.Assets.Invite.invite.html", NeedsReplacement = true },
+        new() { Name = "forgot", EmbeddedResourcePath = "Jellyfin.Plugin.RiNnoFinTelegramm.Assets.Recovery.forgot.html", NeedsReplacement = true },
+        new() { Name = "reset", EmbeddedResourcePath = "Jellyfin.Plugin.RiNnoFinTelegramm.Assets.Recovery.reset.html", NeedsReplacement = true }
     ];
 
     // Unique GUID for RiNnoFin Telegramm so it does not conflict with TeleJelly

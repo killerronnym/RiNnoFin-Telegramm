@@ -27,9 +27,14 @@ const tgConfigPage = {
         page.querySelector("#LoginBaseUrl").value = config.LoginBaseUrl ?? '';
         page.querySelector("#TgAdministrators").value = config.AdminUserNames?.join("\r\n") || "";
         page.querySelector("#ForcedUrlScheme").value = config.ForcedUrlScheme || "none";
-        page.querySelector("#JfaGoUrl").value = config.JfaGoUrl ?? '';
-        page.querySelector("#JfaGoUsername").value = config.JfaGoUsername ?? '';
-        page.querySelector("#JfaGoPassword").value = config.JfaGoPassword ?? '';
+        page.querySelector("#EnableEmail").checked = config.EnableEmail ?? false;
+        page.querySelector("#SmtpServer").value = config.SmtpServer ?? '';
+        page.querySelector("#SmtpPort").value = config.SmtpPort ?? '587';
+        page.querySelector("#SmtpUsername").value = config.SmtpUsername ?? '';
+        page.querySelector("#SmtpPassword").value = config.SmtpPassword ?? '';
+        page.querySelector("#EmailSenderAddress").value = config.EmailSenderAddress ?? '';
+        page.querySelector("#EmailSenderName").value = config.EmailSenderName ?? '';
+        page.querySelector("#SmtpUseSsl").checked = config.SmtpUseSsl ?? true;
         page.querySelector("#EnableBotService").checked = config.EnableBotService ?? true;
     },
 
@@ -162,9 +167,14 @@ const tgConfigPage = {
                 config.LoginBaseUrl = finalBaseUrl;
                 config.AdminUserNames = tgConfigPage.parseTextList(page.querySelector("#TgAdministrators"));
                 config.ForcedUrlScheme = page.querySelector("#ForcedUrlScheme").value || "none";
-                config.JfaGoUrl = (page.querySelector("#JfaGoUrl").value ?? "").trim();
-                config.JfaGoUsername = (page.querySelector("#JfaGoUsername").value ?? "").trim();
-                config.JfaGoPassword = (page.querySelector("#JfaGoPassword").value ?? "").trim();
+                config.EnableEmail = page.querySelector("#EnableEmail").checked;
+                config.SmtpServer = (page.querySelector("#SmtpServer").value ?? "").trim();
+                config.SmtpPort = parseInt(page.querySelector("#SmtpPort").value) || 587;
+                config.SmtpUsername = (page.querySelector("#SmtpUsername").value ?? "").trim();
+                config.SmtpPassword = (page.querySelector("#SmtpPassword").value ?? "").trim();
+                config.EmailSenderAddress = (page.querySelector("#EmailSenderAddress").value ?? "").trim();
+                config.EmailSenderName = (page.querySelector("#EmailSenderName").value ?? "").trim();
+                config.SmtpUseSsl = page.querySelector("#SmtpUseSsl").checked;
                 config.EnableBotService = page.querySelector("#EnableBotService").checked;
 
                 window.ApiClient.updatePluginConfiguration(
@@ -752,6 +762,35 @@ export default function (view) {
 
     const inputElement = view.querySelector("#TgBotToken");
     
+    view.querySelector("#TestSmtpBtn")?.addEventListener("click", async (e) => {
+        e.preventDefault();
+        window.Dashboard.showLoadingMsg();
+        
+        const payload = {
+            SmtpServer: (view.querySelector("#SmtpServer").value ?? "").trim(),
+            SmtpPort: parseInt(view.querySelector("#SmtpPort").value) || 587,
+            SmtpUsername: (view.querySelector("#SmtpUsername").value ?? "").trim(),
+            SmtpPassword: (view.querySelector("#SmtpPassword").value ?? "").trim(),
+            EmailSenderAddress: (view.querySelector("#EmailSenderAddress").value ?? "").trim(),
+            EmailSenderName: (view.querySelector("#EmailSenderName").value ?? "").trim(),
+            SmtpUseSsl: view.querySelector("#SmtpUseSsl").checked
+        };
+        
+        window.ApiClient.ajax({
+            url: window.ApiClient.getUrl("/api/RiNnoFinConfig/TestSmtp"),
+            type: "POST",
+            data: JSON.stringify(payload),
+            contentType: "application/json"
+        }).then(() => {
+            window.Dashboard.hideLoadingMsg();
+            window.Dashboard.alert("✅ Test E-Mail wurde erfolgreich versendet! Bitte überprüfe dein Postfach.");
+        }).catch(err => {
+            window.Dashboard.hideLoadingMsg();
+            const msg = err?.responseJSON?.message || err?.responseText || err?.message || "Unbekannter Fehler beim Senden.";
+            window.Dashboard.alert("❌ Fehler beim Versenden der Test-E-Mail:\n" + msg);
+        });
+    });
+
     view.querySelector("#TestTokenBtn")?.addEventListener("click", (e) => {
         e.preventDefault();
         const token = view.querySelector("#TgBotToken").value;

@@ -140,36 +140,78 @@
                                 </div>
                             </div>
 
-                            <!-- JFA-Go Configuration -->
+                            <!-- E-Mail / SMTP Configuration -->
+                            <h3 style="margin-top:2em;">E-Mail Server (SMTP) Einstellungen</h3>
+                            <p>Hier legst du fest, über welchen Server das Plugin Einladungen und Passwort-Reset-Mails verschickt.</p>
+                            
+                            <div class="inputContainer">
+                                <label>
+                                    <input id="EnableEmail"
+                                           is="emby-checkbox"
+                                           type="checkbox"/>
+                                    <span>E-Mail Versand aktivieren</span>
+                                </label>
+                            </div>
+
                             <div class="inputContainer">
                                 <div>
-                                    <label class="inputLabel inputLabelUnfocused" for="JfaGoUrl">JFA-Go URL (Optional):</label>
-                                    <input class="sso-text" id="JfaGoUrl" is="emby-input" maxlength="200" type="url"/>
-                                    <div class="fieldDescription">
-                                        Die Basis-URL deiner jfa-go Instanz (z.B. http://localhost:8056). Wird benötigt, um über den Telegram-Bot Invites zu erstellen (/invite).
-                                    </div>
+                                    <label class="inputLabel inputLabelUnfocused" for="SmtpServer">SMTP Server-Adresse:</label>
+                                    <input class="sso-text" id="SmtpServer" is="emby-input" maxlength="200" type="text" placeholder="z.B. smtp.strato.de"/>
                                 </div>
                             </div>
 
                             <div class="inputContainer">
                                 <div>
-                                    <label class="inputLabel inputLabelUnfocused" for="JfaGoUsername">JFA-Go Administrator Benutzername:</label>
-                                    <input class="sso-text" id="JfaGoUsername" is="emby-input" maxlength="200" type="text"/>
-                                    <div class="fieldDescription">
-                                        Der Benutzername deines JFA-Go Admin-Accounts.
-                                    </div>
+                                    <label class="inputLabel inputLabelUnfocused" for="SmtpPort">SMTP Port:</label>
+                                    <input class="sso-text" id="SmtpPort" is="emby-input" type="number" placeholder="z.B. 587"/>
+                                </div>
+                            </div>
+
+                            <div class="inputContainer">
+                                <label>
+                                    <input id="SmtpUseSsl"
+                                           is="emby-checkbox"
+                                           type="checkbox"/>
+                                    <span>STARTTLS / SSL verwenden (Empfohlen)</span>
+                                </label>
+                            </div>
+
+                            <div class="inputContainer">
+                                <div>
+                                    <label class="inputLabel inputLabelUnfocused" for="SmtpUsername">SMTP Benutzername:</label>
+                                    <input class="sso-text" id="SmtpUsername" is="emby-input" maxlength="200" type="text"/>
                                 </div>
                             </div>
 
                             <div class="inputContainer">
                                 <div>
-                                    <label class="inputLabel inputLabelUnfocused" for="JfaGoPassword">JFA-Go Administrator Passwort:</label>
-                                    <input class="sso-text" id="JfaGoPassword" is="emby-input" maxlength="200" type="password"/>
-                                    <div class="fieldDescription">
-                                        Das Passwort deines JFA-Go Admin-Accounts. Wird benötigt, um den Login durchzuführen und die Einladung zu generieren.
-                                    </div>
+                                    <label class="inputLabel inputLabelUnfocused" for="SmtpPassword">SMTP Passwort:</label>
+                                    <input class="sso-text" id="SmtpPassword" is="emby-input" maxlength="200" type="password"/>
                                 </div>
                             </div>
+
+                            <div class="inputContainer">
+                                <div>
+                                    <label class="inputLabel inputLabelUnfocused" for="EmailSenderAddress">Absender E-Mail-Adresse:</label>
+                                    <input class="sso-text" id="EmailSenderAddress" is="emby-input" maxlength="200" type="email" placeholder="z.B. RinnoFin@brainless-rp.de"/>
+                                    <div class="fieldDescription">Die Adresse, die Empfängern als Absender angezeigt wird.</div>
+                                </div>
+                            </div>
+
+                            <div class="inputContainer">
+                                <div>
+                                    <label class="inputLabel inputLabelUnfocused" for="EmailSenderName">Absender Name:</label>
+                                    <input class="sso-text" id="EmailSenderName" is="emby-input" maxlength="200" type="text" placeholder="z.B. Rinno Einladungssystem"/>
+                                    <div class="fieldDescription">Der Anzeigename, z.B. "Rinno Einladungssystem".</div>
+                                </div>
+                            </div>
+
+                            <button class="raised button-alt emby-button block"
+                                    id="TestSmtpBtn"
+                                    is="emby-button"
+                                    type="button">
+                                <span>Test E-Mail senden</span>
+                            </button>
 
                             <!-- Forced URL Scheme -->
                             <div class="inputContainer">

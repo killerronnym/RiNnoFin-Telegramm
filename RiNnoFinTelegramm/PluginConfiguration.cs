@@ -21,11 +21,17 @@ public class PluginConfiguration : BasePluginConfiguration
 
     public string ForcedUrlScheme { get; set; } = "none";
 
-    public string? JfaGoUrl { get; set; }
 
-    public string? JfaGoUsername { get; set; }
 
-    public string? JfaGoPassword { get; set; }
+    // Neue SMTP & E-Mail Einstellungen
+    public bool EnableEmail { get; set; } = false;
+    public string SmtpServer { get; set; } = "smtp.strato.de";
+    public int SmtpPort { get; set; } = 587;
+    public string SmtpUsername { get; set; } = "RinnoFin@brainless-rp.de";
+    public string SmtpPassword { get; set; } = string.Empty;
+    public string EmailSenderAddress { get; set; } = "RinnoFin@brainless-rp.de";
+    public string EmailSenderName { get; set; } = "Rinno Einladungssystem";
+    public bool SmtpUseSsl { get; set; } = true;
 
     [XmlArray("TelegramGroups")]
     [XmlArrayItem(typeof(TelegramGroup), ElementName = "TelegramGroups")]

@@ -9,4 +9,8 @@ public class TelegramUserLink
     public string JellyfinUsername { get; set; } = string.Empty;
     
     public bool SubscribedToNewsletter { get; set; } = true;
+    
+    public System.Guid JellyfinUserId { get; set; }
+    
+    public string EmailAddress { get; set; } = string.Empty;
 }

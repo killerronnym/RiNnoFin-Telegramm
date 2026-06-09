@@ -1,0 +1,347 @@
+Ein neuer Benutzer wurde erfolgreich mit dem Einladungs-Code **{code}** erstellt.
+📧 E-Mail-Adresse: {address}  
+🕒 Erstellungszeitpunkt: {time}
+ℹ️ Hinweis: Diese Benachrichtigung wurde automatisch vom System versendet.  
+,Hallo {username} 👋,
+dein Benutzerkonto bei **RinnoFin** wurde gelöscht.
+📌 **Grund:** {reason}
+❓ Falls du Fragen hast oder glaubst, dass dein Konto versehentlich gelöscht wurde, melde dich gerne beim Administrator. Wir helfen dir weiter!
+Dein **RinnoFin-Team**
+dein Benutzerkonto bei RinnoFin wurde erfolgreich wieder aktiviert.
+Du kannst dich nun wieder wie gewohnt einloggen und RinnoFin nutzen.
+dein **RinnoFin**-Konto ist ⏳ abgelaufen und derzeit nicht mehr aktiv.
+📩 Bitte kontaktiere den Administrator, um Informationen zur Verlängerung oder Reaktivierung zu erhalten.
+Dein **RinnoFin-Team** 🧡
+❌ Dein Einladungslink für **RinnoFin** ist leider abgelaufen.
+🕒 Der Code **{code}** lief am **{time}** ab.
+Wenn du weiterhin Interesse hast, melde dich bitte erneut beim Administrator, damit dir ein neuer Link gesendet werden kann.
+ℹ️ **Hinweis für Admins:**  
+Diese Benachrichtigung kann im Admin-Dashboard deaktiviert oder angepasst werden.
+dein Benutzerkonto bei **RinnoFin** wurde vorübergehend deaktiviert.
+📌 **Grund:** {reason}
+Wenn du Fragen hast oder dein Konto wieder aktivieren lassen möchtest, melde dich gerne beim Administrator. 📬
+Dein **RinnoFin-Team**
+x👋 Hallo {username},
+willkommen bei **RinnoFin**! 🐧🎬  
+Du kannst dich ab sofort mit den folgenden Zugangsdaten anmelden:
+🔗 **URL:** {jellyfinURL}  
+👤 **Benutzername:** {username}
+📅 **Dein Konto läuft am {yourAccountWillExpire} ab.**
+Falls du Fragen hast, melde dich gerne beim Administrator! 😊
+Viel Spaß beim Streamen! 🍿  
+Dein **RinnoFin-Team**
+🔐 Jemand hat vor kurzem eine Passwortzurücksetzung für dein Konto bei **RinnoFin** angefordert.
+Wenn du das warst, gib bitte folgenden PIN-Code im entsprechenden Feld ein, um dein Passwort zurückzusetzen:
+⏳ Der Code ist gültig bis **{date} um {time} UTC**  
+(also noch **{expiresInMinutes} Minuten** lang gültig).
+Wenn du das nicht selbst angefordert hast, kannst du diese Nachricht ignorieren. Dein Passwort bleibt dann unverändert.
+**Dein RinnoFin-Team**
+_bhIndex:Activity:Type:
+5YV2VwxvZz8HGvHp5NRWXo&bh_Activity:
+A7sVYmJHetLGY382YpGwDi&bh_Activity:
+FFMvBGynuBeYqGYzzcTBzF&bh_Activity:
+GwejrGGhDjdLD3QN5NSKiJ&bh_Activity:
+H89aUHUbnoKfw6Su4VZhk4&bh_Activity:
+Rcpb5ViPhMMngV6bXUJHKm&bh_Activity:
+S5FqbzpZWf4Q4udKxFkWp5&bh_Activity:
+TAtuzzyuRMEmm4Ucv6AEFT&bh_Activity:
+fgegufs3snyUijKU4WgLw4&bh_Activity:
+kCm4fbD9BPzZD9kbkGHRSM&bh_Activity:
+n8tEyXPNiq243EdwgTXHzG&bh_Activity:
+wZvscphJT357wies2Bwurm
+_bhIndex:Activity:Type:
+A7sVYmJHetLGY382YpGwDi&bh_Activity:
+FFMvBGynuBeYqGYzzcTBzF&bh_Activity:
+GwejrGGhDjdLD3QN5NSKiJ&bh_Activity:
+H89aUHUbnoKfw6Su4VZhk4&bh_Activity:
+Rcpb5ViPhMMngV6bXUJHKm&bh_Activity:
+S5FqbzpZWf4Q4udKxFkWp5&bh_Activity:
+TAtuzzyuRMEmm4Ucv6AEFT&bh_Activity:
+fgegufs3snyUijKU4WgLw4&bh_Activity:
+kCm4fbD9BPzZD9kbkGHRSM&bh_Activity:
+n8tEyXPNiq243EdwgTXHzG&bh_Activity:
+wZvscphJT357wies2Bwurm
+_bhIndex:Activity:Type:
+A7sVYmJHetLGY382YpGwDi&bh_Activity:
+FFMvBGynuBeYqGYzzcTBzF&bh_Activity:
+GwejrGGhDjdLD3QN5NSKiJ&bh_Activity:
+H89aUHUbnoKfw6Su4VZhk4&bh_Activity:
+Rcpb5ViPhMMngV6bXUJHKm&bh_Activity:
+S5FqbzpZWf4Q4udKxFkWp5&bh_Activity:
+TAtuzzyuRMEmm4Ucv6AEFT&bh_Activity:
+fgegufs3snyUijKU4WgLw4&bh_Activity:
+kCm4fbD9BPzZD9kbkGHRSM&bh_Activity:
+wZvscphJT357wies2Bwurm
+_bhIndex:Activity:Type:
+A7sVYmJHetLGY382YpGwDi&bh_Activity:
+FFMvBGynuBeYqGYzzcTBzF&bh_Activity:
+H89aUHUbnoKfw6Su4VZhk4&bh_Activity:
+Rcpb5ViPhMMngV6bXUJHKm&bh_Activity:
+S5FqbzpZWf4Q4udKxFkWp5&bh_Activity:
+TAtuzzyuRMEmm4Ucv6AEFT&bh_Activity:
+fgegufs3snyUijKU4WgLw4&bh_Activity:
+kCm4fbD9BPzZD9kbkGHRSM&bh_Activity:
+wZvscphJT357wies2Bwurm
+_bhIndex:Activity:Type:
+AZ3QD6p6X3qyCzZS9zFsMH&bh_Activity:
+CncGzmxSkYJEC5KJCZ2GWX&bh_Activity:
+NR9mKJu6GEqtfJqfaYyXQk&bh_Activity:
+RLxZafHERRhJMkUHgik6SR&bh_Activity:
+a4Bffv7BUTCWJjn6gcmjcH&bh_Activity:
+bXgHNmvH6iydfqcUVuPycS&bh_Activity:
+c9xSKfjHTPqmo6qdtSxwL7&bh_Activity:
+dpPftQ3kbRJ7jwTRVd7dZm&bh_Activity:
+ifjNdCVPV2eRUvct6kBpAn&bh_Activity:
+oLeemXWFFbdVeJUTvVrmfE&bh_Activity:
+ossQVweyKVbQkEpkdhmty4&bh_Activity:
+umM8HX6tVZ4Zpo6iKA2mo8
+_bhIndex:Activity:Type:
+AZ3QD6p6X3qyCzZS9zFsMH&bh_Activity:
+CncGzmxSkYJEC5KJCZ2GWX&bh_Activity:
+NR9mKJu6GEqtfJqfaYyXQk&bh_Activity:
+RLxZafHERRhJMkUHgik6SR&bh_Activity:
+a4Bffv7BUTCWJjn6gcmjcH&bh_Activity:
+c9xSKfjHTPqmo6qdtSxwL7&bh_Activity:
+dpPftQ3kbRJ7jwTRVd7dZm&bh_Activity:
+ifjNdCVPV2eRUvct6kBpAn&bh_Activity:
+oLeemXWFFbdVeJUTvVrmfE&bh_Activity:
+ossQVweyKVbQkEpkdhmty4&bh_Activity:
+umM8HX6tVZ4Zpo6iKA2mo8
+_bhIndex:Activity:Type:
+AZ3QD6p6X3qyCzZS9zFsMH&bh_Activity:
+CncGzmxSkYJEC5KJCZ2GWX&bh_Activity:
+NR9mKJu6GEqtfJqfaYyXQk&bh_Activity:
+RLxZafHERRhJMkUHgik6SR&bh_Activity:
+a4Bffv7BUTCWJjn6gcmjcH&bh_Activity:
+c9xSKfjHTPqmo6qdtSxwL7&bh_Activity:
+dpPftQ3kbRJ7jwTRVd7dZm&bh_Activity:
+oLeemXWFFbdVeJUTvVrmfE&bh_Activity:
+ossQVweyKVbQkEpkdhmty4&bh_Activity:
+umM8HX6tVZ4Zpo6iKA2mo8
+_bhIndex:Activity:Type:
+AZ3QD6p6X3qyCzZS9zFsMH&bh_Activity:
+CncGzmxSkYJEC5KJCZ2GWX&bh_Activity:
+NR9mKJu6GEqtfJqfaYyXQk&bh_Activity:
+RLxZafHERRhJMkUHgik6SR&bh_Activity:
+a4Bffv7BUTCWJjn6gcmjcH&bh_Activity:
+dpPftQ3kbRJ7jwTRVd7dZm&bh_Activity:
+oLeemXWFFbdVeJUTvVrmfE&bh_Activity:
+ossQVweyKVbQkEpkdhmty4&bh_Activity:
+umM8HX6tVZ4Zpo6iKA2mo8
+_bhIndex:EmailAddress:Addr:
+ 760dc2ff653249d1901c4218d7b6d02b
+/_bhIndex:EmailAddress:Addr:
+ 86815567963b48bbbc057d8d2fb5e71e
+/_bhIndex:EmailAddress:Addr:
+ 86815567963b48bbbc057d8d2fb5e71e
+2_bhIndex:EmailAddress:Addr:
+ bc0ceb89c32042e884f921f0a6393cf6
+9_bhIndex:EmailAddress:Addr:
+mail@richard-schumacher.de
+ 4d4cf109f4d748d4b77f5c0f989ddb67
+_bhIndex:Invite:IsReferral:
+_bhIndex:Invite:IsReferral:
+m9WxES42UW2Txf2eVhUqEk
+_bhIndex:Profile:Admin:
+&_bhIndex:TelegramUser:ChatID:
+0_bhIndex:TelegramUser:Username:
+5YV2VwxvZz8HGvHp5NRWXo
+5YV2VwxvZz8HGvHp5NRWXo
+ 86815567963b48bbbc057d8d2fb5e71e
+qdkyDz9okoYUqm9xFpTydE
+A7sVYmJHetLGY382YpGwDi
+A7sVYmJHetLGY382YpGwDi
+ 86815567963b48bbbc057d8d2fb5e71e
+YEGxCVVCsRYFUEydCMbnXA
+AZ3QD6p6X3qyCzZS9zFsMH
+AZ3QD6p6X3qyCzZS9zFsMH
+jHwdK94kpJR7KhSYZZEUsX
+CncGzmxSkYJEC5KJCZ2GWX
+CncGzmxSkYJEC5KJCZ2GWX
+v3EdTeZWgYWtCEkvcpW2To
+FFMvBGynuBeYqGYzzcTBzF
+FFMvBGynuBeYqGYzzcTBzF
+ 86815567963b48bbbc057d8d2fb5e71e
+zUAQMpn8ZFeT9aJAkCNy2S
+GwejrGGhDjdLD3QN5NSKiJ
+GwejrGGhDjdLD3QN5NSKiJ
+ 86815567963b48bbbc057d8d2fb5e71e
+ST49rLwQYvPZmRECHC5r27
+H89aUHUbnoKfw6Su4VZhk4
+H89aUHUbnoKfw6Su4VZhk4
+ 86815567963b48bbbc057d8d2fb5e71e
+MnRRXod9t3KvJwqmXxCFzS
+NR9mKJu6GEqtfJqfaYyXQk
+NR9mKJu6GEqtfJqfaYyXQk
+ 86815567963b48bbbc057d8d2fb5e71e
+zUAQMpn8ZFeT9aJAkCNy2S
+QfdRMzV2geSMCLowRZu3NX
+QfdRMzV2geSMCLowRZu3NX
+ 86815567963b48bbbc057d8d2fb5e71e
+ 86815567963b48bbbc057d8d2fb5e71e
+RLxZafHERRhJMkUHgik6SR
+RLxZafHERRhJMkUHgik6SR
+ 86815567963b48bbbc057d8d2fb5e71e
+RiRfAnLwTnYmMvNK35Cg7V
+Rcpb5ViPhMMngV6bXUJHKm
+Rcpb5ViPhMMngV6bXUJHKm
+ 86815567963b48bbbc057d8d2fb5e71e
+v3EdTeZWgYWtCEkvcpW2To
+S5FqbzpZWf4Q4udKxFkWp5
+S5FqbzpZWf4Q4udKxFkWp5
+ 86815567963b48bbbc057d8d2fb5e71e
+WmoKtJa49stMGzDyNfCjt4
+_bhIndex:Activity:Type:
+QfdRMzV2geSMCLowRZu3NX
+qdkyDz9okoYUqm9xFpTydE
+vXj9o9uSEarhDg6asxo2xN
+%bh_MigrationStatus:
+EnableUserPreferenceAccess
+EnableRemoteControlOfOtherUsers
+EnableSharedDeviceControl
+EnableLiveTvManagement
+EnableAudioPlaybackTranscoding
+EnableVideoPlaybackTranscoding
+EnablePlaybackRemuxing
+EnableContentDeletion
+ EnableContentDeletionFromFolders
+EnableContentDownloading
+EnableSyncTranscoding
+EnableMediaConversion
+InvalidLoginAttemptCount
+RemoteClientBitrateLimit
+AuthenticationProviderID
+EnableCollectionManagement
+EnableSubtitleManagement
+EnableLyricManagement
+ForceRemoteSourceTranscoding
+LoginAttemptsBeforeLockout
+PasswordResetProviderID
+IsHiddenFromUnusedDevices
+IsTagBlockingModeInclusive
+EnableSubtitleDownloading
+SimultaneousStreamLimit
+AllowSharingPersonalItems
+AudioLanguagePreference
+PlayDefaultAudioTrack
+SubtitleLanguagePreference
+DisplayMissingEpisodes
+DisplayCollectionsView
+RememberAudioSelections
+RememberSubtitleSelections
+EnableNextEpisodeAutoPlay
+map[string]interface {}
+NotificationsTemplate
+TelegramSendSilently
+ 7a2175bccb1f1a94152cbd2b2bae8f6d 43cfe12fe7d9d8d21251e0964e0232e2
+CJellyfin.Server.Implementations.Users.DefaultAuthenticationProvider
+BJellyfin.Server.Implementations.Users.DefaultPasswordResetProvider
+map[string]interface {}
+enableNextVideoInfoOverlay
+$3ce5b65d-e116-d731-65d1-efc4a30ec35c
+TAtuzzyuRMEmm4Ucv6AEFT
+TAtuzzyuRMEmm4Ucv6AEFT
+ 86815567963b48bbbc057d8d2fb5e71e
+e9SySmrG7n2gYLZ7H9dr3
+a4Bffv7BUTCWJjn6gcmjcH
+a4Bffv7BUTCWJjn6gcmjcH
+vsVuak8ARr2S7St4orkBdL
+bXgHNmvH6iydfqcUVuPycS
+bXgHNmvH6iydfqcUVuPycS
+qdkyDz9okoYUqm9xFpTydE
+c9xSKfjHTPqmo6qdtSxwL7
+c9xSKfjHTPqmo6qdtSxwL7
+ST49rLwQYvPZmRECHC5r27
+dpPftQ3kbRJ7jwTRVd7dZm
+dpPftQ3kbRJ7jwTRVd7dZm
+YEGxCVVCsRYFUEydCMbnXA
+fgegufs3snyUijKU4WgLw4
+fgegufs3snyUijKU4WgLw4
+ 86815567963b48bbbc057d8d2fb5e71e
+vsVuak8ARr2S7St4orkBdL
+ifjNdCVPV2eRUvct6kBpAn
+ifjNdCVPV2eRUvct6kBpAn
+ 86815567963b48bbbc057d8d2fb5e71e
+vXj9o9uSEarhDg6asxo2xN
+kCm4fbD9BPzZD9kbkGHRSM
+kCm4fbD9BPzZD9kbkGHRSM
+ 86815567963b48bbbc057d8d2fb5e71e
+jHwdK94kpJR7KhSYZZEUsX
+mtmTpWt7rKKYsF6QRvnd5S
+mtmTpWt7rKKYsF6QRvnd5S
+ 4d4cf109f4d748d4b77f5c0f989ddb67
+e9SySmrG7n2gYLZ7H9dr3
+n8tEyXPNiq243EdwgTXHzG
+n8tEyXPNiq243EdwgTXHzG
+ 86815567963b48bbbc057d8d2fb5e71e
+vXj9o9uSEarhDg6asxo2xN
+oLeemXWFFbdVeJUTvVrmfE
+oLeemXWFFbdVeJUTvVrmfE
+ 86815567963b48bbbc057d8d2fb5e71e
+WmoKtJa49stMGzDyNfCjt4
+ossQVweyKVbQkEpkdhmty4
+ossQVweyKVbQkEpkdhmty4
+MnRRXod9t3KvJwqmXxCFzS
+umM8HX6tVZ4Zpo6iKA2mo8
+umM8HX6tVZ4Zpo6iKA2mo8
+e9SySmrG7n2gYLZ7H9dr3
+wZvscphJT357wies2Bwurm
+wZvscphJT357wies2Bwurm
+ 86815567963b48bbbc057d8d2fb5e71e
+RiRfAnLwTnYmMvNK35Cg7V
+Hallo **{username}** 👋
+Dies ist deine persönliche Account-Verwaltungsseite für RinnoFin.  
+Hier kannst du dein Passwort zurücksetzen, deine Kontaktmethoden ändern oder neue Einladungen anfordern.
+Bei Fragen kontaktiere bitte den Admin.
+👋 Willkommen zurück!  
+Bitte gib deinen Benutzernamen oder deine E-Mail-Adresse ein, um dein Passwort zurückzusetzen oder deine Daten zu verwalten.
+Hallo **{username}**,
+🎉 Du wurdest eingeladen, **RinnoFin** zu nutzen!
+Um beizutreten, klicke auf den folgenden Link:  
+Der Einladungslink ist **gültig bis {date} um {time}**,  
+also **noch für {expiresInMinutes} Minuten**. Danach verfällt er automatisch.
+Dein Account wurde erstellt.  
+👉 Klicke auf den Link oben, um direkt zu RinnoFin zu gelangen.
+IHallo **{username}**,
+⚠️ Dein Zugang zu **RinnoFin** läuft in **{expiresIn}** ab  
+📅 Konkret am **{date}** um **{time}** Uhr.
+Wenn du weiterhin Zugriff behalten möchtest, wende dich bitte rechtzeitig an den Administrator.
+Dein Account wurde erfolgreich erstellt.  
+👉 Klicke unten, um zu Jellyfin zu gelangen.
+Dein Konto für **RinnoFin** wurde erfolgreich angelegt.
+Bitte fülle das folgende Formular aus, um deinen Benutzerzugang abzuschließen.  
+Anschließend erhältst du eine E-Mail mit deinem Login-Link.
+🔧 Du kannst die Details deines Accounts später jederzeit unter  
+[Mein Konto]({myAccountURL}) einsehen und bearbeiten.
+FHallo {username} 👋,
+bitte klicke auf den folgenden Link, um deine E-Mail-Adresse zu bestätigen und loszulegen mit **RinnoFin Jellyfin** 🐧🎬:
+Wenn du dich nicht registriert hast, kannst du diese Nachricht einfach ignorieren. 🚫
+📩 Viel Spaß beim Streamen!  
+Dein **RinnoFin-Team**
+:👋 Hallo {username},
+das Ablaufdatum deines **RinnoFin**-Kontos wurde 📅 angepasst.
+Wenn dein Konto zuvor deaktiviert war, wurde es möglicherweise ✅ wieder aktiviert.
+🕒 Neues Ablaufdatum: **{newExpiry}**  
+📌 Grund: **{reason}**
+Viel Spaß weiterhin mit RinnoFin! 🎬🍿  
+Dein **RinnoFin-Team**
+ 4d4cf109f4d748d4b77f5c0f989ddb67
+mail@richard-schumacher.de
+ 4d4cf109f4d748d4b77f5c0f989ddb67
+ 760dc2ff653249d1901c4218d7b6d02b
+ 760dc2ff653249d1901c4218d7b6d02b
+ 86815567963b48bbbc057d8d2fb5e71e
+ 86815567963b48bbbc057d8d2fb5e71e
+ 86815567963b48bbbc057d8d2fb5e71e
+ 86815567963b48bbbc057d8d2fb5e71e
+ bc0ceb89c32042e884f921f0a6393cf6
+ bc0ceb89c32042e884f921f0a6393cf6
+ST49rLwQYvPZmRECHC5r27
+m9WxES42UW2Txf2eVhUqEk
+map[string]map[string]bool
+map[string]main.Captcha
+m9WxES42UW2Txf2eVhUqEk
+ 760dc2ff653249d1901c4218d7b6d02b
+_bhIndex:Activity:Type:
+mtmTpWt7rKKYsF6QRvnd5S
+ 86815567963b48bbbc057d8d2fb5e71e

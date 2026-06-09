@@ -14,6 +14,7 @@ public class RiNnoFinServiceRegistrator : IPluginServiceRegistrator
         serviceCollection.AddSingleton<TelegramBotClientWrapper>();
         serviceCollection.AddSingleton<RequestService>();
         serviceCollection.AddSingleton<NotificationService>();
+        serviceCollection.AddSingleton<EmailService>();
 
         serviceCollection.AddHostedService<TelegramBackgroundService>();
     }
