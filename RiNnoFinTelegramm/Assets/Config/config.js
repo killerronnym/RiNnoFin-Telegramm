@@ -295,6 +295,11 @@ const tgConfigPage = {
         });
     },
 
+    getSelectedUserIds: (page) => {
+        const checkboxes = page.querySelectorAll(".user-checkbox:checked");
+        return Array.from(checkboxes).map(cb => cb.dataset.userid);
+    },
+
     createInvite: (page) => {
         const email = page.querySelector("#InviteEmail").value.trim();
         const profileId = page.querySelector("#InviteProfile").value;
