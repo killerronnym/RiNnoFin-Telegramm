@@ -62,6 +62,11 @@ const tgConfigPage = {
 
         const subjectAccountDisabled = page.querySelector("#EmailSubjectAccountDisabled");
         if (subjectAccountDisabled) subjectAccountDisabled.value = config.EmailSubjectAccountDisabled ?? '';
+
+        const subjectAnnounce = page.querySelector("#EmailSubjectAnnounce");
+        if (subjectAnnounce) subjectAnnounce.value = config.EmailSubjectAnnounce ?? '';
+        
+        page.querySelector("#EmailTemplateAnnounce").value = config.EmailTemplateAnnounce ?? '';
     },
 
     populateGroups: (page, config) => {
@@ -230,24 +235,33 @@ const tgConfigPage = {
             
             const checkboxTd = document.createElement("td");
             checkboxTd.style.padding = "10px";
-            checkboxTd.innerHTML = `<input type="checkbox" class="user-checkbox emby-checkbox" data-userid="${user.Id}" is="emby-checkbox"/>`;
+            checkboxTd.innerHTML = `<input type="checkbox" class="user-checkbox" data-userid="${user.Id}" data-botadmin="${user.IsBotAdmin ? 'true' : 'false'}" style="width: 18px; height: 18px; cursor: pointer; accent-color: #3b82f6;"/>`;
             
             const nameTd = document.createElement("td");
             nameTd.style.padding = "10px";
-            nameTd.textContent = user.Name || user.Username || 'Unbekannt';
+            // Check if admin
+            if (user.IsAdmin) {
+                nameTd.innerHTML = `<strong>${user.Username || 'Unbekannt'}</strong> <span style="color: gold;" title="Administrator">👑</span>`;
+            } else {
+                nameTd.textContent = user.Username || 'Unbekannt';
+            }
 
             const statusTd = document.createElement("td");
             statusTd.style.padding = "10px";
-            statusTd.textContent = user.Policy && user.Policy.IsDisabled ? 'Deaktiviert' : 'Aktiv';
-            if(user.Policy && user.Policy.IsDisabled) statusTd.style.color = '#ef4444';
+            statusTd.textContent = user.IsDisabled ? 'Deaktiviert' : 'Aktiv';
+            if(user.IsDisabled) statusTd.style.color = '#ef4444';
 
             const emailTd = document.createElement("td");
             emailTd.style.padding = "10px";
-            emailTd.textContent = user.HasConfiguredPassword ? '?' : '-'; 
+            emailTd.textContent = user.Email ? user.Email : '-'; 
 
             const telegramTd = document.createElement("td");
             telegramTd.style.padding = "10px";
-            telegramTd.textContent = '-';
+            telegramTd.textContent = user.TelegramUsername ? '@' + user.TelegramUsername : '-';
+
+            const expirationTd = document.createElement("td");
+            expirationTd.style.padding = "10px";
+            expirationTd.textContent = user.ExpirationDate ? new Date(user.ExpirationDate).toLocaleString('de-DE') : 'Niemals';
 
             const lastAccessTd = document.createElement("td");
             lastAccessTd.style.padding = "10px";
@@ -258,6 +272,7 @@ const tgConfigPage = {
             tr.appendChild(statusTd);
             tr.appendChild(emailTd);
             tr.appendChild(telegramTd);
+            tr.appendChild(expirationTd);
             tr.appendChild(lastAccessTd);
 
             tbody.appendChild(tr);
@@ -397,6 +412,9 @@ const tgConfigPage = {
                 config.EmailSubjectPasswordChanged = (page.querySelector("#EmailSubjectPasswordChanged")?.value ?? "").trim() || undefined;
                 config.EmailSubjectAccountEnabled = (page.querySelector("#EmailSubjectAccountEnabled")?.value ?? "").trim() || undefined;
                 config.EmailSubjectAccountDisabled = (page.querySelector("#EmailSubjectAccountDisabled")?.value ?? "").trim() || undefined;
+                config.EmailSubjectAnnounce = (page.querySelector("#EmailSubjectAnnounce")?.value ?? "").trim() || undefined;
+
+                config.EmailTemplateAnnounce = (page.querySelector("#EmailTemplateAnnounce").value ?? "").trim() || undefined;
 
                 window.ApiClient.updatePluginConfiguration(
                     tgConfigPage.pluginUniqueId,
@@ -910,7 +928,72 @@ export default function (view) {
 
     view.querySelector('#ActionAnnounce')?.addEventListener('click', (e) => {
         e.preventDefault();
-        window.Dashboard.alert('Ankündigen-Funktion ist in Entwicklung.');
+        const userIds = tgConfigPage.getSelectedUserIds(view);
+        if (userIds.length === 0) {
+            window.Dashboard.alert('Bitte wähle mindestens einen Benutzer für die Ankündigung aus.');
+            return;
+        }
+        
+        const panel = view.querySelector('#AnnouncePanel');
+        if(panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    });
+
+    view.querySelector('#CancelAnnounceBtn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        const panel = view.querySelector('#AnnouncePanel');
+        if(panel) panel.style.display = 'none';
+    });
+
+    view.querySelector('#SendAnnounceBtn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        const userIds = tgConfigPage.getSelectedUserIds(view);
+        if (userIds.length === 0) {
+            window.Dashboard.alert('Bitte wähle mindestens einen Benutzer für die Ankündigung aus.');
+            return;
+        }
+
+        const subject = view.querySelector('#AnnounceSubject').value.trim();
+        const message = view.querySelector('#AnnounceMessage').value.trim();
+        const viaEmail = view.querySelector('#AnnounceViaEmail').checked;
+        const viaTelegram = view.querySelector('#AnnounceViaTelegram').checked;
+
+        if (!viaEmail && !viaTelegram) {
+            window.Dashboard.alert('Bitte wähle mindestens einen Kanal (E-Mail oder Telegram) aus.');
+            return;
+        }
+
+        if (!message) {
+            window.Dashboard.alert('Bitte gib eine Nachricht ein.');
+            return;
+        }
+        
+        if (viaEmail && !subject) {
+            window.Dashboard.alert('Bitte gib einen Betreff für die E-Mail ein.');
+            return;
+        }
+
+        window.Dashboard.showLoadingMsg();
+        window.ApiClient.ajax({
+            url: window.ApiClient.getUrl('/api/RiNnoFinConfig/SendAnnouncement'),
+            type: 'POST',
+            data: JSON.stringify({ 
+                UserIds: userIds, 
+                Subject: subject, 
+                Message: message,
+                ViaEmail: viaEmail,
+                ViaTelegram: viaTelegram
+            }),
+            contentType: 'application/json'
+        }).then((res) => {
+            window.Dashboard.hideLoadingMsg();
+            window.Dashboard.alert(res.message || 'Ankündigung erfolgreich gesendet!');
+            view.querySelector('#AnnouncePanel').style.display = 'none';
+            view.querySelector('#AnnounceSubject').value = '';
+            view.querySelector('#AnnounceMessage').value = '';
+        }).catch(err => {
+            window.Dashboard.hideLoadingMsg();
+            window.Dashboard.alert('Fehler: ' + (err.responseJSON?.message || err.message || ''));
+        });
     });
 
     view.querySelector('#ActionSettings')?.addEventListener('click', (e) => {
@@ -1206,65 +1289,7 @@ export default function (view) {
         tgConfigPage.loadUsers(view);
     });
 
-    view.querySelector("#ActionAnnounce")?.addEventListener("click", (e) => {
-        e.preventDefault();
-        const userIds = tgConfigPage.getSelectedUserIds(view);
-        if (userIds.length === 0) {
-            window.Dashboard.alert('Bitte wähle mindestens einen Benutzer aus, um eine Ankündigung zu senden.');
-            return;
-        }
-        
-        view.querySelector("#AnnounceSubject").value = "";
-        view.querySelector("#AnnounceMessage").value = "";
-        view.querySelector("#AnnouncePanel").style.display = "block";
-    });
 
-    view.querySelector("#CancelAnnounceBtn")?.addEventListener("click", (e) => {
-        e.preventDefault();
-        view.querySelector("#AnnouncePanel").style.display = "none";
-    });
-
-    view.querySelector("#SendAnnounceBtn")?.addEventListener("click", async (e) => {
-        e.preventDefault();
-        const userIds = tgConfigPage.getSelectedUserIds(view);
-        const subject = view.querySelector("#AnnounceSubject").value.trim();
-        const message = view.querySelector("#AnnounceMessage").value.trim();
-
-        if (!message) {
-            window.Dashboard.alert('Bitte gib eine Nachricht ein.');
-            return;
-        }
-
-        view.querySelector("#SendAnnounceBtn").disabled = true;
-
-        try {
-            const response = await fetch('/api/RiNnoFinConfig/SendAnnouncement', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'MediaBrowser Token="' + window.ApiClient.accessToken() + '"'
-                },
-                body: JSON.stringify({
-                    UserIds: userIds,
-                    Subject: subject,
-                    Message: message
-                })
-            });
-
-            if (response.ok) {
-                window.Dashboard.alert('Ankündigung erfolgreich gesendet.');
-                view.querySelector("#AnnouncePanel").style.display = "none";
-                const checkboxes = view.querySelectorAll(".user-checkbox");
-                checkboxes.forEach(cb => cb.checked = false);
-            } else {
-                window.Dashboard.alert('Fehler beim Senden der Ankündigung.');
-            }
-        } catch (err) {
-            window.Dashboard.alert('Netzwerkfehler: ' + err.message);
-        } finally {
-            view.querySelector("#SendAnnounceBtn").disabled = false;
-        }
-    });
 
     view.querySelector("#ActionSettings")?.addEventListener("click", (e) => {
         e.preventDefault();
@@ -1287,14 +1312,18 @@ export default function (view) {
         view.querySelector("#EditUserEmail").value = email === 'Nein' ? '' : email;
         view.querySelector("#EditUserTelegram").value = telegram === 'Nein' ? '' : telegram;
         
-        if (expirationStr && expirationStr !== '-') {
-            const parts = expirationStr.split('.');
+        if (expirationStr && expirationStr !== '-' && expirationStr !== 'Niemals') {
+            const parts = expirationStr.split(',')[0].trim().split('.');
             if (parts.length === 3) {
                 view.querySelector("#EditUserExpiration").value = `${parts[2]}-${parts[1]}-${parts[0]}`;
+            } else {
+                view.querySelector("#EditUserExpiration").value = '';
             }
         } else {
             view.querySelector("#EditUserExpiration").value = '';
         }
+        
+        view.querySelector("#EditUserIsBotAdmin").checked = cb.dataset.botadmin === 'true';
 
         view.querySelector("#EditUserPanel").style.display = "block";
     });
@@ -1310,6 +1339,7 @@ export default function (view) {
         const email = view.querySelector("#EditUserEmail").value.trim();
         const telegram = view.querySelector("#EditUserTelegram").value.trim();
         const expiration = view.querySelector("#EditUserExpiration").value; // YYYY-MM-DD
+        const isBotAdmin = view.querySelector("#EditUserIsBotAdmin").checked;
 
         try {
             const response = await fetch('/api/RiNnoFinConfig/UpdateUserLink', {
@@ -1322,7 +1352,8 @@ export default function (view) {
                     UserId: userId,
                     Email: email,
                     TelegramUsername: telegram,
-                    ExpirationDate: expiration ? new Date(expiration).toISOString() : null
+                    ExpirationDate: expiration ? new Date(expiration).toISOString() : null,
+                    IsBotAdmin: isBotAdmin
                 })
             });
 

@@ -363,6 +363,8 @@ public class RiNnoFinConfigController : ControllerBase
 
                         var link = config?.TelegramUserLinks != null ? config.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == uId) : null;
                         var uDto = userManager.GetUserDto(u, string.Empty);
+                        var isBotAdmin = link != null && !string.IsNullOrEmpty(link.TelegramUsername) && config.AdminUserNames != null && config.AdminUserNames.Any(a => a.Equals(link.TelegramUsername, StringComparison.OrdinalIgnoreCase));
+
                         dtos.Add(new UserDto
                         {
                             Id = uId,
@@ -371,6 +373,7 @@ public class RiNnoFinConfigController : ControllerBase
                             TelegramUsername = link?.TelegramUsername ?? "",
                             IsDisabled = uDto?.Policy?.IsDisabled ?? false,
                             IsAdmin = uDto?.Policy?.IsAdministrator ?? false,
+                            IsBotAdmin = isBotAdmin,
                             LastActivityDate = uLastActivityDate,
                             ExpirationDate = link?.ExpirationDate
                         });
@@ -638,6 +641,7 @@ public class RiNnoFinConfigController : ControllerBase
             if (config == null) return BadRequest("Konfiguration nicht gefunden.");
 
             if (config.TelegramUserLinks == null) config.TelegramUserLinks = new();
+            if (config.AdminUserNames == null) config.AdminUserNames = new();
 
             var userLink = config.TelegramUserLinks.FirstOrDefault(l => l.JellyfinUserId == request.UserId);
             if (userLink == null)
@@ -646,6 +650,7 @@ public class RiNnoFinConfigController : ControllerBase
                 config.TelegramUserLinks.Add(userLink);
             }
 
+            var oldTelegramUsername = userLink.TelegramUsername ?? "";
             userLink.EmailAddress = request.Email ?? "";
             userLink.TelegramUsername = request.TelegramUsername ?? "";
             userLink.ExpirationDate = request.ExpirationDate;
@@ -654,6 +659,19 @@ public class RiNnoFinConfigController : ControllerBase
             if (userLink.ExpirationDate.HasValue && userLink.ExpirationDate.Value > DateTime.UtcNow)
             {
                 userLink.ExpirationNotified = false;
+            }
+
+            // Handle Bot Admin List
+            if (!string.IsNullOrEmpty(oldTelegramUsername))
+            {
+                config.AdminUserNames.RemoveAll(a => a.Equals(oldTelegramUsername, StringComparison.OrdinalIgnoreCase));
+            }
+            if (request.IsBotAdmin && !string.IsNullOrEmpty(userLink.TelegramUsername))
+            {
+                if (!config.AdminUserNames.Any(a => a.Equals(userLink.TelegramUsername, StringComparison.OrdinalIgnoreCase)))
+                {
+                    config.AdminUserNames.Add(userLink.TelegramUsername);
+                }
             }
 
             RiNnoFinPlugin.Instance.UpdateConfiguration(config);
@@ -688,16 +706,24 @@ public class RiNnoFinConfigController : ControllerBase
                         bool sentToUser = false;
 
                         // Sende Email
-                        if (!string.IsNullOrEmpty(userLink.EmailAddress))
+                        if (request.ViaEmail && !string.IsNullOrEmpty(userLink.EmailAddress))
                         {
                             try {
-                                await emailService.SendEmailAsync(config, userLink.EmailAddress, request.Subject ?? "Ankündigung", personalMessage);
+                                var subject = string.IsNullOrWhiteSpace(request.Subject) 
+                                    ? (!string.IsNullOrWhiteSpace(config.EmailSubjectAnnounce) ? config.EmailSubjectAnnounce : "Ankündigung") 
+                                    : request.Subject;
+
+                                string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplateAnnounce)
+                                    ? config.EmailTemplateAnnounce.Replace("{username}", user.Username).Replace("{message}", personalMessage.Replace("\n", "<br/>"))
+                                    : $"<p>{personalMessage.Replace("\n", "<br/>")}</p>";
+
+                                await emailService.SendEmailAsync(config, userLink.EmailAddress, subject, htmlBody);
                                 sentToUser = true;
                             } catch { /* Ignore */ }
                         }
 
                         // Sende Telegram
-                        if (userLink.TelegramUserId != 0 && botWrapper?.Client != null)
+                        if (request.ViaTelegram && userLink.TelegramUserId != 0 && botWrapper?.Client != null)
                         {
                             try {
                                 await botWrapper.Client.SendMessage(
@@ -932,6 +958,8 @@ public class SendAnnouncementRequest
     public List<Guid> UserIds { get; set; } = new();
     public string Subject { get; set; } = string.Empty;
     public string Message { get; set; } = string.Empty;
+    public bool ViaEmail { get; set; } = true;
+    public bool ViaTelegram { get; set; } = true;
 }
 
 public class SendGroupAnnouncementRequest
@@ -945,6 +973,7 @@ public class UpdateUserLinkRequest
     public string Email { get; set; } = string.Empty;
     public string TelegramUsername { get; set; } = string.Empty;
     public DateTime? ExpirationDate { get; set; }
+    public bool IsBotAdmin { get; set; }
 }
 
 public class UserDto
@@ -955,6 +984,7 @@ public class UserDto
     public string TelegramUsername { get; set; } = string.Empty;
     public bool IsDisabled { get; set; }
     public bool IsAdmin { get; set; }
+    public bool IsBotAdmin { get; set; }
     public DateTime? LastActivityDate { get; set; }
     public DateTime? ExpirationDate { get; set; }
 }

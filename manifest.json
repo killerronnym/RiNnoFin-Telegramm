@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.29",
+        "changelog": "Neue Ankündigungs-Steuerung: Ankündigungen können nun separat per E-Mail (HTML) und/oder Telegram (Markdown) verschickt werden. Es wurde zudem ein neuer Schalter hinzugefügt, um Telegram-Nutzern direkt im Jellyfin-Dashboard Bot-Administrator-Rechte zuzuweisen.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "42F3121DE5E35430387BF0B16D68FCA5",
+        "timestamp": "2026-06-11 00:40:00"
+      },
+      {
         "version": "1.0.4.28",
         "changelog": "Behebt das Problem, dass die Konfigurations-Reiter ('Unterpunkte') im Plugin-Dashboard nach dem Update nicht mehr anklickbar waren. Durch das Ändern der JavaScript-Dateiversion wird der Browser-Cache für alle Nutzer automatisch umgangen.",
         "targetAbi": "10.9.0.0",

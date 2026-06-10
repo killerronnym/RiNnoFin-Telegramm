@@ -6,7 +6,7 @@
 </head>
 <body>
 <div class="page type-interior pluginConfigurationPage rinnofin-page"
-     data-controller="__plugin/RiNnoFinTelegramm_v10428.js"
+     data-controller="__plugin/RiNnoFinTelegramm_v10429.js"
      data-require="emby-input,emby-button,emby-select,emby-checkbox,listViewStyle,paper-icon-button"
      data-role="page"
      id="rinnofin-config-page">
@@ -16,7 +16,7 @@
             <!-- Header Section -->
             <div class="sectionTitleContainer flex align-items-center">
                 <h2 class="sectionTitle">RiNnoFin Telegramm</h2>
-                <h3>Version: <b id="RiNnoFinVersion">1.0.4.28</b></h3>
+                <h3>Version: <b id="RiNnoFinVersion">1.0.4.29</b></h3>
             </div>
 
             
@@ -420,6 +420,12 @@
                                 <label class="inputLabel" for="EditUserExpiration">Ablaufdatum (optional):</label>
                                 <input class="sso-text" id="EditUserExpiration" is="emby-input" type="date" />
                             </div>
+                            <div style="flex: 1; min-width: 200px; display: flex; align-items: center;">
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-top: 15px;">
+                                    <input type="checkbox" id="EditUserIsBotAdmin" style="width: 16px; height: 16px; accent-color: #3b82f6;" />
+                                    <span>Bot-Administrator Rechte</span>
+                                </label>
+                            </div>
                         </div>
                         <button class="action-btn btn-green" id="SaveEditUserBtn" type="button">Änderungen speichern</button>
                         <button class="action-btn" id="CancelEditUserBtn" type="button">Abbrechen</button>
@@ -427,7 +433,18 @@
 
                     <div id="AnnouncePanel" style="display:none; background: rgba(0,0,0,0.1); padding: 15px; margin-bottom: 15px; border-radius: 6px;">
                         <h3>Ankündigung an ausgewählte Benutzer senden</h3>
-                        <p style="font-size: 13px; color: #aaa; margin-bottom: 15px;">Versendet eine E-Mail (HTML) und eine Telegram-Nachricht an die gewählten Nutzer. Verfügbare Platzhalter: {username}, {email}</p>
+                        <p style="font-size: 13px; color: #aaa; margin-bottom: 15px;">Versendet eine E-Mail und/oder eine Telegram-Nachricht an die gewählten Nutzer. Verfügbare Platzhalter: {username}, {email}</p>
+                        
+                        <div style="margin-bottom: 15px; display: flex; gap: 20px;">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="AnnounceViaEmail" style="width: 16px; height: 16px; accent-color: #3b82f6;" checked />
+                                <span>Per E-Mail senden (HTML)</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="AnnounceViaTelegram" style="width: 16px; height: 16px; accent-color: #3b82f6;" checked />
+                                <span>Per Telegram senden (Markdown)</span>
+                            </label>
+                        </div>
                         
                         <div style="margin-bottom: 10px;">
                             <label class="inputLabel" for="AnnounceSubject">Betreff (nur E-Mail):</label>
@@ -634,6 +651,16 @@
 
                         <label class="inputLabel inputLabelUnfocused" for="EmailTemplateAccountDisabled">Account Deaktiviert (Variable: {username}):</label>
                         <textarea class="sso-text" id="EmailTemplateAccountDisabled" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+                    </div>
+                </div>
+
+                <div class="inputContainer" style="margin-bottom: 30px;">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailSubjectAnnounce" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Ankündigung</label>
+                        <input class="sso-text" id="EmailSubjectAnnounce" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
+
+                        <label class="inputLabel inputLabelUnfocused" for="EmailTemplateAnnounce">Benutzerdefinierte Ankündigung (Variable: {username}, {message}):</label>
+                        <textarea class="sso-text" id="EmailTemplateAnnounce" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
                     </div>
                 </div>
 
