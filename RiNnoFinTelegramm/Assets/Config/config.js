@@ -279,11 +279,23 @@ const tgConfigPage = {
 
         if (confirmMsg && !confirm(confirmMsg)) return;
 
+        let reason = "";
+        let requestData = userIds;
+
+        if (actionName === "AdminDisableUser" || actionName === "AdminDeleteUser") {
+            reason = prompt("Bitte gib einen Grund für diese Aktion an (wird in der E-Mail an den Benutzer gesendet):", "");
+            if (reason === null) return; // User cancelled
+            requestData = {
+                UserIds: userIds,
+                Reason: reason
+            };
+        }
+
         window.Dashboard.showLoadingMsg();
         window.ApiClient.ajax({
             url: window.ApiClient.getUrl(`/api/RiNnoFinConfig/${actionName}`),
             type: "POST",
-            data: JSON.stringify(userIds),
+            data: JSON.stringify(requestData),
             contentType: "application/json"
         }).then((res) => {
             window.Dashboard.hideLoadingMsg();

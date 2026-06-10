@@ -471,12 +471,12 @@ public class RiNnoFinConfigController : ControllerBase
                     string resetUrl = $"{config.LoginBaseUrl?.TrimEnd('/')}/sso/Telegram/reset?token={token}";
                     
                     string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplateInvite)
-                        ? config.EmailTemplateInvite.Replace("{inviteLink}", resetUrl).Replace("Du wurdest eingeladen!", "Dein Account wurde erstellt!").Replace("Account erstellen", "Passwort festlegen")
+                        ? config.EmailTemplateInvite.Replace("{inviteLink}", resetUrl).Replace("{username}", request.Username ?? "").Replace("Du wurdest eingeladen!", "Dein Account wurde erstellt!").Replace("Account erstellen", "Passwort festlegen")
                         : $@"
                         <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
                             <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
                                 <h2 style='color: #3b82f6;'>Dein Account wurde erstellt! 🎉</h2>
-                                <p>Hallo {request.Username},</p>
+                                <p>Hallo <strong>{request.Username}</strong>,</p>
                                 <p>Dein Account auf unserem Media-Server wurde eingerichtet.</p>
                                 <p>Klicke auf den Button unten, um dein persönliches Passwort festzulegen:</p>
                                 <a href='{resetUrl}' style='display: inline-block; padding: 10px 20px; margin-top: 20px; background-color: #3b82f6; color: #fff; text-decoration: none; border-radius: 4px; font-weight: bold;'>Passwort festlegen</a>
@@ -501,7 +501,7 @@ public class RiNnoFinConfigController : ControllerBase
 
                 string inviteUrl = $"{config.LoginBaseUrl?.TrimEnd('/')}/sso/Telegram/invite?token={token}";
                 string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplateInvite)
-                    ? config.EmailTemplateInvite.Replace("{inviteLink}", inviteUrl)
+                    ? config.EmailTemplateInvite.Replace("{inviteLink}", inviteUrl).Replace("{username}", "")
                     : $@"
                     <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
                         <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
@@ -539,11 +539,14 @@ public class RiNnoFinConfigController : ControllerBase
         }
 
         [HttpPost("AdminDisableUser")]
-        public async Task<ActionResult> AdminDisableUser([FromBody] List<Guid> userIds)
+        public async Task<ActionResult> AdminDisableUser([FromBody] AdminActionWithReasonRequest request)
         {
             if (!await IsUserAdmin().ConfigureAwait(false)) return StatusCode(StatusCodes.Status403Forbidden, new { message = "Admin-Rechte erforderlich." });
             var userManager = RiNnoFinPlugin.UserManager;
-            foreach (var id in userIds)
+            var config = RiNnoFinPlugin.Instance?.Configuration;
+            var emailService = new EmailService(_logger);
+
+            foreach (var id in request.UserIds)
             {
                 var user = userManager.GetUserById(id);
                 if (user != null)
@@ -551,21 +554,66 @@ public class RiNnoFinConfigController : ControllerBase
                     var dto = userManager.GetUserDto(user, string.Empty);
                     dto.Policy.IsDisabled = true;
                     await userManager.UpdatePolicyAsync(id, dto.Policy).ConfigureAwait(false);
+
+                    if (config != null)
+                    {
+                        var userLink = config.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == id);
+                        if (userLink != null && !string.IsNullOrEmpty(userLink.EmailAddress))
+                        {
+                            string reasonHtml = string.IsNullOrWhiteSpace(request.Reason) ? "" : $"<p><strong>Grund:</strong> {request.Reason}</p>";
+                            string htmlBody = $@"
+                            <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
+                                <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
+                                    <h2 style='color: #ef4444;'>Account deaktiviert ⚠️</h2>
+                                    <p>Hallo <strong>{user.Username}</strong>,</p>
+                                    <p>Dein Account bei RiNnoFin Media wurde vom Administrator deaktiviert.</p>
+                                    {reasonHtml}
+                                    <p style='margin-top: 20px;'>Bitte kontaktiere den Administrator, falls du Fragen hast.</p>
+                                </div>
+                            </div>";
+                            
+                            try { await emailService.SendEmailAsync(config, userLink.EmailAddress, "Account deaktiviert - RiNnoFin Media", htmlBody); } catch { /* Ignore */ }
+                        }
+                    }
                 }
             }
             return Ok(new { message = "Benutzer erfolgreich deaktiviert." });
         }
 
         [HttpPost("AdminDeleteUser")]
-        public async Task<ActionResult> AdminDeleteUser([FromBody] List<Guid> userIds)
+        public async Task<ActionResult> AdminDeleteUser([FromBody] AdminActionWithReasonRequest request)
         {
             if (!await IsUserAdmin().ConfigureAwait(false)) return StatusCode(StatusCodes.Status403Forbidden, new { message = "Admin-Rechte erforderlich." });
             var userManager = RiNnoFinPlugin.UserManager;
-            foreach (var id in userIds)
+            var config = RiNnoFinPlugin.Instance?.Configuration;
+            var emailService = new EmailService(_logger);
+
+            foreach (var id in request.UserIds)
             {
                 var user = userManager.GetUserById(id);
                 if (user != null)
                 {
+                    if (config != null)
+                    {
+                        var userLink = config.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == id);
+                        if (userLink != null && !string.IsNullOrEmpty(userLink.EmailAddress))
+                        {
+                            string reasonHtml = string.IsNullOrWhiteSpace(request.Reason) ? "" : $"<p><strong>Grund:</strong> {request.Reason}</p>";
+                            string htmlBody = $@"
+                            <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
+                                <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
+                                    <h2 style='color: #ef4444;'>Account gelöscht 🗑️</h2>
+                                    <p>Hallo <strong>{user.Username}</strong>,</p>
+                                    <p>Dein Account bei RiNnoFin Media wurde dauerhaft gelöscht.</p>
+                                    {reasonHtml}
+                                    <p style='margin-top: 20px;'>Sollte dies ein Fehler sein, setze dich mit dem Administrator in Verbindung.</p>
+                                </div>
+                            </div>";
+                            
+                            try { await emailService.SendEmailAsync(config, userLink.EmailAddress, "Account gelöscht - RiNnoFin Media", htmlBody); } catch { /* Ignore */ }
+                        }
+                    }
+
                     await userManager.DeleteUserAsync(id).ConfigureAwait(false);
                 }
             }
@@ -740,6 +788,12 @@ public class AdminUpdateUserRequest
     public Guid UserId { get; set; }
     public string Email { get; set; } = string.Empty;
     public string TelegramUsername { get; set; } = string.Empty;
+}
+
+public class AdminActionWithReasonRequest
+{
+    public List<Guid> UserIds { get; set; } = new();
+    public string Reason { get; set; } = string.Empty;
 }
 
 public class UserDto

@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.23",
+        "changelog": "Benachrichtigungen per E-Mail: Wenn ein Benutzerkonto vom Administrator gelöscht oder deaktiviert wird, erhält der Nutzer nun automatisch eine E-Mail (inklusive personalisierter Anrede). Der Administrator kann optional einen Grund angeben, der in der E-Mail angezeigt wird.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.23.zip",
+        "checksum": "FECA6A2C98F378EA0396DFAD7F707B2E",
+        "timestamp": "2026-06-10 15:20:00"
+      },
+      {
         "version": "1.0.4.22",
         "changelog": "Das Formular zum Zurücksetzen des Passworts fragt nun zur zusätzlichen Verifikation den Benutzernamen und die E-Mail-Adresse ab. Außerdem wurde eine visuelle Anzeige für die Passwortsicherheit hinzugefügt (mindestens 8 Zeichen, inklusive Sonderzeichen erforderlich).",
         "targetAbi": "10.9.0.0",
