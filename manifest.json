@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.10",
+        "changelog": "Wichtiger Hotfix: Vollständige Entfernung aller Abhängigkeiten aus dem Controller-Konstruktor. Dependency Injection (IProviderManager, RequestService, TelegramBotClientWrapper) wurde komplett in die jeweiligen Methoden verschoben. Dadurch wird der 'Error processing request'-Absturz beim Laden der API sicher behoben.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.10.zip",
+        "checksum": "16326FC3A0D40A6CE3E9C417EE431D7C",
+        "timestamp": "2026-06-10 08:18:00"
+      },
+      {
         "version": "1.0.4.9",
         "changelog": "Fehlerbehebung: Behebt den 'HTTP 500 Internal Server Error - Error processing request'-Fehler, der aufgetreten ist, weil die Abhängigkeit IUserManager nicht direkt im Konstruktor des API-Controllers gelöst werden konnte. Die Dependency Injection wurde nun in die einzelnen API-Routen verschoben.",
         "targetAbi": "10.9.0.0",

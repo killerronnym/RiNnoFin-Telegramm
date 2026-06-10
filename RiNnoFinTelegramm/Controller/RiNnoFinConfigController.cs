@@ -22,20 +22,10 @@ namespace Jellyfin.Plugin.RiNnoFinTelegramm.Controller;
 [Authorize(Policy = "RequiresElevation")]
 public class RiNnoFinConfigController : ControllerBase
 {
-    private readonly IProviderManager _providerManager;
-    private readonly RequestService _requestService;
-    private readonly TelegramBotClientWrapper _botClientWrapper;
     private readonly ILogger<RiNnoFinConfigController> _logger;
 
-    public RiNnoFinConfigController(
-        RequestService requestService,
-        IProviderManager providerManager,
-        TelegramBotClientWrapper botClientWrapper,
-        ILogger<RiNnoFinConfigController> _loggerVal)
+    public RiNnoFinConfigController(ILogger<RiNnoFinConfigController> _loggerVal)
     {
-        _requestService = requestService ?? throw new ArgumentNullException(nameof(requestService));
-        _providerManager = providerManager ?? throw new ArgumentNullException(nameof(providerManager));
-        _botClientWrapper = botClientWrapper ?? throw new ArgumentNullException(nameof(botClientWrapper));
         _logger = _loggerVal ?? throw new ArgumentNullException(nameof(_loggerVal));
     }
 
@@ -86,80 +76,61 @@ public class RiNnoFinConfigController : ControllerBase
         }
         catch (Exception)
         {
-            return StatusCode(500, new ValidateBotTokenResponse { ErrorMessage = "UngÃ¼ltiger Token oder Verbindungsfehler" });
+            return StatusCode(500, new ValidateBotTokenResponse { ErrorMessage = "Ungültiger Token oder Verbindungsfehler" });
         }
     }
 
-    [HttpGet(nameof(GetRequests))]
-    [Produces(MediaTypeNames.Application.Json)]
+    [HttpGet("GetRequests")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<List<MediaRequest>>> GetRequests(CancellationToken cancellationToken)
+    public async Task<ActionResult<IReadOnlyList<MediaRequest>>> GetRequests([FromServices] RequestService requestService, CancellationToken cancellationToken)
     {
-        var requests = await _requestService.GetRequestsAsync(cancellationToken).ConfigureAwait(false);
+        var requests = await requestService.GetRequestsAsync(cancellationToken).ConfigureAwait(false);
         return Ok(requests);
     }
 
-    [HttpPost(nameof(SetRequests))]
-    [Produces(MediaTypeNames.Application.Json)]
+    [HttpPost("SetRequests")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> SetRequests([FromBody] List<MediaRequest> requests, CancellationToken cancellationToken)
+    public async Task<ActionResult> SetRequests([FromServices] RequestService requestService, [FromBody] List<MediaRequest> requests, CancellationToken cancellationToken)
     {
-        await _requestService.SetRequestsAsync(requests, cancellationToken).ConfigureAwait(false);
+        await requestService.SetRequestsAsync(requests, cancellationToken).ConfigureAwait(false);
         return Ok();
     }
 
-    [HttpPost(nameof(AddRequest))]
-    [Produces(MediaTypeNames.Application.Json)]
+    [HttpPost("AddRequest")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<MediaRequest>> AddRequest([FromBody] AddRequestRequest? request, CancellationToken cancellationToken)
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<RequestAddResult>> AddRequest([FromServices] RequestService requestService, [FromServices] IProviderManager providerManager, [FromBody] MediaRequest request, CancellationToken cancellationToken)
     {
-        if (request == null || string.IsNullOrWhiteSpace(request.ImdbId))
+        if (string.IsNullOrWhiteSpace(request.ImdbId))
         {
-            return BadRequest();
+            return BadRequest("ImdbId is required.");
         }
 
-        var imdbId = request.ImdbId.Trim();
+        var config = RiNnoFinPlugin.Instance?.Configuration;
+        var maxRequests = config?.MaxSessionCount ?? -1;
 
-        var (title, year, found) = await MetadataResolver
-            .FindRemoteMetadataAsync(_providerManager, imdbId, cancellationToken)
-            .ConfigureAwait(false);
-
-        if (!found)
-        {
-            return NotFound();
-        }
-
-        var mediaRequest = new MediaRequest
-        {
-            ItemId = Guid.Empty,
-            ImdbId = imdbId,
-            Title = title,
-            Year = year,
-            UserId = "Manual",
-            UserDisplayName = "Admin",
-            RequestedAtUtc = DateTime.UtcNow
-        };
-
-        var result = await _requestService
-            .TryAddRequestAsync(mediaRequest, 0, cancellationToken)
+        var result = await requestService
+            .TryAddRequestAsync(request, maxRequests, cancellationToken)
             .ConfigureAwait(false);
 
         return result switch
         {
             RequestAddResult.Duplicate => Conflict(),
-            RequestAddResult.Added => Ok(mediaRequest),
-            RequestAddResult.Removed => Ok(mediaRequest),
+            RequestAddResult.Added => Ok(result),
+            RequestAddResult.Removed => Ok(result),
             _ => StatusCode(StatusCodes.Status500InternalServerError)
         };
     }
 
-    [HttpDelete(nameof(RemoveRequest) + "/{imdbId}")]
+    [HttpPost("RemoveRequest")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> RemoveRequest(string imdbId, CancellationToken cancellationToken)
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult> RemoveRequest([FromServices] RequestService requestService, [FromQuery] string imdbId, CancellationToken cancellationToken)
     {
-        await _requestService.RemoveRequestAsync(imdbId, cancellationToken).ConfigureAwait(false);
+        if (string.IsNullOrWhiteSpace(imdbId))
+            return BadRequest("ImdbId is required.");
+
+        await requestService.RemoveRequestAsync(imdbId, cancellationToken).ConfigureAwait(false);
         return Ok();
     }
 
@@ -167,7 +138,7 @@ public class RiNnoFinConfigController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> TriggerQuiz(string groupName, CancellationToken cancellationToken)
+    public async Task<IActionResult> TriggerQuiz([FromServices] TelegramBotClientWrapper botClientWrapper, string groupName, CancellationToken cancellationToken)
     {
         var config = RiNnoFinPlugin.Instance?.Configuration;
         if (config == null)
@@ -183,16 +154,15 @@ public class RiNnoFinConfigController : ControllerBase
 
         if (group.TelegramGroupChat == null || group.TelegramGroupChat.TelegramChatId == 0)
         {
-            return BadRequest("Gruppe ist nicht mit Telegram verknÃ¼pft.");
+            return BadRequest("Gruppe ist nicht mit Telegram verknüpft.");
         }
 
-        var botClient = _botClientWrapper.Client;
+        var botClient = botClientWrapper.Client;
         if (botClient == null)
         {
             return BadRequest("Telegram Bot ist nicht aktiv.");
         }
 
-        // Topic ID ist optional â€“ 0 oder null bedeutet: kein Topic (Hauptchat)
         int? quizThreadId = (group.TelegramGroupChat.QuizTopicId ?? 0) > 0
             ? group.TelegramGroupChat.QuizTopicId
             : null;
@@ -231,7 +201,6 @@ public class RiNnoFinConfigController : ControllerBase
         {
             var emailService = new EmailService(_logger);
             
-            // Erstelle eine temporÃ¤re Konfiguration fÃ¼r den Test
             var tempConfig = new PluginConfiguration
             {
                 EnableEmail = true,
@@ -247,7 +216,7 @@ public class RiNnoFinConfigController : ControllerBase
             string htmlBody = $@"
                 <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
                     <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>
-                        <h2 style='color: #2c3e50;'>âœ… Erfolgreiche Test-Verbindung</h2>
+                        <h2 style='color: #2c3e50;'>✅ Erfolgreiche Test-Verbindung</h2>
                         <p>Hallo Admin,</p>
                         <p>Dein E-Mail Server (<strong>{request.SmtpServer}</strong>) funktioniert einwandfrei!</p>
                         <p>Das RiNnoFin Telegramm-Plugin kann nun automatisch Einladungen und Passwort-Reset-Links an deine Benutzer verschicken.</p>
@@ -258,8 +227,7 @@ public class RiNnoFinConfigController : ControllerBase
 
             var targetEmail = !string.IsNullOrWhiteSpace(request.TestEmailAddress) ? request.TestEmailAddress : request.SmtpUsername;
 
-            // Sende Test-E-Mail an die angegebene Test-Adresse
-            await emailService.SendEmailAsync(tempConfig, targetEmail, "RiNnoFin Media - E-Mail Test erfolgreich! ðŸŽ‰", htmlBody);
+            await emailService.SendEmailAsync(tempConfig, targetEmail, "RiNnoFin Media - E-Mail Test erfolgreich! 🎉", htmlBody);
 
             return Ok(new { message = $"E-Mail erfolgreich an {targetEmail} versendet!" });
         }
@@ -301,7 +269,6 @@ public class RiNnoFinConfigController : ControllerBase
                     catch (Exception innerEx)
                     {
                         PluginLog.Error(innerEx, $"Fehler beim Verarbeiten des Benutzers '{u?.Username ?? "Unbekannt"}'");
-                        // Fallback object so we at least see the user
                         dtos.Add(new UserDto
                         {
                             Id = u.Id,
@@ -344,13 +311,11 @@ public class RiNnoFinConfigController : ControllerBase
 
             if (!string.IsNullOrWhiteSpace(request.Username))
             {
-                // Konto sofort anlegen
                 try
                 {
                     PluginLog.Info($"[ConfigAPI] Erstelle sofortigen Account für Benutzer '{request.Username}'...");
                     var newUser = await userManager.CreateUserAsync(request.Username);
 
-                    // Policy & Config von Profil-Vorlage klonen (falls angegeben)
                     if (Guid.TryParse(request.ProfileUserId, out var profileId))
                     {
                         var profileUser = userManager.GetUserById(profileId);
@@ -372,7 +337,6 @@ public class RiNnoFinConfigController : ControllerBase
                         }
                     }
 
-                    // E-Mail verknüpfen
                     if (config.TelegramUserLinks == null) config.TelegramUserLinks = new();
                     config.TelegramUserLinks.Add(new TelegramUserLink
                     {
@@ -382,13 +346,11 @@ public class RiNnoFinConfigController : ControllerBase
                     });
                     RiNnoFinPlugin.Instance?.UpdateConfiguration(config);
 
-                    // Reset-Token generieren für Passwort-Vergabe
                     string token = Guid.NewGuid().ToString("N");
                     ResetTokenManager.AddResetToken(token, newUser.Id);
 
                     string resetUrl = $"{config.LoginBaseUrl?.TrimEnd('/')}/sso/Telegram/reset?token={token}";
                     
-                    // Willkommens/Reset E-Mail
                     string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplateInvite)
                         ? config.EmailTemplateInvite.Replace("{inviteLink}", resetUrl).Replace("Du wurdest eingeladen!", "Dein Account wurde erstellt!").Replace("Account erstellen", "Passwort festlegen")
                         : $@"
@@ -415,7 +377,6 @@ public class RiNnoFinConfigController : ControllerBase
             }
             else
             {
-                // Standard Einladungs-Flow (User wählt Namen selbst)
                 string token = Guid.NewGuid().ToString("N");
                 Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.Commands.InviteTokenManager.AddInvite(token, request.Email, request.ProfileUserId);
 
@@ -483,7 +444,7 @@ public class RiNnoFinConfigController : ControllerBase
                     await userManager.DeleteUserAsync(id).ConfigureAwait(false);
                 }
             }
-            return Ok(new { message = "Benutzer erfolgreich gelÃ¶scht." });
+            return Ok(new { message = "Benutzer erfolgreich gelöscht." });
         }
 
         [HttpPost("AdminSendPasswordReset")]
@@ -513,14 +474,14 @@ public class RiNnoFinConfigController : ControllerBase
                     : $@"
                     <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
                         <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
-                            <h2 style='color: #ef4444;'>Passwort zurÃ¼cksetzen ðŸ”‘</h2>
+                            <h2 style='color: #ef4444;'>Passwort zurücksetzen 🔑</h2>
                             <p>Hallo <strong>{user.Username}</strong>,</p>
-                            <p>Du hast das ZurÃ¼cksetzen deines Passworts angefordert.</p>
-                            <a href='{resetUrl}' style='display: inline-block; padding: 10px 20px; margin-top: 20px; background-color: #ef4444; color: #fff; text-decoration: none; border-radius: 4px; font-weight: bold;'>Passwort jetzt zurÃ¼cksetzen</a>
+                            <p>Du hast das Zurücksetzen deines Passworts angefordert.</p>
+                            <a href='{resetUrl}' style='display: inline-block; padding: 10px 20px; margin-top: 20px; background-color: #ef4444; color: #fff; text-decoration: none; border-radius: 4px; font-weight: bold;'>Passwort jetzt zurücksetzen</a>
                         </div>
                     </div>";
 
-                await emailService.SendEmailAsync(config, userLink.EmailAddress, "Passwort zurÃ¼cksetzen", htmlBody);
+                await emailService.SendEmailAsync(config, userLink.EmailAddress, "Passwort zurücksetzen", htmlBody);
                 sentCount++;
             }
 
