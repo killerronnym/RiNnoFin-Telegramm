@@ -14,13 +14,14 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Controller.Net;
 using Telegram.Bot;
 
 namespace Jellyfin.Plugin.RiNnoFinTelegramm.Controller;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[AllowAnonymous]
 public class RiNnoFinConfigController : ControllerBase
 {
     private readonly ILogger<RiNnoFinConfigController> _logger;
@@ -35,36 +36,53 @@ public class RiNnoFinConfigController : ControllerBase
     {
         try
         {
+            // 1. Versuche über die ClaimsPrincipal-Identität des Requests zu gehen
             var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value 
-                         ?? User.FindFirst("id")?.Value;
-            if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
+                         ?? User.FindFirst("id")?.Value
+                         ?? User.FindFirst("UserId")?.Value;
+
+            if (!string.IsNullOrEmpty(userIdStr) && Guid.TryParse(userIdStr, out var userId))
             {
-                PluginLog.Warn("[ConfigAPI] Admin-Check fehlgeschlagen: Keine UserID im Claim gefunden.");
-                return false;
+                var userManager = RiNnoFinPlugin.UserManager;
+                if (userManager != null)
+                {
+                    var user = userManager.GetUserById(userId);
+                    if (user != null)
+                    {
+                        var dto = userManager.GetUserDto(user, string.Empty);
+                        if (dto?.Policy != null && dto.Policy.IsAdministrator)
+                        {
+                            return true;
+                        }
+                    }
+                }
             }
 
-            var userManager = RiNnoFinPlugin.UserManager;
-            if (userManager == null)
+            // 2. Fallback: Manuelle Authentifizierung über Jellyfins IAuthService
+            var authService = HttpContext.RequestServices.GetService(typeof(IAuthService)) as IAuthService;
+            if (authService != null)
             {
-                PluginLog.Error("[ConfigAPI] Admin-Check fehlgeschlagen: UserManager ist null.");
-                return false;
+                var authInfo = authService.Authenticate(Request).GetAwaiter().GetResult();
+                if (authInfo != null && authInfo.UserId != Guid.Empty)
+                {
+                    var userManager = RiNnoFinPlugin.UserManager;
+                    if (userManager != null)
+                    {
+                        var user = userManager.GetUserById(authInfo.UserId);
+                        if (user != null)
+                        {
+                            var dto = userManager.GetUserDto(user, string.Empty);
+                            if (dto?.Policy != null && dto.Policy.IsAdministrator)
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
             }
 
-            var user = userManager.GetUserById(userId);
-            if (user == null)
-            {
-                PluginLog.Warn($"[ConfigAPI] Admin-Check fehlgeschlagen: Benutzer mit ID '{userId}' nicht in Jellyfin gefunden.");
-                return false;
-            }
-
-            var dto = userManager.GetUserDto(user, string.Empty);
-            if (dto?.Policy == null)
-            {
-                PluginLog.Warn($"[ConfigAPI] Admin-Check fehlgeschlagen: Policy für Benutzer '{user.Username}' ist null.");
-                return false;
-            }
-
-            return dto.Policy.IsAdministrator;
+            PluginLog.Warn("[ConfigAPI] Admin-Check fehlgeschlagen: Kein Administrator authentifiziert.");
+            return false;
         }
         catch (Exception ex)
         {
