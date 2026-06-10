@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.19",
+        "changelog": "Behebt das Problem endgültig, dass der Browser die alte `config.js`-Datei im Zwischenspeicher behält, wodurch die Buttons bei einigen Benutzern nach dem Update auf 1.0.4.18 immer noch nicht funktionierten.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.19.zip",
+        "checksum": "4B2796EFB13E40B9BBE43C28245650D5",
+        "timestamp": "2026-06-10 14:35:00"
+      },
+      {
         "version": "1.0.4.18",
         "changelog": "Behebt das Problem mit den funktionslosen Benutzer-Aktions-Buttons (Löschen, Deaktivieren, Aktivieren, Passwort-Reset) durch Hinzufügen der fehlenden Identifikationslogik für markierte Benutzer. Der Aktivieren-Button wurde wieder als separater Button hinzugefügt. Unfertige/Platzhalter-Buttons in der Navigationsleiste wurden ausgeblendet, um die Übersichtlichkeit zu verbessern.",
         "targetAbi": "10.9.0.0",
