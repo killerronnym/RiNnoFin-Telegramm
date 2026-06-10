@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -50,14 +50,14 @@ public static class TelegramBotServiceExtensions
                 RequestWriteAccess = true
             };
             replyMarkup = new global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(
-                global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton.WithLoginUrl("ðŸ”— Mit Jellyfin verknÃ¼pfen", loginUrl)
+                global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton.WithLoginUrl("🔗 Mit Jellyfin verknüpfen", loginUrl)
             );
         }
 
         await botClient.SendMessage(
             chatId,
-            "âŒ Dein Telegram-Konto ist nicht mit einem Jellyfin-Konto verknÃ¼pft.\n\n" +
-            "Bitte klicke auf den Button unten, um dich einmalig Ã¼ber die Jellyfin-Anmeldeseite mit Telegram SSO anzumelden und dein Konto zu verknÃ¼pfen.\n\n" +
+            "âŒ Dein Telegram-Konto ist nicht mit einem Jellyfin-Konto verknüpft.\n\n" +
+            "Bitte klicke auf den Button unten, um dich einmalig über die Jellyfin-Anmeldeseite mit Telegram SSO anzumelden und dein Konto zu verknüpfen.\n\n" +
             "*(Falls kein Button erscheint, hinterlege zuerst deine Server-Domain in den Jellyfin Plugin-Einstellungen)*",
             replyMarkup: replyMarkup,
             parseMode: ParseMode.Markdown,
@@ -138,7 +138,7 @@ internal sealed class TelegramBotService : ITelegramBotService
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Fehler beim Registrieren der Befehle im Telegram-MenÃ¼.");
+                Logger.LogError(ex, "Fehler beim Registrieren der Befehle im Telegram-Menü.");
             }
         }
         catch (Exception ex)
@@ -153,7 +153,7 @@ internal sealed class TelegramBotService : ITelegramBotService
         {
             if (BotInfo == null)
             {
-                throw new Exception($"Keine Bot-Informationen verfÃ¼gbar in: {nameof(TelegramBotService)}.{nameof(HandleUpdateAsync)}");
+                throw new Exception($"Keine Bot-Informationen verfügbar in: {nameof(TelegramBotService)}.{nameof(HandleUpdateAsync)}");
             }
 
             LastActivityTime = DateTime.UtcNow;
@@ -204,7 +204,7 @@ internal sealed class TelegramBotService : ITelegramBotService
                     cancellationToken: cancellationToken);
             }
 
-            Logger.LogInformation("User ID '{UserId}' hat ein Gruppen-ChatMember-Event ausgelÃ¶st, besitzt aber keinen Benutzernamen.", user.Id);
+            Logger.LogInformation("User ID '{UserId}' hat ein Gruppen-ChatMember-Event ausgelöst, besitzt aber keinen Benutzernamen.", user.Id);
             return false;
         }
 
@@ -229,7 +229,7 @@ internal sealed class TelegramBotService : ITelegramBotService
                     {
                         await BotClientWrapper.Client.SendMessage(
                             groupId,
-                            "Diese Gruppe ist nicht mit Jellyfin verknÃ¼pft. Bitte einen Administrator, diese Gruppe mit /link zu verknÃ¼pfen.",
+                            "Diese Gruppe ist nicht mit Jellyfin verknüpft. Bitte einen Administrator, diese Gruppe mit /link zu verknüpfen.",
                             cancellationToken: cancellationToken);
                     }
                 }
@@ -247,15 +247,15 @@ internal sealed class TelegramBotService : ITelegramBotService
                 {
                     await BotClientWrapper.Client.SendMessage(
                         groupId,
-                        $"Willkommen @{user.Username}! Du wurdest zur RiNnoFin Telegramm Whitelist hinzugefÃ¼gt. {serverUrl}",
+                        $"Willkommen @{user.Username}! Du wurdest zur RiNnoFin Telegramm Whitelist hinzugefügt. {serverUrl}",
                         cancellationToken: cancellationToken);
                 }
 
-                Logger.LogInformation("Benutzer @{UserName} zur RiNnoFin Telegramm Gruppe '{Group}' hinzugefÃ¼gt", user.Username, telegramGroup.GroupName);
+                Logger.LogInformation("Benutzer @{UserName} zur RiNnoFin Telegramm Gruppe '{Group}' hinzugefügt", user.Username, telegramGroup.GroupName);
                 return true;
             }
         }
-        // Benutzer verlÃ¤sst die Gruppe
+        // Benutzer verlässt die Gruppe
         else if (member.NewChatMember.Status is ChatMemberStatus.Left or ChatMemberStatus.Kicked)
         {
             if (telegramGroup == null)
@@ -267,7 +267,7 @@ internal sealed class TelegramBotService : ITelegramBotService
             {
                 Config.TelegramGroups.Remove(telegramGroup);
                 var adminMentions = string.Join(" ", Config.AdminUserNames.Select(admin => $"@{admin}"));
-                var message = $"Der Bot wurde aus der Gruppe '{telegramGroup.GroupName}' entfernt. Die VerknÃ¼pfung wurde aufgehoben.\n\nAdministratoren: {adminMentions}";
+                var message = $"Der Bot wurde aus der Gruppe '{telegramGroup.GroupName}' entfernt. Die Verknüpfung wurde aufgehoben.\n\nAdministratoren: {adminMentions}";
                 if (BotClientWrapper.Client != null)
                 {
                     await BotClientWrapper.Client.SendMessage(
@@ -301,7 +301,7 @@ internal sealed class TelegramBotService : ITelegramBotService
     {
         if (BotInfo?.Username == null)
         {
-            throw new Exception($"Keine Bot-Informationen verfÃ¼gbar in: {nameof(TelegramBotService)}.{nameof(HandleBotMessage)}");
+            throw new Exception($"Keine Bot-Informationen verfügbar in: {nameof(TelegramBotService)}.{nameof(HandleBotMessage)}");
         }
 
         var message = update.Message!;
@@ -356,7 +356,7 @@ internal sealed class TelegramBotService : ITelegramBotService
                 var link = Config.TelegramUserLinks?.FirstOrDefault(l => l.TelegramUserId == userId);
                 if (link == null)
                 {
-                    await botClient.AnswerCallbackQuery(callbackQuery.Id, "Du bist nicht verknÃ¼pft. Bitte logge dich erst Ã¼ber Jellyfin mit Telegram ein.", showAlert: true, cancellationToken: cancellationToken);
+                    await botClient.AnswerCallbackQuery(callbackQuery.Id, "Du bist nicht verknüpft. Bitte logge dich erst über Jellyfin mit Telegram ein.", showAlert: true, cancellationToken: cancellationToken);
                     return;
                 }
 
@@ -364,9 +364,9 @@ internal sealed class TelegramBotService : ITelegramBotService
                 {
                     link.SubscribedToNewsletter = true;
                     RiNnoFinPlugin.Instance!.SaveConfiguration(Config);
-                    await botClient.AnswerCallbackQuery(callbackQuery.Id, "Newsletter abonniert! ðŸ””", cancellationToken: cancellationToken);
+                    await botClient.AnswerCallbackQuery(callbackQuery.Id, "Newsletter abonniert! 🔔", cancellationToken: cancellationToken);
                     
-                    var newText = "ðŸ“° *RiNnoFin Newsletter-Einstellungen*\n\nStatus: *Abonniert* ðŸ””\n\nDu erhÃ¤ltst Benachrichtigungen bei neuen Filmen, Serien und Musik.";
+                    var newText = "📰 *RiNnoFin Newsletter-Einstellungen*\n\nStatus: *Abonniert* 🔔\n\nDu erhältst Benachrichtigungen bei neuen Filmen, Serien und Musik.";
                     await botClient.EditMessageText(
                         callbackQuery.Message!.Chat.Id,
                         callbackQuery.Message.MessageId,
@@ -378,9 +378,9 @@ internal sealed class TelegramBotService : ITelegramBotService
                 {
                     link.SubscribedToNewsletter = false;
                     RiNnoFinPlugin.Instance!.SaveConfiguration(Config);
-                    await botClient.AnswerCallbackQuery(callbackQuery.Id, "Newsletter deabonniert! ðŸ”•", cancellationToken: cancellationToken);
+                    await botClient.AnswerCallbackQuery(callbackQuery.Id, "Newsletter deabonniert! 🔕", cancellationToken: cancellationToken);
                     
-                    var newText = "ðŸ“° *RiNnoFin Newsletter-Einstellungen*\n\nStatus: *Deaktiviert* ðŸ”•\n\nDu erhÃ¤ltst keine Medienbenachrichtigungen mehr.";
+                    var newText = "📰 *RiNnoFin Newsletter-Einstellungen*\n\nStatus: *Deaktiviert* 🔕\n\nDu erhältst keine Medienbenachrichtigungen mehr.";
                     await botClient.EditMessageText(
                         callbackQuery.Message!.Chat.Id,
                         callbackQuery.Message.MessageId,
@@ -449,19 +449,19 @@ internal sealed class TelegramBotService : ITelegramBotService
                     break;
                 }
 
-                Logger.LogDebug("FÃ¼hre Befehl aus: {Command}", command.Command);
+                Logger.LogDebug("Führe Befehl aus: {Command}", command.Command);
                 await command.Execute(this, message, isAdmin, cancellationToken);
                 break;
             }
 
             if (!commandFound && BotClientWrapper.Client != null)
             {
-                await BotClientWrapper.Client.SendMessage(message.Chat.Id, "Unbekannter Befehl. Tippe /start fÃ¼r Hilfe.", cancellationToken: cancellationToken);
+                await BotClientWrapper.Client.SendMessage(message.Chat.Id, "Unbekannter Befehl. Tippe /start für Hilfe.", cancellationToken: cancellationToken);
             }
         }
         catch (Exception e)
         {
-            Logger.LogError(e, "Fehler beim AusfÃ¼hren des Befehls: {Command}", commandText);
+            Logger.LogError(e, "Fehler beim Ausführen des Befehls: {Command}", commandText);
         }
     }
 
@@ -507,19 +507,20 @@ internal sealed class TelegramBotService : ITelegramBotService
     {
         return command.ToLowerInvariant() switch
         {
-            "start" => "BegrÃ¼ÃŸungsnachricht und SSO-Link anzeigen",
+            "start" => "Begrüßungsnachricht und SSO-Link anzeigen",
             "help" => "Hilfe und alle Befehle anzeigen",
             "ping" => "Verbindung zum Bot testen",
             "abonnieren" => "Medien-Newsletter abonnieren",
             "deabonnieren" => "Medien-Newsletter deabonnieren",
             "newsletter" => "Newsletter-Einstellungen anzeigen",
-            "link" => "Telegram-Gruppe verknÃ¼pfen (nur Admins)",
+            "link" => "Telegram-Gruppe verknüpfen (nur Admins)",
             "unlink" => "Gruppe entkoppeln (nur Admins)",
             "userlist" => "Mitglieder der Whitelist anzeigen (nur Admins)",
-            "passwort" => "Dein Jellyfin-Passwort Ã¤ndern",
+            "passwort" => "Dein Jellyfin-Passwort ändern",
             "status" => "Server-Statistiken anzeigen (nur Admins)",
             "quiz" => "Quizfrage zu Filmen/Serien starten (nur Admins)",
-            _ => "Befehl ausfÃ¼hren"
+            "neuerbenutzer" => "Neuen Benutzer einladen (nur Admins)",
+            _ => "Befehl ausführen"
         };
     }
 }

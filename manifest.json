@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.17",
+        "changelog": "Behebt Probleme mit kryptischen Zeichen (UTF-8 Encoding-Fehler) in den Telegram-Nachrichten des Bots. Alle deutschen Umlaute und Emojis werden nun korrekt dargestellt. Zudem wurde der fehlende `/neuerbenutzer` Slash-Befehl dem Telegram-Menü hinzugefügt.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.17.zip",
+        "checksum": "52BBA5BEC46F97C769EDE4904D2A8543",
+        "timestamp": "2026-06-10 13:56:00"
+      },
+      {
         "version": "1.0.4.16",
         "changelog": "Behebt das Problem mit unsichtbaren bzw. fehlerhaft gerenderten Checkboxen in der Benutzerverwaltung. Die Auswahl der Benutzer für Batch-Aktionen (Löschen, Deaktivieren, Passwort zurücksetzen) ist nun wieder auf allen Browsern und Jellyfin-Versionen möglich.",
         "targetAbi": "10.9.0.0",

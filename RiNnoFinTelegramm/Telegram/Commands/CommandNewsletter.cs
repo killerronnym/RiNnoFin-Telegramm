@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,7 +31,7 @@ internal class CommandNewsletter : ICommandBase
         {
             await botClient.SendMessage(
                 message.Chat.Id,
-                "âŒ Dieser Befehl ist nur in privaten Chats verfÃ¼gbar.",
+                "âŒ Dieser Befehl ist nur in privaten Chats verfügbar.",
                 cancellationToken: cancellationToken);
             return;
         }
@@ -46,17 +46,17 @@ internal class CommandNewsletter : ICommandBase
             return;
         }
 
-        var status = link.SubscribedToNewsletter ? "Abonniert ðŸ””" : "Deaktiviert ðŸ”•";
-        var text = $"ðŸ“° *RiNnoFin Newsletter-Einstellungen*\n\n" +
+        var status = link.SubscribedToNewsletter ? "Abonniert 🔔" : "Deaktiviert 🔕";
+        var text = $"📰 *RiNnoFin Newsletter-Einstellungen*\n\n" +
                    $"Aktueller Status: *{status}*\n\n" +
-                   $"Du kannst den Newsletter abonnieren, um Benachrichtigungen Ã¼ber neu hinzugefÃ¼gte Filme, Serien und Musik zu erhalten.";
+                   $"Du kannst den Newsletter abonnieren, um Benachrichtigungen über neu hinzugefügte Filme, Serien und Musik zu erhalten.";
 
         var keyboard = new InlineKeyboardMarkup(new[]
         {
             new[]
             {
-                InlineKeyboardButton.WithCallbackData("ðŸ”” Abonnieren", "newsletter_subscribe"),
-                InlineKeyboardButton.WithCallbackData("ðŸ”• Deaktivieren", "newsletter_unsubscribe")
+                InlineKeyboardButton.WithCallbackData("🔔 Abonnieren", "newsletter_subscribe"),
+                InlineKeyboardButton.WithCallbackData("🔕 Deaktivieren", "newsletter_unsubscribe")
             }
         });
 

@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
@@ -23,7 +23,7 @@ internal class CommandAbonnieren : ICommandBase
         {
             await botClient.SendMessage(
                 message.Chat.Id,
-                "âŒ Dieser Befehl ist nur in privaten Chats verfÃ¼gbar.",
+                "âŒ Dieser Befehl ist nur in privaten Chats verfügbar.",
                 cancellationToken: cancellationToken);
             return;
         }
@@ -43,7 +43,7 @@ internal class CommandAbonnieren : ICommandBase
 
         await botClient.SendMessage(
             message.Chat.Id,
-            "ðŸ”” *Erfolgreich abonniert!*\n\nDu erhÃ¤ltst nun Benachrichtigungen Ã¼ber neue Filme, Serien und Musik auf diesem Server.",
+            "🔔 *Erfolgreich abonniert!*\n\nDu erhältst nun Benachrichtigungen über neue Filme, Serien und Musik auf diesem Server.",
             parseMode: ParseMode.Markdown,
             cancellationToken: cancellationToken);
     }

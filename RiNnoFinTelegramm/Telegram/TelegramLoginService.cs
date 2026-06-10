@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -161,12 +161,12 @@ public class TelegramLoginService
             !fields.TryGetValue(Field.AuthDate, out var authDate) ||
             !fields.TryGetValue(Field.Hash, out var hash))
         {
-            return new TelegramAuthResult { ErrorMessage = "Daten enthalten unvollstÃ¤ndige Felder." };
+            return new TelegramAuthResult { ErrorMessage = "Daten enthalten unvollständige Felder." };
         }
 
         if (!long.TryParse(authDate, out var timestamp))
         {
-            return new TelegramAuthResult { ErrorMessage = "UngÃ¼ltiges AuthDate-Format." };
+            return new TelegramAuthResult { ErrorMessage = "Ungültiges AuthDate-Format." };
         }
 
         if (Math.Abs(DateTime.UtcNow.Subtract(UnixStart).TotalSeconds - timestamp) > AllowedTimeOffset)
@@ -176,7 +176,7 @@ public class TelegramLoginService
 
         if (hash is not { Length: 64 })
         {
-            return new TelegramAuthResult { ErrorMessage = "UngÃ¼ltiger Hash." };
+            return new TelegramAuthResult { ErrorMessage = "Ungültiger Hash." };
         }
 
         var orderedKeys = fields.Keys.Where(k => !string.Equals("hash", k, StringComparison.CurrentCultureIgnoreCase)).ToArray();
@@ -186,7 +186,7 @@ public class TelegramLoginService
         var signatureHex = Convert.ToHexString(signature).ToLowerInvariant();
         if (!string.Equals(signatureHex, hash, StringComparison.OrdinalIgnoreCase))
         {
-            return new TelegramAuthResult { ErrorMessage = "UngÃ¼ltiger Signatur-Hash." };
+            return new TelegramAuthResult { ErrorMessage = "Ungültiger Signatur-Hash." };
         }
 
         return new TelegramAuthResult { Ok = true };
