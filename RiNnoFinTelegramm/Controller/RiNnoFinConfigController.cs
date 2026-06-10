@@ -20,7 +20,7 @@ namespace Jellyfin.Plugin.RiNnoFinTelegramm.Controller;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Policy = "RequiresElevation")]
+[Authorize]
 public class RiNnoFinConfigController : ControllerBase
 {
     private readonly ILogger<RiNnoFinConfigController> _logger;
@@ -28,6 +28,49 @@ public class RiNnoFinConfigController : ControllerBase
     public RiNnoFinConfigController(ILogger<RiNnoFinConfigController> _loggerVal)
     {
         _logger = _loggerVal ?? throw new ArgumentNullException(nameof(_loggerVal));
+        PluginLog.Info("RiNnoFinConfigController constructor called.");
+    }
+
+    private bool IsUserAdmin()
+    {
+        try
+        {
+            var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value 
+                         ?? User.FindFirst("id")?.Value;
+            if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
+            {
+                PluginLog.Warn("[ConfigAPI] Admin-Check fehlgeschlagen: Keine UserID im Claim gefunden.");
+                return false;
+            }
+
+            var userManager = RiNnoFinPlugin.UserManager;
+            if (userManager == null)
+            {
+                PluginLog.Error("[ConfigAPI] Admin-Check fehlgeschlagen: UserManager ist null.");
+                return false;
+            }
+
+            var user = userManager.GetUserById(userId);
+            if (user == null)
+            {
+                PluginLog.Warn($"[ConfigAPI] Admin-Check fehlgeschlagen: Benutzer mit ID '{userId}' nicht in Jellyfin gefunden.");
+                return false;
+            }
+
+            var dto = userManager.GetUserDto(user, string.Empty);
+            if (dto?.Policy == null)
+            {
+                PluginLog.Warn($"[ConfigAPI] Admin-Check fehlgeschlagen: Policy für Benutzer '{user.Username}' ist null.");
+                return false;
+            }
+
+            return dto.Policy.IsAdministrator;
+        }
+        catch (Exception ex)
+        {
+            PluginLog.Error(ex, "[ConfigAPI] Fehler im IsUserAdmin check");
+            return false;
+        }
     }
 
     [HttpPost(nameof(TestBotToken))]
@@ -37,6 +80,8 @@ public class RiNnoFinConfigController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ValidateBotTokenResponse>> TestBotToken([FromBody] ValidateBotTokenRequest request)
     {
+        if (!IsUserAdmin()) return StatusCode(StatusCodes.Status403Forbidden, new ValidateBotTokenResponse { ErrorMessage = "Admin-Rechte erforderlich." });
+
         try
         {
             var botClient = new TelegramBotClient(request.Token);
@@ -85,6 +130,8 @@ public class RiNnoFinConfigController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<IReadOnlyList<MediaRequest>>> GetRequests(CancellationToken cancellationToken)
     {
+        if (!IsUserAdmin()) return StatusCode(StatusCodes.Status403Forbidden, null);
+
         var requestService = (RequestService)HttpContext.RequestServices.GetService(typeof(RequestService));
         var requests = await requestService.GetRequestsAsync(cancellationToken).ConfigureAwait(false);
         return Ok(requests);
@@ -94,6 +141,7 @@ public class RiNnoFinConfigController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> SetRequests([FromBody] List<MediaRequest> requests, CancellationToken cancellationToken)
     {
+        if (!IsUserAdmin()) return StatusCode(StatusCodes.Status403Forbidden, null);
         var requestService = (RequestService)HttpContext.RequestServices.GetService(typeof(RequestService));
         await requestService.SetRequestsAsync(requests, cancellationToken).ConfigureAwait(false);
         return Ok();
@@ -104,6 +152,7 @@ public class RiNnoFinConfigController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<RequestAddResult>> AddRequest([FromBody] MediaRequest request, CancellationToken cancellationToken)
     {
+        if (!IsUserAdmin()) return StatusCode(StatusCodes.Status403Forbidden, null);
         var requestService = (RequestService)HttpContext.RequestServices.GetService(typeof(RequestService));
         var providerManager = (IProviderManager)HttpContext.RequestServices.GetService(typeof(IProviderManager));
         if (string.IsNullOrWhiteSpace(request.ImdbId))
@@ -132,6 +181,7 @@ public class RiNnoFinConfigController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult> RemoveRequest([FromQuery] string imdbId, CancellationToken cancellationToken)
     {
+        if (!IsUserAdmin()) return StatusCode(StatusCodes.Status403Forbidden, null);
         var requestService = (RequestService)HttpContext.RequestServices.GetService(typeof(RequestService));
         if (string.IsNullOrWhiteSpace(imdbId))
             return BadRequest("ImdbId is required.");
@@ -146,6 +196,7 @@ public class RiNnoFinConfigController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> TriggerQuiz(string groupName, CancellationToken cancellationToken)
     {
+        if (!IsUserAdmin()) return StatusCode(StatusCodes.Status403Forbidden, null);
         var botClientWrapper = (TelegramBotClientWrapper)HttpContext.RequestServices.GetService(typeof(TelegramBotClientWrapper));
         var config = RiNnoFinPlugin.Instance?.Configuration;
         if (config == null)
@@ -204,6 +255,7 @@ public class RiNnoFinConfigController : ControllerBase
         [FromBody] TestSmtpRequest request,
         CancellationToken cancellationToken)
     {
+        if (!IsUserAdmin()) return StatusCode(StatusCodes.Status403Forbidden, new { message = "Admin-Rechte erforderlich." });
         try
         {
             var emailService = new EmailService(_logger);
@@ -250,6 +302,8 @@ public class RiNnoFinConfigController : ControllerBase
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult GetUsers()
         {
+            if (!IsUserAdmin()) return StatusCode(StatusCodes.Status403Forbidden, new { message = "Admin-Rechte erforderlich." });
+            PluginLog.Info($"GetUsers method entered. UserManager is null: {RiNnoFinPlugin.UserManager == null}");
             try
             {
                 var userManager = RiNnoFinPlugin.UserManager;
@@ -303,6 +357,7 @@ public class RiNnoFinConfigController : ControllerBase
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<string>> GetLogs()
         {
+            if (!IsUserAdmin()) return StatusCode(StatusCodes.Status403Forbidden, new { message = "Admin-Rechte erforderlich." });
             return Ok(PluginLog.GetLogs());
         }
 
@@ -310,6 +365,7 @@ public class RiNnoFinConfigController : ControllerBase
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult> AdminCreateInvite([FromBody] AdminCreateInviteRequest request)
         {
+            if (!IsUserAdmin()) return StatusCode(StatusCodes.Status403Forbidden, new { message = "Admin-Rechte erforderlich." });
             var userManager = RiNnoFinPlugin.UserManager;
             if (string.IsNullOrWhiteSpace(request.Email))
                 return BadRequest(new { message = "E-Mail darf nicht leer sein." });
@@ -413,6 +469,7 @@ public class RiNnoFinConfigController : ControllerBase
         [HttpPost("AdminEnableUser")]
         public async Task<ActionResult> AdminEnableUser([FromBody] List<Guid> userIds)
         {
+            if (!IsUserAdmin()) return StatusCode(StatusCodes.Status403Forbidden, new { message = "Admin-Rechte erforderlich." });
             var userManager = RiNnoFinPlugin.UserManager;
             foreach (var id in userIds)
             {
@@ -430,6 +487,7 @@ public class RiNnoFinConfigController : ControllerBase
         [HttpPost("AdminDisableUser")]
         public async Task<ActionResult> AdminDisableUser([FromBody] List<Guid> userIds)
         {
+            if (!IsUserAdmin()) return StatusCode(StatusCodes.Status403Forbidden, new { message = "Admin-Rechte erforderlich." });
             var userManager = RiNnoFinPlugin.UserManager;
             foreach (var id in userIds)
             {
@@ -447,6 +505,7 @@ public class RiNnoFinConfigController : ControllerBase
         [HttpPost("AdminDeleteUser")]
         public async Task<ActionResult> AdminDeleteUser([FromBody] List<Guid> userIds)
         {
+            if (!IsUserAdmin()) return StatusCode(StatusCodes.Status403Forbidden, new { message = "Admin-Rechte erforderlich." });
             var userManager = RiNnoFinPlugin.UserManager;
             foreach (var id in userIds)
             {
@@ -462,6 +521,7 @@ public class RiNnoFinConfigController : ControllerBase
         [HttpPost("AdminSendPasswordReset")]
         public async Task<ActionResult> AdminSendPasswordReset([FromBody] List<Guid> userIds)
         {
+            if (!IsUserAdmin()) return StatusCode(StatusCodes.Status403Forbidden, new { message = "Admin-Rechte erforderlich." });
             var userManager = RiNnoFinPlugin.UserManager;
             var config = RiNnoFinPlugin.Instance?.Configuration;
             if (config == null || !config.EnableEmail)
@@ -505,6 +565,7 @@ public class RiNnoFinConfigController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UploadLogo([FromForm] IFormFile file)
     {
+        if (!IsUserAdmin()) return StatusCode(StatusCodes.Status403Forbidden, new { message = "Admin-Rechte erforderlich." });
         if (file == null || file.Length == 0)
         {
             return BadRequest("Keine Datei hochgeladen.");

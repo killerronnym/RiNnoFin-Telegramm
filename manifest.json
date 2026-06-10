@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.13",
+        "changelog": "Behebt das Problem mit dem globalen Jellyfin Authorize-Filter, der unter 10.9 einen 500-Fehler warf. Die Berechtigungsprüfung (RequiresElevation) wurde durch eine robustere, manuelle Überprüfung im Controller ersetzt.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.13.zip",
+        "checksum": "5DE63B29A89F7563284BDB85A134DD3A",
+        "timestamp": "2026-06-10 11:45:00"
+      },
+      {
         "version": "1.0.4.12",
         "changelog": "Vollständige Eliminierung des DI-Containers für IUserManager und ICryptoProvider in Controllern. Die Instanzen werden nun über statische Referenzen direkt aus dem Plugin geholt. Dies verhindert jegliche Konstruktor- oder Service-Exceptions, die vom globalen Jellyfin-Fehlerhandler mit 'Error processing request' maskiert wurden.",
         "targetAbi": "10.9.0.0",
