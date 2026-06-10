@@ -760,6 +760,7 @@ public class AcceptInviteRequest
 {
     public string Token { get; set; } = string.Empty;
     public string Username { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
 }
 
@@ -825,7 +826,7 @@ public static class ResetTokenManager
         }
     }
 
-    public static bool TryGetAndRemoveResetToken(string token, out Guid jellyfinUserId)
+    public static bool TryGetResetToken(string token, out Guid jellyfinUserId)
     {
         jellyfinUserId = Guid.Empty;
         var config = RiNnoFinPlugin.Instance?.Configuration;
@@ -835,10 +836,31 @@ public static class ResetTokenManager
         if (resetToken == null) return false;
 
         jellyfinUserId = resetToken.JellyfinUserId;
-        config.PersistedResetTokens.Remove(resetToken);
-        RiNnoFinPlugin.Instance?.SaveConfiguration(config);
-        PluginLog.Info($"[ResetTokenManager] Passwort-Reset-Token für User ID '{jellyfinUserId}' verbraucht und aus Persistenz entfernt.");
         return true;
+    }
+
+    public static void RemoveResetToken(string token)
+    {
+        var config = RiNnoFinPlugin.Instance?.Configuration;
+        if (config == null || config.PersistedResetTokens == null) return;
+        
+        var resetToken = config.PersistedResetTokens.FirstOrDefault(t => t.Token == token);
+        if (resetToken != null)
+        {
+            config.PersistedResetTokens.Remove(resetToken);
+            RiNnoFinPlugin.Instance?.SaveConfiguration(config);
+            PluginLog.Info($"[ResetTokenManager] Passwort-Reset-Token für User ID '{resetToken.JellyfinUserId}' verbraucht und aus Persistenz entfernt.");
+        }
+    }
+
+    public static bool TryGetAndRemoveResetToken(string token, out Guid jellyfinUserId)
+    {
+        if (TryGetResetToken(token, out jellyfinUserId))
+        {
+            RemoveResetToken(token);
+            return true;
+        }
+        return false;
     }
 }
 

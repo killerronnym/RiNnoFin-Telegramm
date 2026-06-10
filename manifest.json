@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.24",
+        "changelog": "Verbessertes Account- und Passwort-Management: Tokens werden bei falschen Eingaben nicht mehr sofort verbraucht. Fehler beim Login oder Setup werden detailliert protokolliert. Die Registrierungsseite fragt nun zur Bestätigung die E-Mail-Adresse ab und integriert eine Live-Passwort-Sicherheitsanzeige.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.24.zip",
+        "checksum": "B50FC873A05330AE9AB24A7D96D16898",
+        "timestamp": "2026-06-10 15:40:00"
+      },
+      {
         "version": "1.0.4.23",
         "changelog": "Benachrichtigungen per E-Mail: Wenn ein Benutzerkonto vom Administrator gelöscht oder deaktiviert wird, erhält der Nutzer nun automatisch eine E-Mail (inklusive personalisierter Anrede). Der Administrator kann optional einen Grund angeben, der in der E-Mail angezeigt wird.",
         "targetAbi": "10.9.0.0",

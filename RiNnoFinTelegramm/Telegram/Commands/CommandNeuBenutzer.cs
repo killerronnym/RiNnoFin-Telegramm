@@ -162,7 +162,7 @@ public static class InviteTokenManager
         }
     }
 
-    public static bool TryGetAndRemoveInvite(string token, out string email, out Guid? profileUserId)
+    public static bool TryGetInvite(string token, out string email, out Guid? profileUserId)
     {
         email = string.Empty;
         profileUserId = null;
@@ -173,14 +173,33 @@ public static class InviteTokenManager
         if (invite == null) return false;
 
         email = invite.Email;
-        if (!string.IsNullOrEmpty(invite.ProfileUserId) && Guid.TryParse(invite.ProfileUserId, out var pId))
+        if (Guid.TryParse(invite.ProfileUserId, out var parsedGuid))
         {
-            profileUserId = pId;
+            profileUserId = parsedGuid;
         }
-
-        config.PersistedInvites.Remove(invite);
-        RiNnoFinPlugin.Instance?.SaveConfiguration(config);
-        PluginLog.Info($"[InviteTokenManager] Einladung für {email} verbraucht und aus Persistenz entfernt.");
         return true;
+    }
+
+    public static void RemoveInvite(string token)
+    {
+        var config = RiNnoFinPlugin.Instance?.Configuration;
+        if (config == null || config.PersistedInvites == null) return;
+        var invite = config.PersistedInvites.FirstOrDefault(i => i.Token == token);
+        if (invite != null)
+        {
+            config.PersistedInvites.Remove(invite);
+            RiNnoFinPlugin.Instance?.SaveConfiguration(config);
+            PluginLog.Info($"[InviteTokenManager] Einladung verbraucht und aus Persistenz entfernt: {invite.Email}");
+        }
+    }
+
+    public static bool TryGetAndRemoveInvite(string token, out string email, out Guid? profileUserId)
+    {
+        if (TryGetInvite(token, out email, out profileUserId))
+        {
+            RemoveInvite(token);
+            return true;
+        }
+        return false;
     }
 }

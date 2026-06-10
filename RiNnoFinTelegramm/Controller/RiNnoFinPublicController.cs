@@ -39,16 +39,22 @@ public class RiNnoFinPublicController : ControllerBase
 
         PluginLog.Info($"[PublicAPI] AcceptInvite aufgerufen für Username: '{request.Username}' mit Token: '{request.Token}'");
 
-        if (string.IsNullOrWhiteSpace(request.Token) || string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
+        if (string.IsNullOrWhiteSpace(request.Token) || string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password) || string.IsNullOrWhiteSpace(request.Email))
         {
-            PluginLog.Warn("[PublicAPI] AcceptInvite abgelehnt: Eines der Pflichtfelder (Token, Username, Password) ist leer.");
+            PluginLog.Warn("[PublicAPI] AcceptInvite abgelehnt: Eines der Pflichtfelder (Token, Username, Email, Password) ist leer.");
             return BadRequest(new { message = "Alle Felder müssen ausgefüllt sein." });
         }
 
-        if (!Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.Commands.InviteTokenManager.TryGetAndRemoveInvite(request.Token, out var email, out var profileUserId))
+        if (!Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.Commands.InviteTokenManager.TryGetInvite(request.Token, out var email, out var profileUserId))
         {
             PluginLog.Warn($"[PublicAPI] AcceptInvite abgelehnt: Token '{request.Token}' ist ungültig oder abgelaufen.");
             return BadRequest(new { message = "Ungültiger oder abgelaufener Einladungslink." });
+        }
+
+        if (!string.Equals(email, request.Email, StringComparison.OrdinalIgnoreCase))
+        {
+            PluginLog.Warn($"[PublicAPI] AcceptInvite abgelehnt: E-Mail stimmt nicht überein. Eingabe: {request.Email}, Erwartet: {email}");
+            return BadRequest(new { message = "Die eingegebene E-Mail-Adresse stimmt nicht mit der Einladung überein." });
         }
 
         try
@@ -175,6 +181,7 @@ public class RiNnoFinPublicController : ControllerBase
             }
 
             PluginLog.Info($"[PublicAPI] Registrierung für Benutzer '{request.Username}' erfolgreich abgeschlossen.");
+            Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.Commands.InviteTokenManager.RemoveInvite(request.Token);
             return Ok(new { message = "Account erfolgreich erstellt!" });
         }
         catch (Exception ex)
@@ -268,8 +275,9 @@ public class RiNnoFinPublicController : ControllerBase
             return BadRequest(new { message = "Alle Felder müssen ausgefüllt sein (Token, Passwort, Benutzername, E-Mail)." });
         }
 
-        if (!ResetTokenManager.TryGetAndRemoveResetToken(request.Token, out var userId))
+        if (!ResetTokenManager.TryGetResetToken(request.Token, out var userId))
         {
+            PluginLog.Warn($"[PublicAPI] ResetPassword fehlgeschlagen: Ungültiger oder abgelaufener Reset-Link. Token: {request.Token}");
             return BadRequest(new { message = "Ungültiger oder abgelaufener Reset-Link." });
         }
 
@@ -278,11 +286,13 @@ public class RiNnoFinPublicController : ControllerBase
             var user = userManager.GetUserById(userId);
             if (user == null)
             {
+                PluginLog.Warn($"[PublicAPI] ResetPassword fehlgeschlagen: Benutzer nicht gefunden. ID: {userId}");
                 return BadRequest(new { message = "Benutzer nicht gefunden." });
             }
 
             if (!string.Equals(user.Username, request.Username, StringComparison.OrdinalIgnoreCase))
             {
+                PluginLog.Warn($"[PublicAPI] ResetPassword fehlgeschlagen: Benutzername stimmt nicht überein. Eingabe: {request.Username}, Erwartet: {user.Username}");
                 return BadRequest(new { message = "Der eingegebene Benutzername stimmt nicht mit dem Account überein." });
             }
 
@@ -290,8 +300,12 @@ public class RiNnoFinPublicController : ControllerBase
             var userLink = config?.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == userId);
             if (userLink == null || !string.Equals(userLink.EmailAddress, request.Email, StringComparison.OrdinalIgnoreCase))
             {
+                PluginLog.Warn($"[PublicAPI] ResetPassword fehlgeschlagen: E-Mail-Adresse stimmt nicht überein. Eingabe: {request.Email}");
                 return BadRequest(new { message = "Die eingegebene E-Mail-Adresse stimmt nicht mit dem Account überein." });
             }
+
+            // All validations passed. Remove token now.
+            ResetTokenManager.RemoveResetToken(request.Token);
 
             user.Password = cryptoProvider.CreatePasswordHash(request.NewPassword).ToString();
             await userManager.UpdateUserAsync(user).ConfigureAwait(false);

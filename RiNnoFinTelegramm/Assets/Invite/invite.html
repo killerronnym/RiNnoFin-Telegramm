@@ -67,8 +67,21 @@
                                 <input class="emby-input" type="text" id="username" required autocomplete="username">
                             </div>
                             <div class="inputContainer">
+                                <label class="inputLabel" for="email">E-Mail-Adresse</label>
+                                <input class="emby-input" type="email" id="email" required autocomplete="email">
+                            </div>
+                            <div class="inputContainer">
                                 <label class="inputLabel" for="password">Passwort</label>
                                 <input class="emby-input" type="password" id="password" required autocomplete="new-password">
+                                <div id="passwordStrength" style="margin-top: 5px; font-size: 0.9em; display: none;">
+                                    Sicherheit: <span id="strengthText">Schwach</span>
+                                    <div style="width: 100%; background: rgba(255,255,255,0.1); height: 4px; border-radius: 2px; margin-top: 4px;">
+                                        <div id="strengthBar" style="height: 100%; width: 0%; transition: width 0.3s, background-color 0.3s; border-radius: 2px;"></div>
+                                    </div>
+                                    <div style="font-size: 0.8em; color: rgba(255,255,255,0.6); margin-top: 4px;">
+                                        Hinweis: Mindestens 8 Zeichen, inkl. Sonderzeichen (z.B. !)
+                                    </div>
+                                </div>
                             </div>
                             <div class="inputContainer" style="margin-bottom: 30px;">
                                 <label class="inputLabel" for="password_confirm">Passwort wiederholen</label>
@@ -116,10 +129,61 @@
         });
     });
 
+    const passwordInput = document.getElementById('password');
+    const strengthContainer = document.getElementById('passwordStrength');
+    const strengthText = document.getElementById('strengthText');
+    const strengthBar = document.getElementById('strengthBar');
+
+    passwordInput.addEventListener('input', () => {
+        const val = passwordInput.value;
+        if (val.length > 0) {
+            strengthContainer.style.display = 'block';
+        } else {
+            strengthContainer.style.display = 'none';
+        }
+
+        let score = 0;
+        if (val.length >= 8) score += 1;
+        if (/[A-Z]/.test(val)) score += 1;
+        if (/[0-9]/.test(val)) score += 1;
+        if (/[^A-Za-z0-9]/.test(val)) score += 1; // Special char
+
+        if (val.length < 8) score = 0; // Require at least 8 chars
+
+        switch (score) {
+            case 0:
+            case 1:
+                strengthText.innerText = 'Schwach';
+                strengthText.style.color = '#cc3333';
+                strengthBar.style.width = '25%';
+                strengthBar.style.backgroundColor = '#cc3333';
+                break;
+            case 2:
+                strengthText.innerText = 'Mittel';
+                strengthText.style.color = '#e6b800';
+                strengthBar.style.width = '50%';
+                strengthBar.style.backgroundColor = '#e6b800';
+                break;
+            case 3:
+                strengthText.innerText = 'Gut';
+                strengthText.style.color = '#33cc33';
+                strengthBar.style.width = '75%';
+                strengthBar.style.backgroundColor = '#33cc33';
+                break;
+            case 4:
+                strengthText.innerText = 'Sehr sicher';
+                strengthText.style.color = '#00a4dc';
+                strengthBar.style.width = '100%';
+                strengthBar.style.backgroundColor = '#00a4dc';
+                break;
+        }
+    });
+
     document.getElementById('inviteForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         
         const username = document.getElementById('username').value;
+        const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         const passwordConfirm = document.getElementById('password_confirm').value;
         const errorMsg = document.getElementById('errorMsg');
@@ -131,8 +195,14 @@
             return;
         }
 
-        if (password.length < 6) {
-            errorMsg.innerText = "Das Passwort muss mindestens 6 Zeichen lang sein.";
+        if (password.length < 8) {
+            errorMsg.innerText = "Das Passwort muss mindestens 8 Zeichen lang sein.";
+            errorMsg.style.display = 'block';
+            return;
+        }
+
+        if (!/[^A-Za-z0-9]/.test(password)) {
+            errorMsg.innerText = "Das Passwort muss mindestens ein Sonderzeichen (z.B. ! oder ?) enthalten.";
             errorMsg.style.display = 'block';
             return;
         }
@@ -147,7 +217,7 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ Token: token, Username: username, Password: password })
+                body: JSON.stringify({ Token: token, Username: username, Email: email, Password: password })
             });
 
             if (response.ok) {
@@ -163,7 +233,7 @@
                 } catch(e) {
                     if(text) errorText = text;
                 }
-                throw new Error(`${errorText} (Status: ${response.status})`);
+                throw new Error(`${errorText}`);
             }
         } catch (err) {
             errorMsg.innerText = err.message;
