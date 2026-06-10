@@ -232,7 +232,7 @@ const tgConfigPage = {
             
             const checkboxTd = document.createElement("td");
             checkboxTd.style.padding = "10px";
-            checkboxTd.innerHTML = `<input type="checkbox" class="user-checkbox emby-checkbox" data-userid="${userId}" is="emby-checkbox"/>`;
+            checkboxTd.innerHTML = `<input type="checkbox" class="user-checkbox" data-userid="${userId}" style="width: 18px; height: 18px; cursor: pointer; accent-color: #3b82f6;"/>`;
             
             const nameTd = document.createElement("td");
             nameTd.style.padding = "10px";

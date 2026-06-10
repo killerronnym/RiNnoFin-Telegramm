@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.16",
+        "changelog": "Behebt das Problem mit unsichtbaren bzw. fehlerhaft gerenderten Checkboxen in der Benutzerverwaltung. Die Auswahl der Benutzer für Batch-Aktionen (Löschen, Deaktivieren, Passwort zurücksetzen) ist nun wieder auf allen Browsern und Jellyfin-Versionen möglich.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.16.zip",
+        "checksum": "75BFEEC71BF9DEA7EC93A5BA5376F085",
+        "timestamp": "2026-06-10 13:52:00"
+      },
+      {
         "version": "1.0.4.15",
         "changelog": "Behebung der System.MissingMethodException beim Abrufen der Jellyfin-Benutzer unter Jellyfin 10.11+. Der Zugriff auf IUserManager wurde mittels Reflection dynamisiert, um sowohl die ältere 'Users'-Eigenschaft als auch die neuere 'GetUsers()'-Methode zur Laufzeit vollautomatisch und abwärtskompatibel zu unterstützen. Zudem wurden alle Gating-Authentifizierungsprüfungen für verbesserte Stabilität in asynchrone Tasks umgestellt.",
         "targetAbi": "10.9.0.0",
