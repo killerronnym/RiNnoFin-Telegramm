@@ -45,7 +45,7 @@ public class RiNnoFinPublicController : ControllerBase
             return BadRequest(new { message = "Alle Felder müssen ausgefüllt sein." });
         }
 
-        if (!Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.Commands.InviteTokenManager.TryGetInvite(request.Token, out var email, out var profileUserId))
+        if (!Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.Commands.InviteTokenManager.TryGetInvite(request.Token, out var email, out var profileUserId, out var expirationDays))
         {
             PluginLog.Warn($"[PublicAPI] AcceptInvite abgelehnt: Token '{request.Token}' ist ungültig oder abgelaufen.");
             return BadRequest(new { message = "Ungültiger oder abgelaufener Einladungslink." });
@@ -135,7 +135,9 @@ public class RiNnoFinPublicController : ControllerBase
                     if (existingLink != null)
                     {
                         existingLink.EmailAddress = email;
-                        existingLink.SubscribedToNewsletter = request.SubscribeNewsletter;
+                        existingLink.SubscribeTelegramNewsletter = request.SubscribeNewsletter;
+                        existingLink.SubscribeEmailNewsletter = request.SubscribeNewsletter;
+                        existingLink.ExpirationDate = expirationDays.HasValue ? DateTime.UtcNow.AddDays(expirationDays.Value) : null;
                     }
                     else
                     {
@@ -144,7 +146,9 @@ public class RiNnoFinPublicController : ControllerBase
                             JellyfinUserId = user.Id,
                             JellyfinUsername = user.Username,
                             EmailAddress = email,
-                            SubscribedToNewsletter = request.SubscribeNewsletter
+                            SubscribeTelegramNewsletter = request.SubscribeNewsletter,
+                            SubscribeEmailNewsletter = request.SubscribeNewsletter,
+                            ExpirationDate = expirationDays.HasValue ? DateTime.UtcNow.AddDays(expirationDays.Value) : null
                         });
                     }
                     RiNnoFinPlugin.Instance?.UpdateConfiguration(config);
@@ -172,7 +176,8 @@ public class RiNnoFinPublicController : ControllerBase
                 try 
                 {
                     PluginLog.Info($"[PublicAPI] Sende Willkommens-E-Mail an '{email}'...");
-                    await emailService.SendEmailAsync(config, email, "Willkommen bei RiNnoFin Media! 🍿", htmlBody);
+                    var subject = !string.IsNullOrWhiteSpace(config.EmailSubjectWelcome) ? config.EmailSubjectWelcome : "Willkommen bei RiNnoFin Media! 🍿";
+                    await emailService.SendEmailAsync(config, email, subject, htmlBody);
                     PluginLog.Info("[PublicAPI] Willkommens-E-Mail erfolgreich versendet.");
                 } 
                 catch (Exception emailEx) 
@@ -207,10 +212,10 @@ public class RiNnoFinPublicController : ControllerBase
     {
         var emailService = new EmailService(_logger);
 
-        PluginLog.Info($"[PublicAPI] RequestPasswordReset aufgerufen für E-Mail: '{request.Email}'");
-        if (string.IsNullOrWhiteSpace(request.Email))
+        PluginLog.Info($"[PublicAPI] RequestPasswordReset aufgerufen für Username: '{request.Username}', E-Mail: '{request.Email}'");
+        if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Email))
         {
-            return BadRequest(new { message = "E-Mail darf nicht leer sein." });
+            return BadRequest(new { message = "Benutzername und E-Mail dürfen nicht leer sein." });
         }
 
         var config = RiNnoFinPlugin.Instance?.Configuration;
@@ -219,10 +224,13 @@ public class RiNnoFinPublicController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = "E-Mail System ist deaktiviert." });
         }
 
-        var userLink = config.TelegramUserLinks?.FirstOrDefault(l => string.Equals(l.EmailAddress, request.Email, StringComparison.OrdinalIgnoreCase));
+        var userLink = config.TelegramUserLinks?.FirstOrDefault(l => 
+            string.Equals(l.EmailAddress, request.Email, StringComparison.OrdinalIgnoreCase) && 
+            string.Equals(l.JellyfinUsername, request.Username, StringComparison.OrdinalIgnoreCase));
+
         if (userLink == null || userLink.JellyfinUserId == Guid.Empty)
         {
-            return Ok(); // Aus Sicherheitsgründen immer OK
+            return Ok(); // Aus Sicherheitsgründen immer OK, um User-Enumeration zu verhindern
         }
 
         try
@@ -251,7 +259,8 @@ public class RiNnoFinPublicController : ControllerBase
                     </div>
                 </div>";
 
-            await emailService.SendEmailAsync(config, userLink.EmailAddress, "Passwort zurücksetzen - RiNnoFin Media", htmlBody);
+            var subject = !string.IsNullOrWhiteSpace(config.EmailSubjectPasswordReset) ? config.EmailSubjectPasswordReset : "Passwort zurücksetzen - RiNnoFin Media";
+            await emailService.SendEmailAsync(config, userLink.EmailAddress, subject, htmlBody);
             return Ok();
         }
         catch (Exception ex)
@@ -330,7 +339,8 @@ public class RiNnoFinPublicController : ControllerBase
                                 <p>Falls du dies nicht selbst getan hast, kontaktiere bitte umgehend deinen Administrator!</p>
                             </div>
                         </div>";
-                    await emailService.SendEmailAsync(config, userLink.EmailAddress, "Passwort erfolgreich geändert", htmlBody);
+                    var subject = !string.IsNullOrWhiteSpace(config.EmailSubjectPasswordChanged) ? config.EmailSubjectPasswordChanged : "Passwort erfolgreich geändert";
+                    await emailService.SendEmailAsync(config, userLink.EmailAddress, subject, htmlBody);
                 }
             }
 

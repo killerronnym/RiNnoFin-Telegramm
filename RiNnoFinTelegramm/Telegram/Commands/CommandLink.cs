@@ -37,7 +37,7 @@ internal class CommandLink : ICommandBase
         {
             await botClient.SendMessage(
                 message.Chat.Id,
-                "Verwendung: `/link <rinnofin_gruppen_name>`",
+                "⚠️ *Verwendung:* `/link <Gruppenname>`",
                 parseMode: ParseMode.Markdown,
                 cancellationToken: cancellationToken);
             return;
@@ -49,7 +49,8 @@ internal class CommandLink : ICommandBase
         {
             await botClient.SendMessage(
                 message.Chat.Id,
-                $"❌ RiNnoFin-Gruppe '{groupName}' wurde nicht gefunden.",
+                $"❌ *Fehler:* Die RiNnoFin-Gruppe `{groupName}` wurde nicht gefunden.",
+                parseMode: ParseMode.Markdown,
                 cancellationToken: cancellationToken);
             return;
         }
@@ -65,7 +66,8 @@ internal class CommandLink : ICommandBase
 
         await botClient.SendMessage(
             message.Chat.Id,
-            $"✅ Diese Telegram-Gruppe wurde erfolgreich mit der RiNnoFin-Gruppe '{groupName}' verknüpft.",
+            $"✅ *Verknüpfung erfolgreich!*\n\nDiese Telegram-Gruppe ist nun mit der RiNnoFin-Gruppe `{groupName}` verbunden.",
+            parseMode: ParseMode.Markdown,
             cancellationToken: cancellationToken);
     }
 }

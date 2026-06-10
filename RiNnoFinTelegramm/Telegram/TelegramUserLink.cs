@@ -8,9 +8,17 @@ public class TelegramUserLink
     
     public string JellyfinUsername { get; set; } = string.Empty;
     
-    public bool SubscribedToNewsletter { get; set; } = true;
+    public bool SubscribeEmailNewsletter { get; set; } = true;
+    
+    public bool SubscribeTelegramNewsletter { get; set; } = true;
     
     public System.Guid JellyfinUserId { get; set; }
     
     public string EmailAddress { get; set; } = string.Empty;
+    
+    public System.DateTime? ExpirationDate { get; set; }
+    
+    public bool ExpirationNotified { get; set; } = false;
+    
+    public System.Collections.Generic.List<string> AuthorizedDevices { get; set; } = new();
 }

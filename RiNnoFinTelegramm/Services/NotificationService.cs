@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Jellyfin.Plugin.RiNnoFinTelegramm.Classes;
 using Jellyfin.Plugin.RiNnoFinTelegramm.Telegram;
 using MediaBrowser.Controller.Entities;
@@ -192,10 +193,14 @@ public class NotificationService : IDisposable
             .ToArray();
 
         var notifyUsers = config.TelegramUserLinks
-            .Where(u => u.SubscribedToNewsletter)
+            .Where(u => u.SubscribeTelegramNewsletter)
             .ToArray();
 
-        if (notifyGroups.Length == 0 && notifyUsers.Length == 0) return;
+        var emailUsers = config.TelegramUserLinks
+            .Where(u => u.SubscribeEmailNewsletter && !string.IsNullOrWhiteSpace(u.EmailAddress))
+            .ToArray();
+
+        if (notifyGroups.Length == 0 && notifyUsers.Length == 0 && emailUsers.Length == 0) return;
 
         var firstEp = episodes[0];
         var seriesName = firstEp.SeriesName ?? firstEp.Name;
@@ -299,6 +304,74 @@ public class NotificationService : IDisposable
 
         foreach (var user in notifyUsers)
             SendToChat(user.TelegramUserId, text, imagePath, null);
+
+        // --- EMAIL SENDING ---
+        if (config.EnableEmail && emailUsers.Length > 0)
+        {
+            var emailService = new EmailService(_logger);
+            var contentBuilder = new StringBuilder();
+            
+            if (episodes.Count == 1 && !isNewSeries)
+            {
+                var ep = episodes[0];
+                var code = $"S{ep.ParentIndexNumber ?? 0:00}E{ep.IndexNumber ?? 0:00}";
+                contentBuilder.AppendLine($"<p>📺 <strong>Neue Episode:</strong> {seriesName} - {code} - {ep.Name}</p>");
+                if (!string.IsNullOrEmpty(libraryName))
+                    contentBuilder.AppendLine($"<p>Ordner: {libraryName}</p>");
+                if (!string.IsNullOrEmpty(ep.Overview))
+                    contentBuilder.AppendLine($"<p><em>{ep.Overview}</em></p>");
+            }
+            else
+            {
+                string header = isNewSeries ? "Neue Serie" : "Neue Episoden";
+                contentBuilder.AppendLine($"<p>📺 <strong>{header}:</strong> {seriesName}{yearStr}</p>");
+                if (!string.IsNullOrEmpty(libraryName))
+                    contentBuilder.AppendLine($"<p>Ordner: {libraryName}</p>");
+
+                var bySeason = episodes.GroupBy(ep => ep.ParentIndexNumber ?? 0).OrderBy(g => g.Key);
+                contentBuilder.AppendLine("<ul>");
+                foreach (var season in bySeason)
+                {
+                    var eps = season.OrderBy(ep => ep.IndexNumber ?? 0).ToList();
+                    var firstNum = eps.First().IndexNumber ?? 1;
+                    var lastNum  = eps.Last().IndexNumber  ?? firstNum;
+                    string line = firstNum == lastNum
+                        ? $"Staffel {season.Key} · Episode {firstNum}"
+                        : $"Staffel {season.Key} · Episode {firstNum} bis {lastNum} ({eps.Count} Episoden)";
+                    contentBuilder.AppendLine($"<li>{line}</li>");
+                }
+                contentBuilder.AppendLine("</ul>");
+
+                if (seriesItem != null && !string.IsNullOrEmpty(seriesItem.Overview))
+                    contentBuilder.AppendLine($"<p><em>{seriesItem.Overview}</em></p>");
+            }
+
+            var emailTemplate = config.EmailTemplateNewsletter ?? string.Empty;
+            
+            _ = Task.Run(async () =>
+            {
+                foreach (var user in emailUsers)
+                {
+                    try
+                    {
+                        var body = emailTemplate
+                            .Replace("{username}", user.JellyfinUsername ?? "Benutzer")
+                            .Replace("{content}", contentBuilder.ToString())
+                            .Replace("{serverUrl}", seriesUrl);
+
+                        await emailService.SendEmailAsync(
+                            config,
+                            user.EmailAddress!,
+                            config.EmailSubjectNewsletter,
+                            body);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Fehler beim Senden der Newsletter-E-Mail an {Email}", user.EmailAddress);
+                    }
+                }
+            });
+        }
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -361,10 +434,14 @@ public class NotificationService : IDisposable
             .ToArray();
 
         var notifyUsers = config.TelegramUserLinks
-            .Where(u => u.SubscribedToNewsletter)
+            .Where(u => u.SubscribeTelegramNewsletter)
             .ToArray();
 
-        if (notifyGroups.Length == 0 && notifyUsers.Length == 0) return;
+        var emailUsers = config.TelegramUserLinks
+            .Where(u => u.SubscribeEmailNewsletter && !string.IsNullOrWhiteSpace(u.EmailAddress))
+            .ToArray();
+
+        if (notifyGroups.Length == 0 && notifyUsers.Length == 0 && emailUsers.Length == 0) return;
 
         _logger.LogInformation("Sende Benachrichtigung für '{ItemName}'.", item.Name);
 
@@ -448,6 +525,45 @@ public class NotificationService : IDisposable
 
         foreach (var user in notifyUsers)
             SendToChat(user.TelegramUserId, text, imagePath, null);
+
+        // --- EMAIL SENDING ---
+        if (config.EnableEmail && emailUsers.Length > 0)
+        {
+            var emailService = new EmailService(_logger);
+            var contentBuilder = new StringBuilder();
+            var yearText = item.ProductionYear.HasValue ? $" ({item.ProductionYear.Value})" : string.Empty;
+            contentBuilder.AppendLine($"<p><strong>{item.Name}</strong>{yearText}</p>");
+            if (!string.IsNullOrEmpty(libraryName))
+                contentBuilder.AppendLine($"<p>Ordner: {libraryName}</p>");
+            if (!string.IsNullOrEmpty(item.Overview))
+                contentBuilder.AppendLine($"<p><em>{item.Overview}</em></p>");
+
+            var emailTemplate = config.EmailTemplateNewsletter ?? string.Empty;
+            
+            _ = Task.Run(async () =>
+            {
+                foreach (var user in emailUsers)
+                {
+                    try
+                    {
+                        var body = emailTemplate
+                            .Replace("{username}", user.JellyfinUsername ?? "Benutzer")
+                            .Replace("{content}", contentBuilder.ToString())
+                            .Replace("{serverUrl}", jellyfinUrl);
+
+                        await emailService.SendEmailAsync(
+                            config,
+                            user.EmailAddress!,
+                            config.EmailSubjectNewsletter,
+                            body);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Fehler beim Senden der Newsletter-E-Mail an {Email}", user.EmailAddress);
+                    }
+                }
+            });
+        }
     }
 
     private void SendToChat(long chatId, string messageText, string? imagePath, int? messageThreadId)

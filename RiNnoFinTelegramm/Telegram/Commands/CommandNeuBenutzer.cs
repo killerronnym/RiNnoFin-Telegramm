@@ -124,7 +124,8 @@ internal class CommandNeuBenutzerStep : ICommandBase
                     </div>
                 </div>";
 
-            await emailService.SendEmailAsync(config, email, "Deine Einladung zu RiNnoFin Media 🍿", htmlBody);
+            var subject = !string.IsNullOrWhiteSpace(config.EmailSubjectInvite) ? config.EmailSubjectInvite : "Deine Einladung zu RiNnoFin Media 🍿";
+            await emailService.SendEmailAsync(config, email, subject, htmlBody);
 
             await botClient.SendMessage(
                 message.Chat.Id,
@@ -145,7 +146,7 @@ internal class CommandNeuBenutzerStep : ICommandBase
 
 public static class InviteTokenManager
 {
-    public static void AddInvite(string token, string email, string? profileUserId = null)
+    public static void AddInvite(string token, string email, string? profileUserId = null, int? expirationDays = null)
     {
         var config = RiNnoFinPlugin.Instance?.Configuration;
         if (config != null)
@@ -155,17 +156,19 @@ public static class InviteTokenManager
             {
                 Token = token,
                 Email = email,
-                ProfileUserId = profileUserId
+                ProfileUserId = profileUserId,
+                ExpirationDays = expirationDays
             });
             RiNnoFinPlugin.Instance?.SaveConfiguration(config);
             PluginLog.Info($"[InviteTokenManager] Einladung hinzugefügt und persistiert: {email} (Token: {token})");
         }
     }
 
-    public static bool TryGetInvite(string token, out string email, out Guid? profileUserId)
+    public static bool TryGetInvite(string token, out string email, out Guid? profileUserId, out int? expirationDays)
     {
         email = string.Empty;
         profileUserId = null;
+        expirationDays = null;
         var config = RiNnoFinPlugin.Instance?.Configuration;
         if (config == null || config.PersistedInvites == null) return false;
 
@@ -173,6 +176,7 @@ public static class InviteTokenManager
         if (invite == null) return false;
 
         email = invite.Email;
+        expirationDays = invite.ExpirationDays;
         if (Guid.TryParse(invite.ProfileUserId, out var parsedGuid))
         {
             profileUserId = parsedGuid;
@@ -193,9 +197,9 @@ public static class InviteTokenManager
         }
     }
 
-    public static bool TryGetAndRemoveInvite(string token, out string email, out Guid? profileUserId)
+    public static bool TryGetAndRemoveInvite(string token, out string email, out Guid? profileUserId, out int? expirationDays)
     {
-        if (TryGetInvite(token, out email, out profileUserId))
+        if (TryGetInvite(token, out email, out profileUserId, out expirationDays))
         {
             RemoveInvite(token);
             return true;

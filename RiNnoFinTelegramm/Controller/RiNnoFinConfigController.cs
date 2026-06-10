@@ -29,7 +29,6 @@ public class RiNnoFinConfigController : ControllerBase
     public RiNnoFinConfigController(ILogger<RiNnoFinConfigController> _loggerVal)
     {
         _logger = _loggerVal ?? throw new ArgumentNullException(nameof(_loggerVal));
-        PluginLog.Info("RiNnoFinConfigController constructor called.");
     }
 
     private async Task<bool> IsUserAdmin()
@@ -372,7 +371,8 @@ public class RiNnoFinConfigController : ControllerBase
                             TelegramUsername = link?.TelegramUsername ?? "",
                             IsDisabled = uDto?.Policy?.IsDisabled ?? false,
                             IsAdmin = uDto?.Policy?.IsAdministrator ?? false,
-                            LastActivityDate = uLastActivityDate
+                            LastActivityDate = uLastActivityDate,
+                            ExpirationDate = link?.ExpirationDate
                         });
                     }
                     catch (Exception innerEx)
@@ -388,7 +388,8 @@ public class RiNnoFinConfigController : ControllerBase
                                 TelegramUsername = "",
                                 IsDisabled = false,
                                 IsAdmin = false,
-                                LastActivityDate = null
+                                LastActivityDate = null,
+                                ExpirationDate = null
                             });
                         }
                         catch
@@ -484,7 +485,8 @@ public class RiNnoFinConfigController : ControllerBase
                         </div>";
 
                     var emailService = new Jellyfin.Plugin.RiNnoFinTelegramm.Services.EmailService(_logger);
-                    await emailService.SendEmailAsync(config, request.Email, "Dein Account wurde erstellt", htmlBody);
+                    var subject = !string.IsNullOrWhiteSpace(config.EmailSubjectWelcome) ? config.EmailSubjectWelcome : "Dein Account wurde erstellt";
+                    await emailService.SendEmailAsync(config, request.Email, subject, htmlBody);
 
                     return Ok(new { message = $"Benutzer '{request.Username}' wurde erstellt und eine E-Mail zur Passwortvergabe gesendet." });
                 }
@@ -497,7 +499,7 @@ public class RiNnoFinConfigController : ControllerBase
             else
             {
                 string token = Guid.NewGuid().ToString("N");
-                Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.Commands.InviteTokenManager.AddInvite(token, request.Email, request.ProfileUserId);
+                Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.Commands.InviteTokenManager.AddInvite(token, request.Email, request.ProfileUserId, request.ExpirationDays);
 
                 string inviteUrl = $"{config.LoginBaseUrl?.TrimEnd('/')}/sso/Telegram/invite?token={token}";
                 string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplateInvite)
@@ -514,7 +516,8 @@ public class RiNnoFinConfigController : ControllerBase
                     </div>";
 
                 var emailService = new Jellyfin.Plugin.RiNnoFinTelegramm.Services.EmailService(_logger);
-                await emailService.SendEmailAsync(config, request.Email, "Einladung zum Media-Server", htmlBody);
+                var subject = !string.IsNullOrWhiteSpace(config.EmailSubjectInvite) ? config.EmailSubjectInvite : "Einladung zum Media-Server";
+                await emailService.SendEmailAsync(config, request.Email, subject, htmlBody);
 
                 return Ok(new { message = "Einladung erfolgreich versendet." });
             }
@@ -572,7 +575,10 @@ public class RiNnoFinConfigController : ControllerBase
                                 </div>
                             </div>";
                             
-                            try { await emailService.SendEmailAsync(config, userLink.EmailAddress, "Account deaktiviert - RiNnoFin Media", htmlBody); } catch { /* Ignore */ }
+                            try { 
+                                var subject = !string.IsNullOrWhiteSpace(config.EmailSubjectAccountDisabled) ? config.EmailSubjectAccountDisabled : "Account deaktiviert - RiNnoFin Media";
+                                await emailService.SendEmailAsync(config, userLink.EmailAddress, subject, htmlBody); 
+                            } catch { /* Ignore */ }
                         }
                     }
                 }
@@ -610,7 +616,10 @@ public class RiNnoFinConfigController : ControllerBase
                                 </div>
                             </div>";
                             
-                            try { await emailService.SendEmailAsync(config, userLink.EmailAddress, "Account gelöscht - RiNnoFin Media", htmlBody); } catch { /* Ignore */ }
+                            try { 
+                                var subject = "Account gelöscht - RiNnoFin Media"; // Not parameterized yet based on UI, but safe fallback
+                                await emailService.SendEmailAsync(config, userLink.EmailAddress, subject, htmlBody); 
+                            } catch { /* Ignore */ }
                         }
                     }
 
@@ -618,6 +627,123 @@ public class RiNnoFinConfigController : ControllerBase
                 }
             }
             return Ok(new { message = "Benutzer erfolgreich gelöscht." });
+        }
+
+        [HttpPost("UpdateUserLink")]
+        public async Task<ActionResult> UpdateUserLink([FromBody] UpdateUserLinkRequest request)
+        {
+            if (!await IsUserAdmin().ConfigureAwait(false)) return StatusCode(StatusCodes.Status403Forbidden, new { message = "Admin-Rechte erforderlich." });
+            
+            var config = RiNnoFinPlugin.Instance?.Configuration;
+            if (config == null) return BadRequest("Konfiguration nicht gefunden.");
+
+            if (config.TelegramUserLinks == null) config.TelegramUserLinks = new();
+
+            var userLink = config.TelegramUserLinks.FirstOrDefault(l => l.JellyfinUserId == request.UserId);
+            if (userLink == null)
+            {
+                userLink = new Telegram.TelegramUserLink { JellyfinUserId = request.UserId };
+                config.TelegramUserLinks.Add(userLink);
+            }
+
+            userLink.EmailAddress = request.Email ?? "";
+            userLink.TelegramUsername = request.TelegramUsername ?? "";
+            userLink.ExpirationDate = request.ExpirationDate;
+            
+            // Falls das Ablaufdatum in der Zukunft liegt, die Benachrichtigung zurücksetzen
+            if (userLink.ExpirationDate.HasValue && userLink.ExpirationDate.Value > DateTime.UtcNow)
+            {
+                userLink.ExpirationNotified = false;
+            }
+
+            RiNnoFinPlugin.Instance.UpdateConfiguration(config);
+
+            return Ok(new { message = "Benutzer erfolgreich aktualisiert." });
+        }
+
+        [HttpPost("SendAnnouncement")]
+        public async Task<ActionResult> SendAnnouncement([FromBody] SendAnnouncementRequest request)
+        {
+            if (!await IsUserAdmin().ConfigureAwait(false)) return StatusCode(StatusCodes.Status403Forbidden, new { message = "Admin-Rechte erforderlich." });
+            var userManager = RiNnoFinPlugin.UserManager;
+            var config = RiNnoFinPlugin.Instance?.Configuration;
+            var emailService = new EmailService(_logger);
+            
+            var botWrapper = HttpContext.RequestServices.GetService(typeof(TelegramBotClientWrapper)) as TelegramBotClientWrapper;
+
+            int sentCount = 0;
+
+            foreach (var id in request.UserIds)
+            {
+                var user = userManager.GetUserById(id);
+                if (user != null && config != null)
+                {
+                    var userLink = config.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == id);
+                    if (userLink != null)
+                    {
+                        var personalMessage = request.Message
+                            .Replace("{username}", user.Username)
+                            .Replace("{email}", userLink.EmailAddress ?? "");
+
+                        bool sentToUser = false;
+
+                        // Sende Email
+                        if (!string.IsNullOrEmpty(userLink.EmailAddress))
+                        {
+                            try {
+                                await emailService.SendEmailAsync(config, userLink.EmailAddress, request.Subject ?? "Ankündigung", personalMessage);
+                                sentToUser = true;
+                            } catch { /* Ignore */ }
+                        }
+
+                        // Sende Telegram
+                        if (userLink.TelegramUserId != 0 && botWrapper?.Client != null)
+                        {
+                            try {
+                                await botWrapper.Client.SendMessage(
+                                    chatId: userLink.TelegramUserId,
+                                    text: personalMessage,
+                                    parseMode: global::Telegram.Bot.Types.Enums.ParseMode.Markdown);
+                                sentToUser = true;
+                            } catch { /* Ignore */ }
+                        }
+
+                        if (sentToUser) sentCount++;
+                    }
+                }
+            }
+
+            return Ok(new { message = $"Ankündigung erfolgreich an {sentCount} Benutzer gesendet." });
+        }
+
+        [HttpPost("SendGroupAnnouncement")]
+        public async Task<ActionResult> SendGroupAnnouncement([FromQuery] string groupName, [FromBody] SendGroupAnnouncementRequest request)
+        {
+            if (!await IsUserAdmin().ConfigureAwait(false)) return StatusCode(StatusCodes.Status403Forbidden, new { message = "Admin-Rechte erforderlich." });
+            
+            var config = RiNnoFinPlugin.Instance?.Configuration;
+            var botWrapper = HttpContext.RequestServices.GetService(typeof(TelegramBotClientWrapper)) as TelegramBotClientWrapper;
+
+            if (config == null || botWrapper?.Client == null) return BadRequest("Konfiguration oder Telegram-Bot nicht bereit.");
+
+            var group = config.TelegramGroups?.FirstOrDefault(g => g.GroupName == groupName);
+            if (group == null || group.TelegramGroupChat == null || group.TelegramGroupChat.TelegramChatId == 0) 
+                return BadRequest("Gruppe nicht gefunden oder nicht mit einem Telegram Chat verknüpft.");
+
+            try
+            {
+                await botWrapper.Client.SendMessage(
+                    chatId: group.TelegramGroupChat.TelegramChatId,
+                    text: request.Message,
+                    parseMode: global::Telegram.Bot.Types.Enums.ParseMode.Markdown,
+                    messageThreadId: group.TelegramGroupChat.ContentTopicId);
+                return Ok(new { message = "Ankündigung erfolgreich an Gruppe gesendet." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Fehler beim Senden der Ankündigung an Gruppe.");
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Fehler beim Senden an Telegram: {ex.Message}");
+            }
         }
 
         [HttpPost("AdminSendPasswordReset")]
@@ -656,7 +782,8 @@ public class RiNnoFinConfigController : ControllerBase
                         </div>
                     </div>";
 
-                await emailService.SendEmailAsync(config, userLink.EmailAddress, "Passwort zurücksetzen", htmlBody);
+                var subject = !string.IsNullOrWhiteSpace(config.EmailSubjectPasswordReset) ? config.EmailSubjectPasswordReset : "Passwort zurücksetzen";
+                await emailService.SendEmailAsync(config, userLink.EmailAddress, subject, htmlBody);
                 sentCount++;
             }
 
@@ -767,6 +894,7 @@ public class AcceptInviteRequest
 
 public class RequestPasswordResetRequest
 {
+    public string Username { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
 }
 
@@ -783,6 +911,7 @@ public class AdminCreateInviteRequest
     public string Email { get; set; } = string.Empty;
     public string ProfileUserId { get; set; } = string.Empty;
     public string? Username { get; set; }
+    public int? ExpirationDays { get; set; }
 }
 
 public class AdminUpdateUserRequest
@@ -798,6 +927,26 @@ public class AdminActionWithReasonRequest
     public string Reason { get; set; } = string.Empty;
 }
 
+public class SendAnnouncementRequest
+{
+    public List<Guid> UserIds { get; set; } = new();
+    public string Subject { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
+}
+
+public class SendGroupAnnouncementRequest
+{
+    public string Message { get; set; } = string.Empty;
+}
+
+public class UpdateUserLinkRequest
+{
+    public Guid UserId { get; set; }
+    public string Email { get; set; } = string.Empty;
+    public string TelegramUsername { get; set; } = string.Empty;
+    public DateTime? ExpirationDate { get; set; }
+}
+
 public class UserDto
 {
     public Guid Id { get; set; }
@@ -807,6 +956,7 @@ public class UserDto
     public bool IsDisabled { get; set; }
     public bool IsAdmin { get; set; }
     public DateTime? LastActivityDate { get; set; }
+    public DateTime? ExpirationDate { get; set; }
 }
 
 public static class ResetTokenManager

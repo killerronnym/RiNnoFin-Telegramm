@@ -46,17 +46,25 @@ internal class CommandNewsletter : ICommandBase
             return;
         }
 
-        var status = link.SubscribedToNewsletter ? "Abonniert 🔔" : "Deaktiviert 🔕";
+        var emailStatus = link.SubscribeEmailNewsletter ? "✅ Abonniert" : "❌ Deaktiviert";
+        var tgStatus = link.SubscribeTelegramNewsletter ? "✅ Abonniert" : "❌ Deaktiviert";
+        
         var text = $"📰 *RiNnoFin Newsletter-Einstellungen*\n\n" +
-                   $"Aktueller Status: *{status}*\n\n" +
-                   $"Du kannst den Newsletter abonnieren, um Benachrichtigungen über neu hinzugefügte Filme, Serien und Musik zu erhalten.";
+                   $"Hier kannst du steuern, worüber du bei neuen Filmen, Serien oder beim wöchentlichen Rückblick informiert werden möchtest.\n\n" +
+                   $"📧 *E-Mail Newsletter:* {emailStatus}\n" +
+                   $"💬 *Telegram Nachrichten:* {tgStatus}";
 
         var keyboard = new InlineKeyboardMarkup(new[]
         {
             new[]
             {
-                InlineKeyboardButton.WithCallbackData("🔔 Abonnieren", "newsletter_subscribe"),
-                InlineKeyboardButton.WithCallbackData("🔕 Deaktivieren", "newsletter_unsubscribe")
+                InlineKeyboardButton.WithCallbackData("📧 E-Mail Abonnieren", "news_email_sub"),
+                InlineKeyboardButton.WithCallbackData("🔕 E-Mail Abbestellen", "news_email_unsub")
+            },
+            new[]
+            {
+                InlineKeyboardButton.WithCallbackData("💬 Telegram Abonnieren", "news_tg_sub"),
+                InlineKeyboardButton.WithCallbackData("🔕 Telegram Abbestellen", "news_tg_unsub")
             }
         });
 

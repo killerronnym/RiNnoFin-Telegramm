@@ -19,26 +19,33 @@ internal class CommandHelp : ICommandBase
         if (botClient == null) return;
 
         var sb = new StringBuilder();
-        sb.AppendLine("📖 *RiNnoFin Telegramm - Hilfe*");
+        sb.AppendLine("📖 *RiNnoFin Media - Hilfe-Zentrum*");
         sb.AppendLine();
-        sb.AppendLine("Hier ist eine Übersicht aller verfügbaren Befehle:");
+        sb.AppendLine("Hier ist eine Übersicht deiner Möglichkeiten:");
         sb.AppendLine();
-        sb.AppendLine("💬 *Allgemeine Befehle:*");
-        sb.AppendLine("• `/start` - Startet den Bot und zeigt Begrüßungsnachricht");
-        sb.AppendLine("• `/help` - Zeigt diese Hilfe an");
-        sb.AppendLine("• `/ping` - Prüft, ob der Bot aktiv ist");
-        sb.AppendLine("• `/newsletter` - Zeigt deine Newsletter-Einstellungen");
-        sb.AppendLine("• `/abonnieren` - Abonniert neue Medien-Benachrichtigungen");
-        sb.AppendLine("• `/deabonnieren` - Deaktiviert Benachrichtigungen");
-        sb.AppendLine("• `/passwort <neues_passwort>` - Ändert dein Jellyfin-Passwort");
-        sb.AppendLine("• `/status` - Zeigt Statistiken über deine Bibliotheken");
+        sb.AppendLine("📱 *Dein Account:*");
+        sb.AppendLine("🔹 `/start` - Startet den Bot und zeigt das Hauptmenü");
+        sb.AppendLine("🔹 `/ping` - Verbindungstest und Account-Status");
+        sb.AppendLine("🔹 `/passwort <neu>` - Ändert dein persönliches Passwort");
+        sb.AppendLine("🔹 `/wunsch <Titel>` - Sende einen Film-/Serienwunsch an die Admins");
+        sb.AppendLine("🔹 `/newsletter` - Übersicht deiner Benachrichtigungen");
+        sb.AppendLine("🔹 `/abonnieren` - Newsletter für neue Inhalte aktivieren");
+        sb.AppendLine("🔹 `/deabonnieren` - Newsletter deaktivieren");
+        sb.AppendLine("🔹 `/quiz` - Ein kleines Film- & Serien-Trivia spielen");
         sb.AppendLine();
-        sb.AppendLine("👥 *Gruppen-Befehle (nur Admins):*");
-        sb.AppendLine("• `/link <rinnofin_gruppe>` - Verknüpft die Gruppe");
-        sb.AppendLine("• `/unlink` - Hebt Gruppenverbindung auf");
-        sb.AppendLine("• `/userlist` - Listet verknüpfte Gruppen-Mitglieder auf");
-        sb.AppendLine("• `/quiz` - Sendet ein Medien-Quiz in der Gruppe");
-        sb.AppendLine("• `/NeuerBenutzer` - Erstellt eine Einladung (benötigt JFA-Go)");
+        
+        if (isAdmin)
+        {
+            sb.AppendLine("🛠️ *Admin-Funktionen:*");
+            sb.AppendLine("🔸 `/status` - Server-Auslastung & Statistik anzeigen");
+            sb.AppendLine("🔸 `/userlist` - Mitgliederliste dieser Gruppe anzeigen");
+            sb.AppendLine("🔸 `/link <gruppe>` - Diesen Chat mit Jellyfin verknüpfen");
+            sb.AppendLine("🔸 `/unlink` - Verknüpfung der Gruppe aufheben");
+            sb.AppendLine("🔸 `/NeuerBenutzer` - Eine neue E-Mail-Einladung erstellen");
+            sb.AppendLine();
+        }
+        
+        sb.AppendLine("💡 _Tipp: Bei Problemen wende dich an einen Administrator._");
 
         await botClient.SendMessage(
             message.Chat.Id,

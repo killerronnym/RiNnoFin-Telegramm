@@ -17,5 +17,6 @@ public class RiNnoFinServiceRegistrator : IPluginServiceRegistrator
         serviceCollection.AddSingleton<EmailService>();
 
         serviceCollection.AddHostedService<TelegramBackgroundService>();
+        serviceCollection.AddHostedService<TwoFactorAuthService>();
     }
 }

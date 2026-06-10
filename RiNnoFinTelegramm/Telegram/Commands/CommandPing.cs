@@ -18,12 +18,15 @@ internal class CommandPing : ICommandBase
         if (botClient == null) return;
 
         var username = message.From?.Username ?? "Unbekannt";
-        var status = isAdmin ? "Administrator" : "Benutzer";
-        var reply = $"Pong! 🏓\nIch bin online und mit Jellyfin verbunden.\n\nDein Telegram-Benutzername: @{username}\nDein Status: {status}";
+        var status = isAdmin ? "👑 Administrator" : "👤 Benutzer";
+        var reply = $"🏓 *Pong!*\n\nDie Verbindung zu Jellyfin steht und der Bot ist einsatzbereit.\n\n" +
+                    $"📱 *Dein Telegram-Name:* @{username}\n" +
+                    $"🔑 *Dein Status:* {status}";
 
         await botClient.SendMessage(
             message.Chat.Id,
             reply,
+            parseMode: global::Telegram.Bot.Types.Enums.ParseMode.Markdown,
             cancellationToken: cancellationToken);
     }
 }

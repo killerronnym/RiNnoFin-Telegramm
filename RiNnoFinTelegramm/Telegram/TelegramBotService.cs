@@ -9,6 +9,7 @@ using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 using Microsoft.Extensions.DependencyInjection;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Cryptography;
@@ -508,9 +509,9 @@ internal sealed class TelegramBotService : ITelegramBotService
             }
 
             // Check if it is a newsletter setting update
-            if (data.StartsWith("newsletter_"))
+            if (data.StartsWith("news_"))
             {
-                var action = data.Replace("newsletter_", "");
+                var action = data;
                 var userId = callbackQuery.From.Id;
                 
                 var link = Config.TelegramUserLinks?.FirstOrDefault(l => l.TelegramUserId == userId);
@@ -520,34 +521,61 @@ internal sealed class TelegramBotService : ITelegramBotService
                     return;
                 }
 
-                if (action == "subscribe")
+                if (action == "news_email_sub")
                 {
-                    link.SubscribedToNewsletter = true;
+                    link.SubscribeEmailNewsletter = true;
                     RiNnoFinPlugin.Instance!.SaveConfiguration(Config);
-                    await botClient.AnswerCallbackQuery(callbackQuery.Id, "Newsletter abonniert! 🔔", cancellationToken: cancellationToken);
-                    
-                    var newText = "📰 *RiNnoFin Newsletter-Einstellungen*\n\nStatus: *Abonniert* 🔔\n\nDu erhältst Benachrichtigungen bei neuen Filmen, Serien und Musik.";
-                    await botClient.EditMessageText(
-                        callbackQuery.Message!.Chat.Id,
-                        callbackQuery.Message.MessageId,
-                        newText,
-                        parseMode: ParseMode.Markdown,
-                        cancellationToken: cancellationToken);
+                    await botClient.AnswerCallbackQuery(callbackQuery.Id, "E-Mail Newsletter abonniert! 📧", cancellationToken: cancellationToken);
                 }
-                else if (action == "unsubscribe")
+                else if (action == "news_email_unsub")
                 {
-                    link.SubscribedToNewsletter = false;
+                    link.SubscribeEmailNewsletter = false;
                     RiNnoFinPlugin.Instance!.SaveConfiguration(Config);
-                    await botClient.AnswerCallbackQuery(callbackQuery.Id, "Newsletter deabonniert! 🔕", cancellationToken: cancellationToken);
-                    
-                    var newText = "📰 *RiNnoFin Newsletter-Einstellungen*\n\nStatus: *Deaktiviert* 🔕\n\nDu erhältst keine Medienbenachrichtigungen mehr.";
-                    await botClient.EditMessageText(
-                        callbackQuery.Message!.Chat.Id,
-                        callbackQuery.Message.MessageId,
-                        newText,
-                        parseMode: ParseMode.Markdown,
-                        cancellationToken: cancellationToken);
+                    await botClient.AnswerCallbackQuery(callbackQuery.Id, "E-Mail Newsletter deabonniert! 🔕", cancellationToken: cancellationToken);
                 }
+                else if (action == "news_tg_sub")
+                {
+                    link.SubscribeTelegramNewsletter = true;
+                    RiNnoFinPlugin.Instance!.SaveConfiguration(Config);
+                    await botClient.AnswerCallbackQuery(callbackQuery.Id, "Telegram Newsletter abonniert! 💬", cancellationToken: cancellationToken);
+                }
+                else if (action == "news_tg_unsub")
+                {
+                    link.SubscribeTelegramNewsletter = false;
+                    RiNnoFinPlugin.Instance!.SaveConfiguration(Config);
+                    await botClient.AnswerCallbackQuery(callbackQuery.Id, "Telegram Newsletter deabonniert! 🔕", cancellationToken: cancellationToken);
+                }
+
+                // Update message
+                var emailStatus = link.SubscribeEmailNewsletter ? "✅ Abonniert" : "❌ Deaktiviert";
+                var tgStatus = link.SubscribeTelegramNewsletter ? "✅ Abonniert" : "❌ Deaktiviert";
+                
+                var newText = $"📰 *RiNnoFin Newsletter-Einstellungen*\n\n" +
+                              $"Hier kannst du steuern, worüber du bei neuen Filmen, Serien oder beim wöchentlichen Rückblick informiert werden möchtest.\n\n" +
+                              $"📧 *E-Mail Newsletter:* {emailStatus}\n" +
+                              $"💬 *Telegram Nachrichten:* {tgStatus}";
+
+                var keyboard = new InlineKeyboardMarkup(new[]
+                {
+                    new[]
+                    {
+                        InlineKeyboardButton.WithCallbackData("📧 E-Mail Abonnieren", "news_email_sub"),
+                        InlineKeyboardButton.WithCallbackData("🔕 E-Mail Abbestellen", "news_email_unsub")
+                    },
+                    new[]
+                    {
+                        InlineKeyboardButton.WithCallbackData("💬 Telegram Abonnieren", "news_tg_sub"),
+                        InlineKeyboardButton.WithCallbackData("🔕 Telegram Abbestellen", "news_tg_unsub")
+                    }
+                });
+
+                await botClient.EditMessageText(
+                    callbackQuery.Message!.Chat.Id,
+                    callbackQuery.Message.MessageId,
+                    newText,
+                    parseMode: ParseMode.Markdown,
+                    replyMarkup: keyboard,
+                    cancellationToken: cancellationToken);
             }
             else if (data == "passwort_confirm_yes")
             {
@@ -567,6 +595,228 @@ internal sealed class TelegramBotService : ITelegramBotService
                     "Vorgang abgebrochen.",
                     cancellationToken: cancellationToken);
                 await botClient.AnswerCallbackQuery(callbackQuery.Id, cancellationToken: cancellationToken);
+            }
+            else if (data == "wishcancel")
+            {
+                await botClient.EditMessageText(
+                    callbackQuery.Message!.Chat.Id,
+                    callbackQuery.Message.MessageId,
+                    "Wunsch-Anfrage wurde abgebrochen.",
+                    cancellationToken: cancellationToken);
+                await botClient.AnswerCallbackQuery(callbackQuery.Id, cancellationToken: cancellationToken);
+            }
+            else if (data.StartsWith("wishconfirm_"))
+            {
+                var parts = data.Split('_');
+                if (parts.Length == 4)
+                {
+                    var senderId = long.Parse(parts[1]);
+                    var mediaType = parts[2];
+                    var tmdbId = parts[3];
+                    var wishId = Guid.NewGuid().ToString("N").Substring(0, 8);
+
+                    await botClient.EditMessageCaption(
+                        callbackQuery.Message!.Chat.Id,
+                        callbackQuery.Message.MessageId,
+                        caption: callbackQuery.Message.Caption + "\n\n⏳ _Wunsch wurde an die Administratoren gesendet..._",
+                        parseMode: ParseMode.Markdown,
+                        replyMarkup: null,
+                        cancellationToken: cancellationToken);
+
+                    await botClient.AnswerCallbackQuery(callbackQuery.Id, "Wunsch gesendet!", cancellationToken: cancellationToken);
+
+                    var admins = Config.AdminUserNames ?? new System.Collections.Generic.List<string>();
+                    var userManager = RiNnoFinPlugin.UserManager;
+                    var adminTelegramIds = new System.Collections.Generic.List<long>();
+
+                    foreach (var adminName in admins)
+                    {
+                        var user = userManager.Users.FirstOrDefault(u => u.Username.Equals(adminName, StringComparison.OrdinalIgnoreCase));
+                        if (user != null)
+                        {
+                            var adminLink = Config.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == user.Id);
+                            if (adminLink != null && adminLink.TelegramUserId != 0)
+                            {
+                                adminTelegramIds.Add(adminLink.TelegramUserId);
+                            }
+                        }
+                    }
+
+                    if (adminTelegramIds.Count > 0)
+                    {
+                        var senderUsername = callbackQuery.From.Username ?? "Unbekannt";
+                        var text = $"🍿 *Neuer Wunsch von @{senderUsername}:*\n\n{callbackQuery.Message.Caption?.Replace("\n\nSoll dieser Wunsch an die Admins gesendet werden?", "")}";
+                        var keyboard = new global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(new[]
+                        {
+                            new[]
+                            {
+                                global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton.WithCallbackData("✅ Genehmigen", $"wishapprove_{senderId}_{mediaType}_{wishId}"),
+                                global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton.WithCallbackData("❌ Ablehnen", $"wishdeny_{senderId}_{mediaType}_{wishId}")
+                            }
+                        });
+
+                        foreach (var adminId in adminTelegramIds.Distinct())
+                        {
+                            try
+                            {
+                                if (callbackQuery.Message.Photo != null && callbackQuery.Message.Photo.Length > 0)
+                                {
+                                    var photoId = callbackQuery.Message.Photo.Last().FileId;
+                                    await botClient.SendPhoto(
+                                        adminId,
+                                        global::Telegram.Bot.Types.InputFile.FromFileId(photoId),
+                                        caption: text,
+                                        parseMode: ParseMode.Markdown,
+                                        replyMarkup: keyboard,
+                                        cancellationToken: cancellationToken);
+                                }
+                                else
+                                {
+                                    await botClient.SendMessage(
+                                        adminId,
+                                        text,
+                                        parseMode: ParseMode.Markdown,
+                                        replyMarkup: keyboard,
+                                        cancellationToken: cancellationToken);
+                                }
+                            }
+                            catch { /* Ignore */ }
+                        }
+                    }
+                }
+            }
+            else if (data.StartsWith("wishapprove_") || data.StartsWith("wishdeny_"))
+            {
+                var isApprove = data.StartsWith("wishapprove_");
+                var parts = data.Split('_');
+                if (parts.Length == 4)
+                {
+                    var senderId = long.Parse(parts[1]);
+                    var textResponse = isApprove ? "✅ *Wunsch genehmigt!*" : "❌ *Wunsch abgelehnt.*";
+                    var adminUser = callbackQuery.From.Username ?? "Admin";
+
+                    var originalCaption = callbackQuery.Message?.Caption ?? callbackQuery.Message?.Text ?? "";
+                    originalCaption = originalCaption.Split("🍿 *Neuer Wunsch")[0]; // remove header if needed
+
+                    try
+                    {
+                        if (callbackQuery.Message?.Photo != null)
+                        {
+                            await botClient.EditMessageCaption(
+                                callbackQuery.Message.Chat.Id,
+                                callbackQuery.Message.MessageId,
+                                caption: callbackQuery.Message.Caption + $"\n\n👉 {textResponse} (von @{adminUser})",
+                                parseMode: ParseMode.Markdown,
+                                replyMarkup: null,
+                                cancellationToken: cancellationToken);
+                        }
+                        else
+                        {
+                            await botClient.EditMessageText(
+                                callbackQuery.Message!.Chat.Id,
+                                callbackQuery.Message.MessageId,
+                                text: callbackQuery.Message.Text + $"\n\n👉 {textResponse} (von @{adminUser})",
+                                parseMode: ParseMode.Markdown,
+                                replyMarkup: null,
+                                cancellationToken: cancellationToken);
+                        }
+                    }
+                    catch { /* Ignore if it fails to edit */ }
+
+                    await botClient.AnswerCallbackQuery(callbackQuery.Id, "Status gespeichert.", cancellationToken: cancellationToken);
+
+                    try
+                    {
+                        var userMsg = isApprove
+                            ? $"🎉 Dein Film-/Serienwunsch wurde von @{adminUser} genehmigt und wird in Kürze hinzugefügt!"
+                            : $"😔 Dein Film-/Serienwunsch wurde von @{adminUser} leider abgelehnt.";
+
+                        await botClient.SendMessage(
+                            senderId,
+                            userMsg,
+                            parseMode: ParseMode.Markdown,
+                            cancellationToken: cancellationToken);
+                    }
+                    catch { /* Ignore if user blocked bot */ }
+                }
+            }
+            else if (data.StartsWith("2fa_auth_") || data.StartsWith("2fa_block_"))
+            {
+                var isAuth = data.StartsWith("2fa_auth_");
+                var parts = data.Split('_');
+                if (parts.Length == 4)
+                {
+                    var userIdStr = parts[2];
+                    var deviceId = parts[3];
+                    
+                    if (Guid.TryParse(userIdStr, out var userId))
+                    {
+                        var config = RiNnoFinPlugin.Instance?.Configuration;
+                        if (config != null)
+                        {
+                            var link = config.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == userId);
+                            if (link != null)
+                            {
+                                if (isAuth)
+                                {
+                                    if (!link.AuthorizedDevices.Contains(deviceId))
+                                    {
+                                        link.AuthorizedDevices.Add(deviceId);
+                                        RiNnoFinPlugin.Instance?.SaveConfiguration(config);
+                                    }
+                                    
+                                    await botClient.EditMessageText(
+                                        callbackQuery.Message!.Chat.Id,
+                                        callbackQuery.Message.MessageId,
+                                        text: callbackQuery.Message.Text + "\n\n✅ *Gerät wurde erfolgreich autorisiert!*",
+                                        parseMode: ParseMode.Markdown,
+                                        replyMarkup: null,
+                                        cancellationToken: cancellationToken);
+                                    
+                                    await botClient.AnswerCallbackQuery(callbackQuery.Id, "Gerät autorisiert!", cancellationToken: cancellationToken);
+                                }
+                                else
+                                {
+                                    var sessionManager = ServiceProvider?.GetService(typeof(MediaBrowser.Controller.Session.ISessionManager)) as MediaBrowser.Controller.Session.ISessionManager;
+                                    if (sessionManager != null)
+                                    {
+                                        var session = sessionManager.Sessions.FirstOrDefault(s => s.DeviceId == deviceId && s.UserId == userId);
+                                        if (session != null)
+                                        {
+                                            try
+                                            {
+                                                sessionManager.SendPlaystateCommand(session.Id, session.Id, new MediaBrowser.Model.Session.PlaystateRequest
+                                                {
+                                                    Command = MediaBrowser.Model.Session.PlaystateCommand.Stop
+                                                }, CancellationToken.None);
+                                                
+                                                sessionManager.SendMessageCommand(session.Id, session.Id, new MediaBrowser.Model.Session.MessageCommand
+                                                {
+                                                    Header = "Zugriff verweigert",
+                                                    Text = "Das Gerät wurde gesperrt.",
+                                                    TimeoutMs = 5000
+                                                }, CancellationToken.None);
+                                                
+                                                // Logout is not directly exposed on ISessionManager, stopping playback is usually enough
+                                            }
+                                            catch { }
+                                        }
+                                    }
+                                    
+                                    await botClient.EditMessageText(
+                                        callbackQuery.Message!.Chat.Id,
+                                        callbackQuery.Message.MessageId,
+                                        text: callbackQuery.Message.Text + "\n\n❌ *Gerät wurde gesperrt.*",
+                                        parseMode: ParseMode.Markdown,
+                                        replyMarkup: null,
+                                        cancellationToken: cancellationToken);
+                                        
+                                    await botClient.AnswerCallbackQuery(callbackQuery.Id, "Gerät gesperrt!", cancellationToken: cancellationToken);
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
         catch (Exception ex)

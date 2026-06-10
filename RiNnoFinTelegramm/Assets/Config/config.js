@@ -44,6 +44,24 @@ const tgConfigPage = {
         page.querySelector("#EmailTemplatePasswordChanged").value = config.EmailTemplatePasswordChanged ?? '';
         page.querySelector("#EmailTemplateAccountEnabled").value = config.EmailTemplateAccountEnabled ?? '';
         page.querySelector("#EmailTemplateAccountDisabled").value = config.EmailTemplateAccountDisabled ?? '';
+
+        const subjectInvite = page.querySelector("#EmailSubjectInvite");
+        if (subjectInvite) subjectInvite.value = config.EmailSubjectInvite ?? '';
+
+        const subjectWelcome = page.querySelector("#EmailSubjectWelcome");
+        if (subjectWelcome) subjectWelcome.value = config.EmailSubjectWelcome ?? '';
+
+        const subjectPasswordReset = page.querySelector("#EmailSubjectPasswordReset");
+        if (subjectPasswordReset) subjectPasswordReset.value = config.EmailSubjectPasswordReset ?? '';
+
+        const subjectPasswordChanged = page.querySelector("#EmailSubjectPasswordChanged");
+        if (subjectPasswordChanged) subjectPasswordChanged.value = config.EmailSubjectPasswordChanged ?? '';
+
+        const subjectAccountEnabled = page.querySelector("#EmailSubjectAccountEnabled");
+        if (subjectAccountEnabled) subjectAccountEnabled.value = config.EmailSubjectAccountEnabled ?? '';
+
+        const subjectAccountDisabled = page.querySelector("#EmailSubjectAccountDisabled");
+        if (subjectAccountDisabled) subjectAccountDisabled.value = config.EmailSubjectAccountDisabled ?? '';
     },
 
     populateGroups: (page, config) => {
@@ -186,12 +204,8 @@ const tgConfigPage = {
         tbody.innerHTML = "";
         
         const profileSelect = page.querySelector("#InviteProfile");
-        const defaultProfileSelect = page.querySelector("#DefaultProfileUserId");
         if(profileSelect) {
             profileSelect.innerHTML = '<option value="">Lade Profile...</option>';
-        }
-        if(defaultProfileSelect) {
-            defaultProfileSelect.innerHTML = '<option value="">Lade Profile...</option>';
         }
 
         if (!users || users.length === 0) {
@@ -202,29 +216,13 @@ const tgConfigPage = {
         if(profileSelect) {
             profileSelect.innerHTML = '<option value="">Kein Profil (Leer)</option>';
         }
-        if(defaultProfileSelect) {
-            defaultProfileSelect.innerHTML = '<option value="">Keines (Standard-Jellyfin-Rechte)</option>';
-        }
 
         users.forEach(user => {
-            const userId = user.Id || user.id;
-            const userName = user.Name || user.name || user.Username || user.username || 'Unbekannt';
-            const isDisabled = user.IsDisabled !== undefined ? user.IsDisabled : user.isDisabled;
-            const email = user.Email || user.email || '-';
-            const telegramUsername = user.TelegramUsername || user.telegramUsername || '';
-            const lastActivity = user.LastActivityDate || user.lastActivityDate;
-
             if(profileSelect) {
                 const opt = document.createElement("option");
-                opt.value = userId;
-                opt.textContent = userName;
+                opt.value = user.Id;
+                opt.textContent = user.Name || user.Username;
                 profileSelect.appendChild(opt);
-            }
-            if(defaultProfileSelect) {
-                const opt = document.createElement("option");
-                opt.value = userId;
-                opt.textContent = userName;
-                defaultProfileSelect.appendChild(opt);
             }
 
             const tr = document.createElement("tr");
@@ -232,28 +230,28 @@ const tgConfigPage = {
             
             const checkboxTd = document.createElement("td");
             checkboxTd.style.padding = "10px";
-            checkboxTd.innerHTML = `<input type="checkbox" class="user-checkbox" data-userid="${userId}" style="width: 18px; height: 18px; cursor: pointer; accent-color: #3b82f6;"/>`;
+            checkboxTd.innerHTML = `<input type="checkbox" class="user-checkbox emby-checkbox" data-userid="${user.Id}" is="emby-checkbox"/>`;
             
             const nameTd = document.createElement("td");
             nameTd.style.padding = "10px";
-            nameTd.textContent = userName;
+            nameTd.textContent = user.Name || user.Username || 'Unbekannt';
 
             const statusTd = document.createElement("td");
             statusTd.style.padding = "10px";
-            statusTd.textContent = isDisabled ? 'Deaktiviert' : 'Aktiv';
-            if(isDisabled) statusTd.style.color = '#ef4444';
+            statusTd.textContent = user.Policy && user.Policy.IsDisabled ? 'Deaktiviert' : 'Aktiv';
+            if(user.Policy && user.Policy.IsDisabled) statusTd.style.color = '#ef4444';
 
             const emailTd = document.createElement("td");
             emailTd.style.padding = "10px";
-            emailTd.textContent = email; 
+            emailTd.textContent = user.HasConfiguredPassword ? '?' : '-'; 
 
             const telegramTd = document.createElement("td");
             telegramTd.style.padding = "10px";
-            telegramTd.textContent = telegramUsername ? `@${telegramUsername}` : 'Nein';
+            telegramTd.textContent = '-';
 
             const lastAccessTd = document.createElement("td");
             lastAccessTd.style.padding = "10px";
-            lastAccessTd.textContent = lastActivity ? new Date(lastActivity).toLocaleString('de-DE') : 'Niemals';
+            lastAccessTd.textContent = user.LastActivityDate ? new Date(user.LastActivityDate).toLocaleString('de-DE') : 'Niemals';
 
             tr.appendChild(checkboxTd);
             tr.appendChild(nameTd);
@@ -264,10 +262,6 @@ const tgConfigPage = {
 
             tbody.appendChild(tr);
         });
-
-        if (defaultProfileSelect && tgConfigPage.config?.DefaultProfileUserId) {
-            defaultProfileSelect.value = tgConfigPage.config.DefaultProfileUserId;
-        }
     },
 
     adminActionUsers: (page, actionName, confirmMsg) => {
@@ -396,6 +390,13 @@ const tgConfigPage = {
                 config.EmailTemplatePasswordChanged = (page.querySelector("#EmailTemplatePasswordChanged").value ?? "").trim() || undefined;
                 config.EmailTemplateAccountEnabled = (page.querySelector("#EmailTemplateAccountEnabled").value ?? "").trim() || undefined;
                 config.EmailTemplateAccountDisabled = (page.querySelector("#EmailTemplateAccountDisabled").value ?? "").trim() || undefined;
+
+                config.EmailSubjectInvite = (page.querySelector("#EmailSubjectInvite")?.value ?? "").trim() || undefined;
+                config.EmailSubjectWelcome = (page.querySelector("#EmailSubjectWelcome")?.value ?? "").trim() || undefined;
+                config.EmailSubjectPasswordReset = (page.querySelector("#EmailSubjectPasswordReset")?.value ?? "").trim() || undefined;
+                config.EmailSubjectPasswordChanged = (page.querySelector("#EmailSubjectPasswordChanged")?.value ?? "").trim() || undefined;
+                config.EmailSubjectAccountEnabled = (page.querySelector("#EmailSubjectAccountEnabled")?.value ?? "").trim() || undefined;
+                config.EmailSubjectAccountDisabled = (page.querySelector("#EmailSubjectAccountDisabled")?.value ?? "").trim() || undefined;
 
                 window.ApiClient.updatePluginConfiguration(
                     tgConfigPage.pluginUniqueId,
@@ -890,6 +891,85 @@ export default function (view) {
 
         window.Dashboard.showLoadingMsg();
         window.ApiClient.ajax({
+            url: window.ApiClient.getUrl('/api/RiNnoFinConfig/AdminInviteUser'),
+            type: 'POST',
+            data: JSON.stringify({ Email: email, ProfileUserId: profileId }),
+            contentType: 'application/json'
+        }).then(() => {
+            window.Dashboard.hideLoadingMsg();
+            window.Dashboard.alert('Einladung erfolgreich gesendet!');
+            view.querySelector('#InviteUserPanel').style.display = 'none';
+            view.querySelector('#InviteEmail').value = '';
+            tgConfigPage.loadUsers(view);
+        }).catch(err => {
+            window.Dashboard.hideLoadingMsg();
+            const msg = err?.responseJSON?.message || 'Unbekannter Fehler';
+            window.Dashboard.alert('Fehler beim Senden der Einladung: ' + msg);
+        });
+    });
+
+    view.querySelector('#ActionAnnounce')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.Dashboard.alert('Ankündigen-Funktion ist in Entwicklung.');
+    });
+
+    view.querySelector('#ActionSettings')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.Dashboard.alert('Einstellungen ändern ist in Entwicklung.');
+    });
+
+    view.querySelector('#ActionRecommendations')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.Dashboard.alert('Empfehlungen aktivieren ist in Entwicklung.');
+    });
+
+    view.querySelector('#ActionExpiry')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.Dashboard.alert('Ablaufdatum-Funktion ist in Entwicklung.');
+    });
+
+
+    const tabItems = view.querySelectorAll('.rinnofin-menu-item');
+    tabItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            const tabId = e.currentTarget.getAttribute('data-tab');
+            view.querySelectorAll('.rinnofin-menu-item').forEach(el => el.classList.remove('active'));
+            view.querySelectorAll('.rinnofin-tab').forEach(el => el.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+            const targetTab = view.querySelector('#' + tabId);
+            if(targetTab) targetTab.classList.add('active');
+        });
+    });
+
+    view.querySelector('#ActionLoadAll')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        tgConfigPage.loadUsers(view);
+    });
+
+    view.querySelector('#ActionAddUser')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        const panel = view.querySelector('#InviteUserPanel');
+        if(panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    });
+
+    view.querySelector('#CancelInviteBtn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        const panel = view.querySelector('#InviteUserPanel');
+        if(panel) panel.style.display = 'none';
+    });
+
+    view.querySelector('#CreateInviteBtn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        const email = view.querySelector('#InviteEmail').value;
+        const profileId = view.querySelector('#InviteProfile').value;
+        
+        if (!email) {
+            window.Dashboard.alert('Bitte eine E-Mail Adresse eingeben.');
+            return;
+        }
+
+        window.Dashboard.showLoadingMsg();
+        window.ApiClient.ajax({
             url: window.ApiClient.getUrl('/api/RiNnoFinConfig/AdminCreateInvite'),
             type: 'POST',
             data: JSON.stringify({ Email: email, ProfileUserId: profileId }),
@@ -1107,6 +1187,57 @@ export default function (view) {
         tgConfigPage.deleteGroup(view);
     });
 
+    view.querySelector("#TriggerGroupAnnounce")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (!tgConfigPage.currentGroup) {
+            window.Dashboard.alert('Bitte wähle zuerst eine Gruppe aus.');
+            return;
+        }
+        view.querySelector("#GroupAnnounceMessage").value = "";
+        view.querySelector("#GroupAnnouncePanel").style.display = "block";
+    });
+
+    view.querySelector("#CancelGroupAnnounceBtn")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        view.querySelector("#GroupAnnouncePanel").style.display = "none";
+    });
+
+    view.querySelector("#SendGroupAnnounceBtn")?.addEventListener("click", async (e) => {
+        e.preventDefault();
+        if (!tgConfigPage.currentGroup) return;
+
+        const message = view.querySelector("#GroupAnnounceMessage").value.trim();
+        if (!message) {
+            window.Dashboard.alert('Bitte gib eine Nachricht ein.');
+            return;
+        }
+
+        view.querySelector("#SendGroupAnnounceBtn").disabled = true;
+
+        try {
+            const response = await fetch('/api/RiNnoFinConfig/SendGroupAnnouncement?groupName=' + encodeURIComponent(tgConfigPage.currentGroup), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'MediaBrowser Token="' + window.ApiClient.accessToken() + '"'
+                },
+                body: JSON.stringify({ Message: message })
+            });
+
+            if (response.ok) {
+                window.Dashboard.alert('Gruppen-Ankündigung erfolgreich gesendet.');
+                view.querySelector("#GroupAnnouncePanel").style.display = "none";
+            } else {
+                let errText = await response.text();
+                window.Dashboard.alert('Fehler: ' + errText);
+            }
+        } catch (err) {
+            window.Dashboard.alert('Netzwerkfehler: ' + err.message);
+        } finally {
+            view.querySelector("#SendGroupAnnounceBtn").disabled = false;
+        }
+    });
+
     view.querySelector("#RefreshRequests")?.addEventListener("click", (e) => {
         e.preventDefault();
         tgConfigPage.loadRequests(view);
@@ -1152,6 +1283,138 @@ export default function (view) {
     view.querySelector("#RefreshUsersBtn")?.addEventListener("click", (e) => {
         e.preventDefault();
         tgConfigPage.loadUsers(view);
+    });
+
+    view.querySelector("#ActionAnnounce")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        const userIds = tgConfigPage.getSelectedUserIds(view);
+        if (userIds.length === 0) {
+            window.Dashboard.alert('Bitte wähle mindestens einen Benutzer aus, um eine Ankündigung zu senden.');
+            return;
+        }
+        
+        view.querySelector("#AnnounceSubject").value = "";
+        view.querySelector("#AnnounceMessage").value = "";
+        view.querySelector("#AnnouncePanel").style.display = "block";
+    });
+
+    view.querySelector("#CancelAnnounceBtn")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        view.querySelector("#AnnouncePanel").style.display = "none";
+    });
+
+    view.querySelector("#SendAnnounceBtn")?.addEventListener("click", async (e) => {
+        e.preventDefault();
+        const userIds = tgConfigPage.getSelectedUserIds(view);
+        const subject = view.querySelector("#AnnounceSubject").value.trim();
+        const message = view.querySelector("#AnnounceMessage").value.trim();
+
+        if (!message) {
+            window.Dashboard.alert('Bitte gib eine Nachricht ein.');
+            return;
+        }
+
+        view.querySelector("#SendAnnounceBtn").disabled = true;
+
+        try {
+            const response = await fetch('/api/RiNnoFinConfig/SendAnnouncement', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'MediaBrowser Token="' + window.ApiClient.accessToken() + '"'
+                },
+                body: JSON.stringify({
+                    UserIds: userIds,
+                    Subject: subject,
+                    Message: message
+                })
+            });
+
+            if (response.ok) {
+                window.Dashboard.alert('Ankündigung erfolgreich gesendet.');
+                view.querySelector("#AnnouncePanel").style.display = "none";
+                const checkboxes = view.querySelectorAll(".user-checkbox");
+                checkboxes.forEach(cb => cb.checked = false);
+            } else {
+                window.Dashboard.alert('Fehler beim Senden der Ankündigung.');
+            }
+        } catch (err) {
+            window.Dashboard.alert('Netzwerkfehler: ' + err.message);
+        } finally {
+            view.querySelector("#SendAnnounceBtn").disabled = false;
+        }
+    });
+
+    view.querySelector("#ActionSettings")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        const userIds = tgConfigPage.getSelectedUserIds(view);
+        if (userIds.length !== 1) {
+            window.Dashboard.alert('Bitte wähle genau EINEN Benutzer aus, um ihn zu bearbeiten.');
+            return;
+        }
+        
+        const userId = userIds[0];
+        const cb = view.querySelector(`.user-checkbox[data-userid="${userId}"]`);
+        if (!cb) return;
+
+        const tr = cb.closest('tr');
+        const email = tr.children[3].textContent;
+        const telegram = tr.children[4].textContent.replace('@', '');
+        const expirationStr = tr.children[5].textContent;
+
+        view.querySelector("#EditUserId").value = userId;
+        view.querySelector("#EditUserEmail").value = email === 'Nein' ? '' : email;
+        view.querySelector("#EditUserTelegram").value = telegram === 'Nein' ? '' : telegram;
+        
+        if (expirationStr && expirationStr !== '-') {
+            const parts = expirationStr.split('.');
+            if (parts.length === 3) {
+                view.querySelector("#EditUserExpiration").value = `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
+        } else {
+            view.querySelector("#EditUserExpiration").value = '';
+        }
+
+        view.querySelector("#EditUserPanel").style.display = "block";
+    });
+
+    view.querySelector("#CancelEditUserBtn")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        view.querySelector("#EditUserPanel").style.display = "none";
+    });
+
+    view.querySelector("#SaveEditUserBtn")?.addEventListener("click", async (e) => {
+        e.preventDefault();
+        const userId = view.querySelector("#EditUserId").value;
+        const email = view.querySelector("#EditUserEmail").value.trim();
+        const telegram = view.querySelector("#EditUserTelegram").value.trim();
+        const expiration = view.querySelector("#EditUserExpiration").value; // YYYY-MM-DD
+
+        try {
+            const response = await fetch('/api/RiNnoFinConfig/UpdateUserLink', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'MediaBrowser Token="' + window.ApiClient.accessToken() + '"'
+                },
+                body: JSON.stringify({
+                    UserId: userId,
+                    Email: email,
+                    TelegramUsername: telegram,
+                    ExpirationDate: expiration ? new Date(expiration).toISOString() : null
+                })
+            });
+
+            if (response.ok) {
+                window.Dashboard.alert('Benutzer erfolgreich aktualisiert.');
+                view.querySelector("#EditUserPanel").style.display = "none";
+                tgConfigPage.loadUsers(view);
+            } else {
+                window.Dashboard.alert('Fehler beim Aktualisieren des Benutzers.');
+            }
+        } catch (err) {
+            window.Dashboard.alert('Netzwerkfehler: ' + err.message);
+        }
     });
 
     view.querySelector("#RefreshLogsBtn")?.addEventListener("click", (e) => {

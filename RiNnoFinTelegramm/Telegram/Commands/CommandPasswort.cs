@@ -118,7 +118,8 @@ internal class CommandPasswort : ICommandBase
                             </div>
                         </div>";
                     
-                    await emailService.SendEmailAsync(config, link.EmailAddress, "Passwort-Änderung (Telegram)", htmlBody);
+                    var subject = !string.IsNullOrWhiteSpace(config.EmailSubjectPasswordChanged) ? config.EmailSubjectPasswordChanged : "Passwort-Änderung (Telegram)";
+                    await emailService.SendEmailAsync(config, link.EmailAddress, subject, htmlBody);
                 }
                 catch (Exception ex)
                 {

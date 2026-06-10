@@ -95,7 +95,8 @@ public class TelegramLoginService
                 TelegramUserId = telegramUserId,
                 TelegramUsername = userName,
                 JellyfinUsername = user.Username,
-                SubscribedToNewsletter = true
+                SubscribeEmailNewsletter = true,
+                SubscribeTelegramNewsletter = true
             };
             _config.TelegramUserLinks.Add(link);
             _instance.SaveConfiguration(_config);

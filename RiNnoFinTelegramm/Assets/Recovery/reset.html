@@ -1,249 +1,349 @@
 <!DOCTYPE html>
-<html class="layout-mobile" lang="de">
+<html lang="de">
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
-    <meta content="Jellyfin" name="application-name">
-    <meta content="noindex, nofollow, noarchive" name="robots">
-    <title>Jellyfin - Neues Passwort festlegen</title>
-    <link href="/web/themes/dark/theme.css" rel="stylesheet" type="text/css"/>
-    <link href="/sso/Telegram/login.css" rel="stylesheet" type="text/css"/>
-    <link href="/web/favicon.ico" rel="icon" type="image/x-icon"/>
-    <style id="cssBranding">
-        /*{{CUSTOM_CSS}}*/
-        .inputContainer { margin-bottom: 1.5em; text-align: left; }
-        .inputLabel { display: block; margin-bottom: 0.5em; font-size: 1.1em; color: rgba(255, 255, 255, 0.7); }
-        .inputLabelFocused { color: #00a4dc; }
-        .emby-input { width: 100%; padding: 0.8em; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 4px; color: #fff; font-size: 1.1em; }
-        .emby-input:focus { border-color: #00a4dc; outline: none; }
-        .success-state { display: none; text-align: center; }
-        .success-state h1 { color: #00a4dc; margin-bottom: 1em; }
-        .error-message { color: #cc3333; margin-top: 1em; display: none; font-size: 1.1em; }
+    <title>RiNnoFin - Passwort zurücksetzen</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet" />
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: #050505;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(225,39%,30%,0.2) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(339,49%,30%,0.2) 0, transparent 50%);
+            background-attachment: fixed;
+            background-size: cover;
+            background-position: center;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .glass-card {
+            background: rgba(25, 25, 35, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 460px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header img {
+            max-height: 60px;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: #9ca3af;
+            font-weight: 300;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: #d1d5db;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group input[type="password"] {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #6366f1;
+            background: rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .btn-submit:disabled {
+            background: #4b5563;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid #ef4444;
+            color: #fca5a5;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        /* Password Strength */
+        .pwd-strength-container {
+            margin-top: 8px;
+            display: none;
+        }
+        .pwd-strength-text {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .pwd-bar-bg {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .pwd-bar-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 2px;
+            transition: all 0.4s ease;
+        }
+
+        /* Success State */
+        .success-state {
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .success-icon {
+            font-size: 64px;
+            color: #10b981;
+            margin-bottom: 20px;
+        }
+
+        .login-btn {
+            display: inline-block;
+            width: 100%;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .login-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
     </style>
 </head>
-<body class="force-scroll hideMainDrawer">
-<div class="backdropContainer"></div>
-<div class="backgroundContainer"></div>
+<body>
 
-<div class="skinHeader skinHeader-blurred semiTransparent noHeaderRight">
-    <div class="flex align-items-center flex-grow headerTop">
-        <div class="headerLeft">
-            <h3 class="pageTitle pageTitleWithLogo pageTitleWithDefaultLogo"></h3>
-        </div>
+<div class="glass-card" id="mainCard">
+    <div class="header" id="header">
+        <img src="/sso/Telegram/RiNnoFinLogo.png" onerror="this.src='https://raw.githubusercontent.com/jellyfin/jellyfin-ux/master/branding/logowhite.png'" alt="Logo" id="brandLogo">
+        <h1>Neues Passwort</h1>
+        <p>Bitte wähle ein neues, sicheres Passwort für deinen Account.</p>
     </div>
-</div>
 
-<div class="mainAnimatedPages skinBody">
-    <div class="page standalonePage mainAnimatedPage rinnofin-page" data-role="page" data-type="login" id="loginPage">
-        <div class="padded-left padded-right padded-bottom-page margin-auto-y">
-            <div class="readOnlyContent">
-                <div class="loginCard">
-                    <div class="padded-left padded-right flex flex-direction-column align-items-center justify-content-center">
-                        <div class="linkLogos flex flex-direction-row align-items-center justify-content-center" style="margin-bottom: 2em;">
-                            <img src="/sso/Telegram/RiNnoFinLogo.png" alt="RiNnoFin Logo" class="brand-logo" />
-                            <span class="material-symbols-outlined" style="margin: 0 20px; font-size: 2em;">password</span>
-                            <svg aria-label="Jellyfin" role="img" style="height:3.8em;" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-                                <rect fill="#ffffff" height="512" rx="15%" width="512"/>
-                                <defs>
-                                    <path d="M190.56 329.07c8.63 17.3 122.4 17.12 130.93 0 8.52-17.1-47.9-119.78-65.46-119.8-17.57 0-74.1 102.5-65.47 119.8z" id="A"/>
-                                    <linearGradient gradientUnits="userSpaceOnUse" id="B" x1="126.15" x2="457.68" y1="219.32" y2="410.73">
-                                        <stop offset="0%" stop-color="#aa5cc3"/>
-                                        <stop offset="100%" stop-color="#00a4dc"/>
-                                    </linearGradient>
-                                    <path d="M58.75 417.03c25.97 52.15 368.86 51.55 394.55 0S308.93 56.08 256.03 56.08c-52.92 0-223.25 308.8-197.28 360.95zm68.04-45.25c-17.02-34.17 94.6-236.5 129.26-236.5 34.67 0 146.1 202.7 129.26 236.5-16.83 33.8-241.5 34.17-258.52 0z" id="C"/>
-                                </defs>
-                                <use fill="url(#B)" xlink:href="#A"/>
-                                <use fill="url(#B)" xlink:href="#C"/>
-                            </svg>
-                        </div>
-                        <h1 class="sectionTitle">Neues Passwort</h1>
-                        <p class="subtitle" id="formSubtitle">Lege ein neues, sicheres Passwort für deinen Account fest.</p>
-                    </div>
-
-                    <div class="spacedContent padded-left padded-right" id="form-container">
-                        <form id="resetForm">
-                            <div class="inputContainer">
-                                <label class="inputLabel" for="username">Benutzername</label>
-                                <input class="emby-input" type="text" id="username" required autocomplete="username">
-                            </div>
-                            <div class="inputContainer">
-                                <label class="inputLabel" for="email">E-Mail-Adresse</label>
-                                <input class="emby-input" type="email" id="email" required autocomplete="email">
-                            </div>
-                            <div class="inputContainer">
-                                <label class="inputLabel" for="password">Neues Passwort</label>
-                                <input class="emby-input" type="password" id="password" required autocomplete="new-password">
-                                <div id="passwordStrength" style="margin-top: 5px; font-size: 0.9em; display: none;">
-                                    Sicherheit: <span id="strengthText">Schwach</span>
-                                    <div style="width: 100%; background: rgba(255,255,255,0.1); height: 4px; border-radius: 2px; margin-top: 4px;">
-                                        <div id="strengthBar" style="height: 100%; width: 0%; transition: width 0.3s, background-color 0.3s; border-radius: 2px;"></div>
-                                    </div>
-                                    <div style="font-size: 0.8em; color: rgba(255,255,255,0.6); margin-top: 4px;">
-                                        Hinweis: Mindestens 8 Zeichen, inkl. Sonderzeichen (z.B. !)
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="inputContainer" style="margin-bottom: 30px;">
-                                <label class="inputLabel" for="password_confirm">Passwort wiederholen</label>
-                                <input class="emby-input" type="password" id="password_confirm" required autocomplete="new-password">
-                            </div>
-
-                            <button class="raised submit emby-button block" id="submitBtn" is="emby-button" type="submit">
-                                <span>Passwort speichern</span>
-                            </button>
-                            <div id="errorMsg" class="error-message"></div>
-                        </form>
-                    </div>
-
-                    <div class="spacedContent padded-left padded-right success-state" id="success-container">
-                        <h1>Passwort geändert!</h1>
-                        <p style="font-size: 1.1em; margin-bottom: 2em; line-height: 1.5;">Dein Passwort wurde erfolgreich aktualisiert. Du kannst dich jetzt mit deinem neuen Passwort einloggen.</p>
-                        <button class="raised submit emby-button block" is="emby-button" onclick="window.location.replace('/web/index.html')" type="button">
-                            <span>Jetzt einloggen</span>
-                        </button>
-                    </div>
-
+    <form id="resetForm">
+        <div class="input-group">
+            <label for="password">Neues Passwort</label>
+            <input type="password" id="password" placeholder="Mindestens 8 Zeichen" required autocomplete="new-password">
+            <div class="pwd-strength-container" id="pwdContainer">
+                <div class="pwd-strength-text">
+                    <span>Sicherheit</span>
+                    <span id="pwdLabel">Schwach</span>
+                </div>
+                <div class="pwd-bar-bg">
+                    <div class="pwd-bar-fill" id="pwdBar" style="background: #ef4444;"></div>
                 </div>
             </div>
         </div>
+
+        <div class="input-group">
+            <label for="password_confirm">Passwort wiederholen</label>
+            <input type="password" id="password_confirm" placeholder="Passwort bestätigen" required autocomplete="new-password">
+        </div>
+
+        <button type="submit" class="btn-submit" id="submitBtn">Passwort speichern</button>
+
+        <div class="error-message" id="errorMsg"></div>
+    </form>
+
+    <div class="success-state" id="successState">
+        <span class="material-symbols-outlined success-icon">lock_open</span>
+        <h1 style="font-size: 24px; font-weight: 600; margin-bottom: 10px;">Passwort geändert!</h1>
+        <p style="color: #9ca3af; font-size: 14px; margin-bottom: 25px; line-height: 1.6;">Dein Passwort wurde erfolgreich aktualisiert. Du kannst dich nun mit deinem neuen Passwort anmelden.</p>
+        
+        <a href="/web/index.html" class="login-btn">Zum Login</a>
     </div>
 </div>
 
 <script>
+    // URL Check
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
-
     if (!token) {
-        document.getElementById('errorMsg').innerText = "Ungültiger oder fehlender Zurücksetzungs-Link.";
-        document.getElementById('errorMsg').style.display = 'block';
+        const err = document.getElementById('errorMsg');
+        err.innerText = "Ungültiger oder abgelaufener Reset-Link.";
+        err.style.display = 'block';
         document.getElementById('submitBtn').disabled = true;
     }
 
-    const inputs = document.querySelectorAll('.emby-input');
-    inputs.forEach(input => {
-        input.addEventListener('focus', (e) => {
-            e.target.previousElementSibling.classList.add('inputLabelFocused');
-        });
-        input.addEventListener('blur', (e) => {
-            e.target.previousElementSibling.classList.remove('inputLabelFocused');
-        });
-    });
+    // Password Strength
+    const pwdInput = document.getElementById('password');
+    const pwdContainer = document.getElementById('pwdContainer');
+    const pwdBar = document.getElementById('pwdBar');
+    const pwdLabel = document.getElementById('pwdLabel');
 
-    const passwordInput = document.getElementById('password');
-    const strengthContainer = document.getElementById('passwordStrength');
-    const strengthText = document.getElementById('strengthText');
-    const strengthBar = document.getElementById('strengthBar');
+    pwdInput.addEventListener('input', () => {
+        const val = pwdInput.value;
+        if (val.length === 0) {
+            pwdContainer.style.display = 'none';
+            return;
+        }
+        pwdContainer.style.display = 'block';
+        
+        let strength = 0;
+        if (val.length >= 8) strength += 25;
+        if (val.length >= 12) strength += 25;
+        if (/[A-Z]/.test(val)) strength += 20;
+        if (/[0-9]/.test(val)) strength += 15;
+        if (/[^A-Za-z0-9]/.test(val)) strength += 15;
 
-    passwordInput.addEventListener('input', () => {
-        const val = passwordInput.value;
-        if (val.length > 0) {
-            strengthContainer.style.display = 'block';
+        pwdBar.style.width = strength + '%';
+        if (strength < 40) {
+            pwdBar.style.background = '#ef4444';
+            pwdLabel.innerText = 'Schwach';
+            pwdLabel.style.color = '#ef4444';
+        } else if (strength < 80) {
+            pwdBar.style.background = '#f59e0b';
+            pwdLabel.innerText = 'Mittel';
+            pwdLabel.style.color = '#f59e0b';
         } else {
-            strengthContainer.style.display = 'none';
-        }
-
-        let score = 0;
-        if (val.length >= 8) score += 1;
-        if (/[A-Z]/.test(val)) score += 1;
-        if (/[0-9]/.test(val)) score += 1;
-        if (/[^A-Za-z0-9]/.test(val)) score += 1; // Special char
-
-        if (val.length < 8) score = 0; // Require at least 8 chars
-
-        switch (score) {
-            case 0:
-            case 1:
-                strengthText.innerText = 'Schwach';
-                strengthText.style.color = '#cc3333';
-                strengthBar.style.width = '25%';
-                strengthBar.style.backgroundColor = '#cc3333';
-                break;
-            case 2:
-                strengthText.innerText = 'Mittel';
-                strengthText.style.color = '#e6b800';
-                strengthBar.style.width = '50%';
-                strengthBar.style.backgroundColor = '#e6b800';
-                break;
-            case 3:
-                strengthText.innerText = 'Gut';
-                strengthText.style.color = '#33cc33';
-                strengthBar.style.width = '75%';
-                strengthBar.style.backgroundColor = '#33cc33';
-                break;
-            case 4:
-                strengthText.innerText = 'Sehr sicher';
-                strengthText.style.color = '#00a4dc';
-                strengthBar.style.width = '100%';
-                strengthBar.style.backgroundColor = '#00a4dc';
-                break;
+            pwdBar.style.background = '#10b981';
+            pwdLabel.innerText = 'Stark';
+            pwdLabel.style.color = '#10b981';
         }
     });
 
+    // Submit
     document.getElementById('resetForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        const username = document.getElementById('username').value;
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        const passwordConfirm = document.getElementById('password_confirm').value;
+        const pwd = document.getElementById('password').value;
+        const pwdConf = document.getElementById('password_confirm').value;
         const errorMsg = document.getElementById('errorMsg');
         const submitBtn = document.getElementById('submitBtn');
 
-        if (password !== passwordConfirm) {
-            errorMsg.innerText = "Die Passwörter stimmen nicht überein.";
+        if (pwd !== pwdConf) {
+            errorMsg.innerText = 'Die Passwörter stimmen nicht überein!';
             errorMsg.style.display = 'block';
             return;
         }
 
-        if (password.length < 8) {
-            errorMsg.innerText = "Das Passwort muss mindestens 8 Zeichen lang sein.";
-            errorMsg.style.display = 'block';
-            return;
-        }
-
-        if (!/[^A-Za-z0-9]/.test(password)) {
-            errorMsg.innerText = "Das Passwort muss mindestens ein Sonderzeichen (z.B. ! oder ?) enthalten.";
+        if (pwd.length < 8) {
+            errorMsg.innerText = 'Das Passwort muss mindestens 8 Zeichen lang sein.';
             errorMsg.style.display = 'block';
             return;
         }
 
         errorMsg.style.display = 'none';
-        submitBtn.querySelector('span').innerText = "Bitte warten...";
+        submitBtn.innerText = "Bitte warten...";
         submitBtn.disabled = true;
 
         try {
-            const response = await fetch('/api/RiNnoFinPublic/AcceptPasswordReset', {
+            const response = await fetch('/api/RiNnoFinPublic/ResetPassword', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ 
-                    Token: token, 
-                    NewPassword: password,
-                    Username: username,
-                    Email: email
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ Token: token, NewPassword: pwd })
             });
 
             if (response.ok) {
-                document.getElementById('form-container').style.display = 'none';
-                document.getElementById('formSubtitle').style.display = 'none';
-                document.getElementById('success-container').style.display = 'block';
+                document.getElementById('resetForm').style.display = 'none';
+                document.getElementById('header').style.display = 'none';
+                document.getElementById('successState').style.display = 'block';
             } else {
-                let errorText = "Fehler beim Zurücksetzen des Passworts.";
+                let errorText = "Fehler beim Zurücksetzen.";
                 const text = await response.text();
                 try {
                     const data = JSON.parse(text);
                     if(data.message) errorText = data.message;
-                } catch(err) {
-                    if(text) errorText = text;
-                }
-                throw new Error(`${errorText}`);
+                } catch(err) {}
+                throw new Error(errorText);
             }
         } catch (err) {
             errorMsg.innerText = err.message;
             errorMsg.style.display = 'block';
-            submitBtn.querySelector('span').innerText = "Passwort speichern";
+            submitBtn.innerText = "Passwort speichern";
             submitBtn.disabled = false;
         }
     });

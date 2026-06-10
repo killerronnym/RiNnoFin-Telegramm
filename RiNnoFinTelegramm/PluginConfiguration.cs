@@ -26,6 +26,8 @@ public class PluginConfiguration : BasePluginConfiguration
 
     public string RegistrationTheme { get; set; } = "jellyfin";
 
+    public string TmdbApiKey { get; set; } = string.Empty;
+
 
 
     // Neue SMTP & E-Mail Einstellungen
@@ -38,7 +40,17 @@ public class PluginConfiguration : BasePluginConfiguration
     public string EmailSenderName { get; set; } = "Rinno Einladungssystem";
     public bool SmtpUseSsl { get; set; } = true;
 
-    // E-Mail Vorlagen
+    // E-Mail Vorlagen (Betreff)
+    public string EmailSubjectInvite { get; set; } = "Du wurdest zu RiNnoFin Media eingeladen! 🍿";
+    public string EmailSubjectWelcome { get; set; } = "Willkommen bei RiNnoFin Media! 🐧🎬";
+    public string EmailSubjectPasswordReset { get; set; } = "Passwort zurücksetzen - RiNnoFin Media 🔑";
+    public string EmailSubjectPasswordChanged { get; set; } = "Passwort erfolgreich geändert ✅";
+    public string EmailSubjectAccountEnabled { get; set; } = "Dein RiNnoFin Account wurde wieder aktiviert! 🎉";
+    public string EmailSubjectAccountDisabled { get; set; } = "Dein RiNnoFin Account wurde deaktiviert ⚠️";
+    public string EmailSubjectNewsletter { get; set; } = "Neu auf RiNnoFin Media! 🍿";
+    public string EmailSubjectRueckblick { get; set; } = "Dein wöchentlicher RiNnoFin Rückblick 📺";
+
+    // E-Mail Vorlagen (HTML-Inhalt)
     public string EmailTemplateInvite { get; set; } = @"
 <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
     <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
@@ -117,6 +129,38 @@ public class PluginConfiguration : BasePluginConfiguration
     </div>
 </div>";
 
+    public string EmailTemplateNewsletter { get; set; } = @"
+<div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
+    <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
+        <h2 style='color: #8b5cf6;'>Neu auf RiNnoFin! 🍿</h2>
+        <p>Hallo <strong>{username}</strong>,</p>
+        <p>Es gibt neue Inhalte auf dem Server:</p>
+        <div style='background: #f9fafb; padding: 15px; border-radius: 8px; margin: 20px 0;'>
+            {content}
+        </div>
+        <div style='text-align: center; margin: 30px 0;'>
+            <a href='{serverUrl}' style='background-color: #8b5cf6; color: #fff; padding: 14px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;'>Jetzt ansehen</a>
+        </div>
+        <p style='color: #9ca3af; font-size: 12px; text-align: center;'>Dein RiNnoFin-Team</p>
+    </div>
+</div>";
+
+    public string EmailTemplateRueckblick { get; set; } = @"
+<div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
+    <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
+        <h2 style='color: #0ea5e9;'>Dein Wochenrückblick 📺</h2>
+        <p>Hallo <strong>{username}</strong>,</p>
+        <p>Hier ist eine Zusammenfassung der Highlights, die du vielleicht verpasst hast:</p>
+        <div style='background: #f9fafb; padding: 15px; border-radius: 8px; margin: 20px 0;'>
+            {content}
+        </div>
+        <div style='text-align: center; margin: 30px 0;'>
+            <a href='{serverUrl}' style='background-color: #0ea5e9; color: #fff; padding: 14px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;'>Jetzt stöbern</a>
+        </div>
+        <p style='color: #9ca3af; font-size: 12px; text-align: center;'>Dein RiNnoFin-Team</p>
+    </div>
+</div>";
+
     [XmlArray("TelegramGroups")]
     [XmlArrayItem(typeof(TelegramGroup), ElementName = "TelegramGroups")]
     public List<TelegramGroup> TelegramGroups { get; set; } = [];
@@ -134,6 +178,7 @@ public class PersistedInvite
     public string Token { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string? ProfileUserId { get; set; }
+    public int? ExpirationDays { get; set; }
 }
 
 public class PersistedResetToken

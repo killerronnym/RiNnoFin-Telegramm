@@ -326,7 +326,28 @@
                                                 style="margin-top: 1em;">
                                             <span>Quizfrage jetzt senden</span>
                                         </button>
+
+                                        <button class="raised button-submit block emby-button"
+                                                id="TriggerGroupAnnounce"
+                                                is="emby-button"
+                                                type="button"
+                                                style="margin-top: 1em;">
+                                            <span>Ankündigung in Gruppe senden</span>
+                                        </button>
                                     </div>
+                                </div>
+
+                                <div id="GroupAnnouncePanel" style="display:none; background: rgba(0,0,0,0.1); padding: 15px; margin-top: 15px; margin-bottom: 15px; border-radius: 6px;">
+                                    <h3>Nachricht in verknüpfte Gruppe senden</h3>
+                                    <p style="font-size: 13px; color: #aaa; margin-bottom: 15px;">Versendet eine Telegram-Nachricht direkt in den verknüpften Chat/Kanal.</p>
+                                    
+                                    <div style="margin-bottom: 10px;">
+                                        <label class="inputLabel" for="GroupAnnounceMessage">Nachricht (Markdown):</label>
+                                        <textarea id="GroupAnnounceMessage" class="emby-input" rows="5" style="width: 100%; border-radius: 6px; padding: 10px; background: rgba(0,0,0,0.2); color: #fff;" placeholder="Hey Leute, ..."></textarea>
+                                    </div>
+                                    
+                                    <button class="action-btn btn-blue" id="SendGroupAnnounceBtn" type="button">Nachricht Senden</button>
+                                    <button class="action-btn" id="CancelGroupAnnounceBtn" type="button">Abbrechen</button>
                                 </div>
 
                                 <button class="raised button-submit block emby-button"
@@ -349,7 +370,7 @@
                     <div class="action-btn-bar">
                         <button class="action-btn" id="ActionLoadAll" type="button">Load All</button>
                         <button class="action-btn btn-green" id="ActionAddUser" type="button">Benutzer hinzufügen</button>
-                        <button class="action-btn" id="ActionAnnounce" type="button" style="display:none;">Ankündigen</button>
+                        <button class="action-btn" id="ActionAnnounce" type="button">Ankündigung senden</button>
                         <button class="action-btn" id="ActionSettings" type="button">Benutzer bearbeiten</button>
                         <button class="action-btn" id="ActionRecommendations" type="button" style="display:none;">Empfehlungen aktivieren</button>
                         <button class="action-btn" id="ActionExpiry" type="button" style="display:none;">Ablaufdatum</button>
@@ -395,9 +416,31 @@
                                 <label class="inputLabel" for="EditUserTelegram">Telegram-Benutzername:</label>
                                 <input class="sso-text" id="EditUserTelegram" is="emby-input" type="text" placeholder="Ohne @ (z.B. maxmuster)"/>
                             </div>
+                            <div style="flex: 1; min-width: 200px;">
+                                <label class="inputLabel" for="EditUserExpiration">Ablaufdatum (optional):</label>
+                                <input class="sso-text" id="EditUserExpiration" is="emby-input" type="date" />
+                            </div>
                         </div>
                         <button class="action-btn btn-green" id="SaveEditUserBtn" type="button">Änderungen speichern</button>
                         <button class="action-btn" id="CancelEditUserBtn" type="button">Abbrechen</button>
+                    </div>
+
+                    <div id="AnnouncePanel" style="display:none; background: rgba(0,0,0,0.1); padding: 15px; margin-bottom: 15px; border-radius: 6px;">
+                        <h3>Ankündigung an ausgewählte Benutzer senden</h3>
+                        <p style="font-size: 13px; color: #aaa; margin-bottom: 15px;">Versendet eine E-Mail (HTML) und eine Telegram-Nachricht an die gewählten Nutzer. Verfügbare Platzhalter: {username}, {email}</p>
+                        
+                        <div style="margin-bottom: 10px;">
+                            <label class="inputLabel" for="AnnounceSubject">Betreff (nur E-Mail):</label>
+                            <input class="sso-text" id="AnnounceSubject" is="emby-input" type="text" placeholder="Wichtige Neuigkeiten!"/>
+                        </div>
+                        
+                        <div style="margin-bottom: 10px;">
+                            <label class="inputLabel" for="AnnounceMessage">Nachricht (HTML für E-Mail, Markdown für Telegram):</label>
+                            <textarea id="AnnounceMessage" class="emby-input" rows="5" style="width: 100%; border-radius: 6px; padding: 10px; background: rgba(0,0,0,0.2); color: #fff;" placeholder="Hallo {username}, ..."></textarea>
+                        </div>
+                        
+                        <button class="action-btn btn-blue" id="SendAnnounceBtn" type="button">Nachricht Senden</button>
+                        <button class="action-btn" id="CancelAnnounceBtn" type="button">Abbrechen</button>
                     </div>
 
                     <div class="tableScrollSlider" style="overflow-x: auto;">
@@ -409,6 +452,7 @@
                                     <th style="padding: 10px;">Status</th>
                                     <th style="padding: 10px;">E-Mail</th>
                                     <th style="padding: 10px;">Telegram</th>
+                                    <th style="padding: 10px;">Ablaufdatum</th>
                                     <th style="padding: 10px;">Letzter Zugriff</th>
                                 </tr>
                             </thead>
@@ -533,43 +577,61 @@
                 <legend><h3>E-Mail Vorlagen (HTML erlaubt)</h3></legend>
                 <p style="margin-bottom: 20px; font-size: 13px; color: #9ca3af;">Du kannst HTML verwenden. Ersetzbare Variablen: {inviteLink}, {resetLink}, {username}</p>
 
-                <div class="inputContainer">
+                <div class="inputContainer" style="margin-bottom: 30px;">
                     <div>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailSubjectInvite" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Einladung</label>
+                        <input class="sso-text" id="EmailSubjectInvite" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
+                        
                         <label class="inputLabel inputLabelUnfocused" for="EmailTemplateInvite">Einladungs-E-Mail (Variable: {inviteLink}):</label>
                         <textarea class="sso-text" id="EmailTemplateInvite" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
                     </div>
                 </div>
 
-                <div class="inputContainer">
+                <div class="inputContainer" style="margin-bottom: 30px;">
                     <div>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailSubjectWelcome" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Willkommen</label>
+                        <input class="sso-text" id="EmailSubjectWelcome" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
+
                         <label class="inputLabel inputLabelUnfocused" for="EmailTemplateWelcome">Willkommens-E-Mail nach Setup (Variable: {username}):</label>
                         <textarea class="sso-text" id="EmailTemplateWelcome" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
                     </div>
                 </div>
 
-                <div class="inputContainer">
+                <div class="inputContainer" style="margin-bottom: 30px;">
                     <div>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailSubjectPasswordReset" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Passwort zurücksetzen</label>
+                        <input class="sso-text" id="EmailSubjectPasswordReset" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
+
                         <label class="inputLabel inputLabelUnfocused" for="EmailTemplatePasswordReset">Passwort-Reset E-Mail (Variable: {resetLink}, {username}):</label>
                         <textarea class="sso-text" id="EmailTemplatePasswordReset" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
                     </div>
                 </div>
 
-                <div class="inputContainer">
+                <div class="inputContainer" style="margin-bottom: 30px;">
                     <div>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailSubjectPasswordChanged" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Passwort geändert</label>
+                        <input class="sso-text" id="EmailSubjectPasswordChanged" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
+
                         <label class="inputLabel inputLabelUnfocused" for="EmailTemplatePasswordChanged">Passwort Erfolgreich Geändert (Variable: {username}):</label>
                         <textarea class="sso-text" id="EmailTemplatePasswordChanged" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
                     </div>
                 </div>
 
-                <div class="inputContainer">
+                <div class="inputContainer" style="margin-bottom: 30px;">
                     <div>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailSubjectAccountEnabled" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Account aktiviert</label>
+                        <input class="sso-text" id="EmailSubjectAccountEnabled" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
+
                         <label class="inputLabel inputLabelUnfocused" for="EmailTemplateAccountEnabled">Account Aktiviert (Variable: {username}):</label>
                         <textarea class="sso-text" id="EmailTemplateAccountEnabled" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
                     </div>
                 </div>
 
-                <div class="inputContainer">
+                <div class="inputContainer" style="margin-bottom: 30px;">
                     <div>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailSubjectAccountDisabled" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Account deaktiviert</label>
+                        <input class="sso-text" id="EmailSubjectAccountDisabled" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
+
                         <label class="inputLabel inputLabelUnfocused" for="EmailTemplateAccountDisabled">Account Deaktiviert (Variable: {username}):</label>
                         <textarea class="sso-text" id="EmailTemplateAccountDisabled" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
                     </div>

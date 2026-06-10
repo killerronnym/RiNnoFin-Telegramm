@@ -9,6 +9,22 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.26",
+        "changelog": "Newsletter Splitting: E-Mail und Telegram Newsletter können nun komplett getrennt voneinander gesteuert werden. Der /newsletter Befehl im Telegram-Bot zeigt jetzt ein interaktives Menü für beide Kanäle an. Zudem sendet der /rueckblick Befehl neue Medien direkt an den Chat und versendet nun parallel wunderschön formatierte E-Mails.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "221B9CCE13B0695BCB1CE5472889B211",
+        "timestamp": "2026-06-10 23:54:00"
+      },
+      {
+        "version": "1.0.4.25",
+        "changelog": "Das Formular zum Zurücksetzen des Passworts fragt nun zur zusätzlichen Verifikation den Benutzernamen und die E-Mail-Adresse ab. Außerdem wurde eine visuelle Anzeige für die Passwortsicherheit hinzugefügt (mindestens 8 Zeichen, inklusive Sonderzeichen erforderlich).",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.25.zip",
+        "checksum": "160C45A78F6609FB39CF8769A432B12A",
+        "timestamp": "2026-06-10 15:45:00"
+      },
+      {
         "version": "1.0.4.24",
         "changelog": "Verbessertes Account- und Passwort-Management: Tokens werden bei falschen Eingaben nicht mehr sofort verbraucht. Fehler beim Login oder Setup werden detailliert protokolliert. Die Registrierungsseite fragt nun zur Bestätigung die E-Mail-Adresse ab und integriert eine Live-Passwort-Sicherheitsanzeige.",
         "targetAbi": "10.9.0.0",

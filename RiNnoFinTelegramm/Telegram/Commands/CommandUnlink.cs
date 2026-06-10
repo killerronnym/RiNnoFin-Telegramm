@@ -39,7 +39,8 @@ internal class CommandUnlink : ICommandBase
         {
             await botClient.SendMessage(
                 message.Chat.Id,
-                "❌ Diese Gruppe ist mit keiner RiNnoFin-Gruppe verknüpft.",
+                "⚠️ *Fehler:* Diese Telegram-Gruppe ist mit keiner RiNnoFin-Gruppe verknüpft.",
+                parseMode: ParseMode.Markdown,
                 cancellationToken: cancellationToken);
             return;
         }
@@ -51,7 +52,8 @@ internal class CommandUnlink : ICommandBase
 
         await botClient.SendMessage(
             message.Chat.Id,
-            $"✅ Die Verknüpfung der Telegram-Gruppe mit der RiNnoFin-Gruppe '{groupName}' wurde aufgehoben.",
+            $"✅ *Verknüpfung aufgehoben!*\n\nDiese Telegram-Gruppe wurde erfolgreich von der RiNnoFin-Gruppe `{groupName}` getrennt.",
+            parseMode: ParseMode.Markdown,
             cancellationToken: cancellationToken);
     }
 }

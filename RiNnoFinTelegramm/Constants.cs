@@ -13,28 +13,34 @@ public class ExtraPageInfo
 public static class Constants
 {
     internal const string GroupWelcomeMessage =
-        "Willkommen bei RiNnoFin Telegramm! Diese Gruppe ist noch nicht verknüpft.\n\n" +
-        "Ein Administrator kann dies mit dem Befehl /link tun.";
+        "Willkommen bei *RiNnoFin Media*! 🍿\n\n" +
+        "Diese Telegram-Gruppe ist aktuell noch nicht mit unserem System verknüpft.\n" +
+        "Ein Administrator kann die Verknüpfung jederzeit mit dem Befehl `/link` herstellen.";
 
     internal const string PrivateAdminWelcomeMessage =
-        "Willkommen bei RiNnoFin Telegramm! Ich kann dir und deinen Freunden helfen, euch mit eurem Jellyfin-Server über Telegram zu authentifizieren.\n\n" +
-        "Verfügbare Befehle:\n" +
-        "/ping - Prüft die Verbindung zum Bot und zeigt deinen Status\n" +
-        "/passwort <neues_passwort> - Ändert dein persönliches Passwort\n" +
-        "/newsletter - Interaktives Menü für Medien-Benachrichtigungen\n" +
-        "/abonnieren - Abonniert den Newsletter für neue Filme, Serien & Musik\n" +
-        "/deabonnieren - Deaktiviert den Newsletter\n" +
-        "/link - Verknüpft diese Gruppe mit einer Jellyfin-Gruppe (nur für Admins)\n" +
-        "/status - Zeigt Server-Ressourcen (nur für Admins)";
+        "Willkommen bei *RiNnoFin Media*! 🎬🍿\n\n" +
+        "Ich bin dein persönlicher Assistent und helfe dir dabei, deinen Jellyfin-Server direkt über Telegram zu verwalten.\n\n" +
+        "🛠️ *Admin-Befehle:*\n" +
+        "🔹 `/ping` - Verbindungsstatus und Profil prüfen\n" +
+        "🔹 `/passwort <neu>` - Persönliches Passwort ändern\n" +
+        "🔹 `/newsletter` - Interaktives Newsletter-Menü öffnen\n" +
+        "🔹 `/abonnieren` - Benachrichtigungen für neue Medien aktivieren\n" +
+        "🔹 `/deabonnieren` - Benachrichtigungen deaktivieren\n" +
+        "🔹 `/link` - Gruppe mit Jellyfin verknüpfen (nur Admin)\n" +
+        "🔹 `/status` - Aktuelle Server-Ressourcen anzeigen (nur Admin)\n" +
+        "🔹 `/userlist` - Liste aller registrierten Benutzer anzeigen (nur Admin)\n" +
+        "🔹 `/quiz` - Ein Trivia-Quiz starten";
 
     internal const string PrivateUserWelcomeMessage =
-        "Willkommen bei RiNnoFin Telegramm!\n\n" +
-        "Verfügbare Befehle:\n" +
-        "/ping - Prüft die Verbindung zum Bot und zeigt deinen Status\n" +
-        "/passwort <neues_passwort> - Ändert dein persönliches Passwort\n" +
-        "/newsletter - Interaktives Menü für Medien-Benachrichtigungen\n" +
-        "/abonnieren - Abonniert den Newsletter für neue Filme, Serien & Musik\n" +
-        "/deabonnieren - Deaktiviert den Newsletter";
+        "Willkommen bei *RiNnoFin Media*! 🎬🍿\n\n" +
+        "Ich bin dein persönlicher Assistent für dein perfektes Streaming-Erlebnis.\n\n" +
+        "📱 *Verfügbare Befehle:*\n" +
+        "🔹 `/ping` - Verbindungsstatus und Profil prüfen\n" +
+        "🔹 `/passwort <neu>` - Dein persönliches Passwort ändern\n" +
+        "🔹 `/newsletter` - Interaktives Newsletter-Menü öffnen\n" +
+        "🔹 `/abonnieren` - Benachrichtigungen für neue Filme & Serien aktivieren\n" +
+        "🔹 `/deabonnieren` - Benachrichtigungen deaktivieren\n" +
+        "🔹 `/quiz` - Ein kleines Film/Serien-Trivia spielen";
 
     internal const string LinkPrefix = "l:";
 

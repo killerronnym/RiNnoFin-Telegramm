@@ -38,7 +38,7 @@ internal class CommandDeabonnieren : ICommandBase
             return;
         }
 
-        link.SubscribedToNewsletter = false;
+        link.SubscribeTelegramNewsletter = false;
         RiNnoFinPlugin.Instance!.SaveConfiguration(telegramBotService.Config);
 
         await botClient.SendMessage(
