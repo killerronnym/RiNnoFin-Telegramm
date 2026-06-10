@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.6",
+        "changelog": "Wirklicher Fix für 'Unbekannter Fehler': Das vorherige Release enthielt durch einen Build-Fehler nicht die aktualisierte Backend-DLL. Diese Version bringt nun den korrekten Code mit robuster Fehlerbehandlung (inklusive Stacktrace-Reporting falls es noch klemmt) und IUserManager-Constructor-Injection.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "A05704032969DF3E72375F51E2E3A6BE",
+        "timestamp": "2026-06-10 07:27:00"
+      },
+      {
         "version": "1.0.4.5",
         "changelog": "Behebt den 'Unbekannter Fehler' im Dashboard (Benutzerverwaltung) beim Laden der Benutzerliste. Fügt die Anzeige des Ursprungsordners/Bibliothek in Telegram-Benachrichtigungen für neue Serien, Filme und Episoden hinzu.",
         "targetAbi": "10.9.0.0",

@@ -26,17 +26,20 @@ public class RiNnoFinConfigController : ControllerBase
     private readonly RequestService _requestService;
     private readonly TelegramBotClientWrapper _botClientWrapper;
     private readonly ILogger<RiNnoFinConfigController> _logger;
+    private readonly MediaBrowser.Controller.Library.IUserManager _userManager;
 
     public RiNnoFinConfigController(
         RequestService requestService,
         IProviderManager providerManager,
         TelegramBotClientWrapper botClientWrapper,
-        ILogger<RiNnoFinConfigController> _loggerVal)
+        ILogger<RiNnoFinConfigController> _loggerVal,
+        MediaBrowser.Controller.Library.IUserManager userManager)
     {
         _requestService = requestService ?? throw new ArgumentNullException(nameof(requestService));
         _providerManager = providerManager ?? throw new ArgumentNullException(nameof(providerManager));
         _botClientWrapper = botClientWrapper ?? throw new ArgumentNullException(nameof(botClientWrapper));
         _logger = _loggerVal ?? throw new ArgumentNullException(nameof(_loggerVal));
+        _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
     }
 
     [HttpPost(nameof(TestBotToken))]
@@ -273,12 +276,12 @@ public class RiNnoFinConfigController : ControllerBase
 
         [HttpGet("GetUsers")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public ActionResult<IEnumerable<UserDto>> GetUsers([FromServices] MediaBrowser.Controller.Library.IUserManager userManager)
+        public IActionResult GetUsers()
         {
             try
             {
                 var config = RiNnoFinPlugin.Instance?.Configuration;
-                var users = userManager.Users.ToList();
+                var users = _userManager.Users.ToList();
                 var dtos = new List<UserDto>();
 
                 foreach (var u in users)
@@ -286,8 +289,7 @@ public class RiNnoFinConfigController : ControllerBase
                     try
                     {
                         var link = config?.TelegramUserLinks != null ? config.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == u.Id) : null;
-                        // Using null instead of string.Empty for remoteEndpoint to avoid potential parsing issues
-                        var uDto = userManager.GetUserDto(u, null);
+                        var uDto = _userManager.GetUserDto(u, null);
                         dtos.Add(new UserDto
                         {
                             Id = u.Id,
@@ -321,7 +323,7 @@ public class RiNnoFinConfigController : ControllerBase
             catch (Exception ex)
             {
                 PluginLog.Error(ex, "Fehler in GetUsers");
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "GETUSERS_ERR: " + ex.ToString() });
             }
         }
 
