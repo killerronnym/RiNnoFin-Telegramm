@@ -127,26 +127,28 @@ public class RiNnoFinPublicController : ControllerBase
             }
 
             // Speichern der E-Mail im Plugin-Config (damit wir wissen, wem dieser Account gehört)
-            if (config != null)
-            {
-                PluginLog.Info("[PublicAPI] Verknüpfe E-Mail-Adresse in Plugin-Konfiguration...");
-                if (config.TelegramUserLinks == null) config.TelegramUserLinks = new List<TelegramUserLink>();
-                var existingLink = config.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == user.Id);
-                if (existingLink != null)
+                if (config != null)
                 {
-                    existingLink.EmailAddress = email;
-                }
-                else
-                {
-                    config.TelegramUserLinks.Add(new TelegramUserLink
+                    PluginLog.Info("[PublicAPI] Verknüpfe E-Mail-Adresse in Plugin-Konfiguration...");
+                    if (config.TelegramUserLinks == null) config.TelegramUserLinks = new List<TelegramUserLink>();
+                    var existingLink = config.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == user.Id);
+                    if (existingLink != null)
                     {
-                        JellyfinUserId = user.Id,
-                        JellyfinUsername = user.Username,
-                        EmailAddress = email
-                    });
-                }
-                RiNnoFinPlugin.Instance?.UpdateConfiguration(config);
-                PluginLog.Info("[PublicAPI] E-Mail-Adresse erfolgreich verknüpft.");
+                        existingLink.EmailAddress = email;
+                        existingLink.SubscribedToNewsletter = request.SubscribeNewsletter;
+                    }
+                    else
+                    {
+                        config.TelegramUserLinks.Add(new TelegramUserLink
+                        {
+                            JellyfinUserId = user.Id,
+                            JellyfinUsername = user.Username,
+                            EmailAddress = email,
+                            SubscribedToNewsletter = request.SubscribeNewsletter
+                        });
+                    }
+                    RiNnoFinPlugin.Instance?.UpdateConfiguration(config);
+                    PluginLog.Info("[PublicAPI] E-Mail-Adresse erfolgreich verknüpft.");
 
                 // Send Welcome Email
                 string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplateWelcome)
@@ -182,7 +184,10 @@ public class RiNnoFinPublicController : ControllerBase
 
             PluginLog.Info($"[PublicAPI] Registrierung für Benutzer '{request.Username}' erfolgreich abgeschlossen.");
             Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.Commands.InviteTokenManager.RemoveInvite(request.Token);
-            return Ok(new { message = "Account erfolgreich erstellt!" });
+            
+            var botInfo = RiNnoFinPlugin.Instance?.Configuration;
+            var botUsername = botInfo?.BotUsername;
+            return Ok(new { message = "Account erfolgreich erstellt!", botUsername = botUsername });
         }
         catch (Exception ex)
         {

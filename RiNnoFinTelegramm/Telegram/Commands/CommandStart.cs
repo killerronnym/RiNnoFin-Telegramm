@@ -49,10 +49,13 @@ internal class CommandStart : ICommandBase
 
             if (link == null)
             {
-                welcomeText = "âŒ Dein Telegram-Konto ist noch *nicht* mit einem Jellyfin-Konto verknüpft!\nUm alle Befehle nutzen zu können, verknüpfe bitte zuerst dein Konto:\n\n" + welcomeText;
+                welcomeText = "❌ Dein Telegram-Konto ist noch *nicht* mit einem Jellyfin-Konto verknüpft!\nUm alle Befehle nutzen zu können, verknüpfe bitte zuerst dein Konto:\n\n" + welcomeText;
                 
                 var baseUrl = telegramBotService.Config.LoginBaseUrl?.TrimEnd('/');
                 var ssoUrl = string.IsNullOrEmpty(baseUrl) ? string.Empty : $"{baseUrl}/sso/Telegram";
+                
+                var buttons = new System.Collections.Generic.List<global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton[]>();
+                
                 if (!string.IsNullOrEmpty(ssoUrl))
                 {
                     var loginUrl = new global::Telegram.Bot.Types.LoginUrl
@@ -60,10 +63,12 @@ internal class CommandStart : ICommandBase
                         Url = ssoUrl,
                         RequestWriteAccess = true
                     };
-                    replyMarkup = new global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(
-                        global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton.WithLoginUrl("🔗 Mit Jellyfin verknüpfen", loginUrl)
-                    );
+                    buttons.Add(new[] { global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton.WithLoginUrl("🔗 Im Browser verknüpfen", loginUrl) });
                 }
+                
+                buttons.Add(new[] { global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton.WithCallbackData("🔑 Im Chat verknüpfen", "verbinden_chat") });
+                
+                replyMarkup = new global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(buttons);
             }
             else
             {

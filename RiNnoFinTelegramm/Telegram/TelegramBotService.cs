@@ -9,6 +9,9 @@ using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Microsoft.Extensions.DependencyInjection;
+using MediaBrowser.Controller.Library;
+using MediaBrowser.Model.Cryptography;
 
 namespace Jellyfin.Plugin.RiNnoFinTelegramm.Telegram;
 
@@ -312,6 +315,25 @@ internal sealed class TelegramBotService : ITelegramBotService
 
         Logger.LogDebug("Bot Update empfangen Typ: {UpdateType} von UserId: '{FromId}' Text: '{MsgText}'", update.Type, message.From?.Id, message.Text);
 
+        if (message.ReplyToMessage != null)
+        {
+            var replyText = message.ReplyToMessage.Text ?? "";
+            
+            // 1. E-Mail-Adresse für die Verknüpfung eingegeben
+            if (replyText.Contains("Bitte gib deine registrierte E-Mail-Adresse ein"))
+            {
+                await HandleVerbindenStep1(message, cancellationToken);
+                return;
+            }
+            
+            // 2. Jellyfin-Passwort für die Verknüpfung eingegeben
+            if (replyText.Contains("Bitte gib nun dein Jellyfin-Passwort für diesen Account ein"))
+            {
+                await HandleVerbindenStep2(message, replyText, cancellationToken);
+                return;
+            }
+        }
+
         string? commandText = null;
 
         if (message.Text!.StartsWith('/'))
@@ -337,6 +359,130 @@ internal sealed class TelegramBotService : ITelegramBotService
         await FindAndExecuteCommand(message, commandText, cancellationToken);
     }
 
+    private async Task HandleVerbindenStep1(Message message, CancellationToken cancellationToken)
+    {
+        var botClient = BotClientWrapper.Client;
+        if (botClient == null) return;
+
+        var email = message.Text?.Trim();
+        if (string.IsNullOrWhiteSpace(email)) return;
+
+        // E-Mail-Adresse im Config.TelegramUserLinks suchen
+        var link = Config.TelegramUserLinks?.FirstOrDefault(l => string.Equals(l.EmailAddress, email, StringComparison.OrdinalIgnoreCase));
+        if (link == null)
+        {
+            await botClient.SendMessage(
+                message.Chat.Id,
+                "❌ Unter dieser E-Mail-Adresse wurde kein Jellyfin-Account gefunden. Bitte stelle sicher, dass du den Account bereits erstellt hast oder wende dich an einen Administrator.",
+                cancellationToken: cancellationToken);
+            return;
+        }
+
+        // Passwort abfragen ( stateless: E-Mail in der Nachricht codieren )
+        await botClient.SendMessage(
+            message.Chat.Id,
+            $"🔑 *E-Mail verifiziert: {email}*\n\nBitte gib nun dein Jellyfin-Passwort für diesen Account ein (antworte direkt auf diese Nachricht):",
+            parseMode: ParseMode.Markdown,
+            replyMarkup: new global::Telegram.Bot.Types.ReplyMarkups.ForceReplyMarkup { Selective = true },
+            cancellationToken: cancellationToken);
+    }
+
+    private async Task HandleVerbindenStep2(Message message, string replyText, CancellationToken cancellationToken)
+    {
+        var botClient = BotClientWrapper.Client;
+        if (botClient == null) return;
+
+        var password = message.Text?.Trim();
+        if (string.IsNullOrWhiteSpace(password)) return;
+
+        // Email aus der vorherigen Nachricht parsen
+        var match = System.Text.RegularExpressions.Regex.Match(replyText, @"E-Mail verifiziert:\s*([^\s\*]+)");
+        if (!match.Success)
+        {
+            await botClient.SendMessage(
+                message.Chat.Id,
+                "❌ Fehler beim Verarbeiten der E-Mail-Adresse. Bitte starte den Vorgang erneut mit /verbinden.",
+                cancellationToken: cancellationToken);
+            return;
+        }
+
+        var email = match.Groups[1].Value.Trim();
+
+        // Passworteingabe-Nachricht aus Sicherheitsgründen löschen
+        try
+        {
+            await botClient.DeleteMessage(message.Chat.Id, message.MessageId, cancellationToken);
+            // Auch die Prompt-Nachricht löschen
+            if (message.ReplyToMessage != null)
+            {
+                await botClient.DeleteMessage(message.Chat.Id, message.ReplyToMessage.MessageId, cancellationToken);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Konnte Sicherheits-Passwortnachricht nicht löschen.");
+        }
+
+        var link = Config.TelegramUserLinks?.FirstOrDefault(l => string.Equals(l.EmailAddress, email, StringComparison.OrdinalIgnoreCase));
+        if (link == null)
+        {
+            await botClient.SendMessage(
+                message.Chat.Id,
+                "❌ Account-Verknüpfungsfehler. Bitte starte den Vorgang erneut mit /verbinden.",
+                cancellationToken: cancellationToken);
+            return;
+        }
+
+        try
+        {
+            var userManager = ServiceProvider.GetRequiredService<IUserManager>();
+            var cryptoProvider = ServiceProvider.GetRequiredService<ICryptoProvider>();
+
+            var user = userManager.GetUserById(link.JellyfinUserId);
+            if (user == null)
+            {
+                await botClient.SendMessage(
+                    message.Chat.Id,
+                    "❌ Der Jellyfin-Benutzer wurde nicht gefunden. Bitte wende dich an einen Administrator.",
+                    cancellationToken: cancellationToken);
+                return;
+            }
+
+            var passwordHash = PasswordHash.Parse(user.Password);
+            bool isValid = cryptoProvider.Verify(passwordHash, password);
+
+            if (isValid)
+            {
+                // Verknüpfen!
+                link.TelegramUserId = message.From?.Id ?? 0;
+                link.TelegramUsername = message.From?.Username ?? string.Empty;
+
+                RiNnoFinPlugin.Instance!.SaveConfiguration(Config);
+
+                await botClient.SendMessage(
+                    message.Chat.Id,
+                    $"✅ Erfolg! Dein Telegram-Konto wurde erfolgreich mit dem Jellyfin-Account *{link.JellyfinUsername}* verknüpft.",
+                    parseMode: ParseMode.Markdown,
+                    cancellationToken: cancellationToken);
+            }
+            else
+            {
+                await botClient.SendMessage(
+                    message.Chat.Id,
+                    "❌ Falsches Passwort. Bitte starte die Verknüpfung erneut mit /verbinden.",
+                    cancellationToken: cancellationToken);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Fehler beim Verifizieren des Passports für {Email}", email);
+            await botClient.SendMessage(
+                message.Chat.Id,
+                "❌ Interner Fehler bei der Passwortüberprüfung. Bitte wende dich an einen Administrator.",
+                cancellationToken: cancellationToken);
+        }
+    }
+
     private async Task HandleCallbackQuery(Update update, CancellationToken cancellationToken)
     {
         var callbackQuery = update.CallbackQuery!;
@@ -346,7 +492,21 @@ internal sealed class TelegramBotService : ITelegramBotService
         try
         {
             var data = callbackQuery.Data ?? string.Empty;
-            
+
+            if (data == "verbinden_chat")
+            {
+                await botClient.AnswerCallbackQuery(callbackQuery.Id, cancellationToken: cancellationToken);
+                var fakeMsg = new Message
+                {
+                    Chat = callbackQuery.Message!.Chat,
+                    From = callbackQuery.From,
+                    Text = "/verbinden"
+                };
+                var cmd = new CommandVerbinden();
+                await cmd.Execute(this, fakeMsg, false, cancellationToken);
+                return;
+            }
+
             // Check if it is a newsletter setting update
             if (data.StartsWith("newsletter_"))
             {
@@ -517,6 +677,7 @@ internal sealed class TelegramBotService : ITelegramBotService
             "unlink" => "Gruppe entkoppeln (nur Admins)",
             "userlist" => "Mitglieder der Whitelist anzeigen (nur Admins)",
             "passwort" => "Dein Jellyfin-Passwort ändern",
+            "verbinden" => "Dein Jellyfin-Konto mit Telegram verknüpfen",
             "status" => "Server-Statistiken anzeigen (nur Admins)",
             "quiz" => "Quizfrage zu Filmen/Serien starten (nur Admins)",
             "neuerbenutzer" => "Neuen Benutzer einladen (nur Admins)",

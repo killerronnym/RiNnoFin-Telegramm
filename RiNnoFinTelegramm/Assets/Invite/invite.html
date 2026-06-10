@@ -88,6 +88,21 @@
                                 <input class="emby-input" type="password" id="password_confirm" required autocomplete="new-password">
                             </div>
 
+                            <!-- Checkboxes -->
+                            <div class="inputContainer" style="margin-bottom: 1em;">
+                                <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 0.95em; color: rgba(255,255,255,0.8); line-height: 1.5;">
+                                    <input type="checkbox" id="tosAccepted" required style="margin-top: 3px; accent-color: #00a4dc; flex-shrink: 0;">
+                                    <span>Ich akzeptiere die <a href="#" onclick="alert('Nutzungsbedingungen: Dieses System steht nur eingeladenen Benutzern zur Verfügung. Eine missbräuchliche Nutzung führt zur Sperrung des Accounts.'); return false;" style="color: #00a4dc;">Nutzungsbedingungen</a> von RiNnoFin. *</span>
+                                </label>
+                            </div>
+
+                            <div class="inputContainer" style="margin-bottom: 2em;">
+                                <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 0.95em; color: rgba(255,255,255,0.8); line-height: 1.5;">
+                                    <input type="checkbox" id="newsletterSubscribe" style="margin-top: 3px; accent-color: #00a4dc; flex-shrink: 0;">
+                                    <span>Ich möchte den <strong>RiNnoFin Newsletter</strong> abonnieren und per E-Mail über neue Filme, Serien und Updates informiert werden. (optional)</span>
+                                </label>
+                            </div>
+
                             <button class="raised submit emby-button block" id="submitBtn" is="emby-button" type="submit">
                                 <span>Account erstellen</span>
                             </button>
@@ -96,9 +111,15 @@
                     </div>
 
                     <div class="spacedContent padded-left padded-right success-state" id="success-container">
-                        <h1>Account erfolgreich erstellt!</h1>
-                        <p style="font-size: 1.1em; margin-bottom: 2em; line-height: 1.5;">Dein Zugang wurde freigeschaltet. Du kannst dich jetzt in der App oder im Web einloggen.</p>
-                        <button class="raised submit emby-button block" is="emby-button" onclick="window.location.replace('/web/index.html')" type="button">
+                        <h1>✅ Account erfolgreich erstellt!</h1>
+                        <p style="font-size: 1.1em; margin-bottom: 1.5em; line-height: 1.5;">Dein Zugang wurde freigeschaltet. Du kannst dich jetzt in der App oder im Web einloggen.</p>
+
+                        <div id="telegramConnectBox" style="background: rgba(0,164,220,0.1); border: 1px solid rgba(0,164,220,0.3); border-radius: 8px; padding: 1.2em; margin-bottom: 1.5em; text-align: center; display: none;">
+                            <p style="margin: 0 0 0.8em 0; font-size: 1em; color: rgba(255,255,255,0.9);">💬 <strong>Telegram verbinden</strong> — Erhalte Benachrichtigungen direkt auf dein Smartphone!</p>
+                            <a id="telegramConnectBtn" href="#" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #0088cc, #00a4dc); color: #fff; padding: 10px 22px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 0.95em;">🔗 Jetzt mit Telegram verbinden</a>
+                        </div>
+
+                        <button class="raised submit emby-button block" is="emby-button" onclick="window.location.replace('/web/index.html')" type="button" style="margin-top: 0.5em;">
                             <span>Jetzt einloggen</span>
                         </button>
                     </div>
@@ -186,8 +207,16 @@
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         const passwordConfirm = document.getElementById('password_confirm').value;
+        const tosAccepted = document.getElementById('tosAccepted').checked;
+        const newsletterSubscribe = document.getElementById('newsletterSubscribe').checked;
         const errorMsg = document.getElementById('errorMsg');
         const submitBtn = document.getElementById('submitBtn');
+
+        if (!tosAccepted) {
+            errorMsg.innerText = "Du musst die Nutzungsbedingungen akzeptieren, um fortzufahren.";
+            errorMsg.style.display = 'block';
+            return;
+        }
 
         if (password !== passwordConfirm) {
             errorMsg.innerText = "Die Passwörter stimmen nicht überein.";
@@ -217,13 +246,23 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ Token: token, Username: username, Email: email, Password: password })
+                body: JSON.stringify({ Token: token, Username: username, Email: email, Password: password, SubscribeNewsletter: newsletterSubscribe })
             });
 
             if (response.ok) {
+                const result = await response.json().catch(() => ({}));
                 document.getElementById('form-container').style.display = 'none';
                 document.getElementById('formSubtitle').style.display = 'none';
                 document.getElementById('success-container').style.display = 'block';
+
+                // Show the Telegram connect box if a bot username was returned
+                const botUsername = result.botUsername;
+                if (botUsername) {
+                    const telegramBox = document.getElementById('telegramConnectBox');
+                    const telegramBtn = document.getElementById('telegramConnectBtn');
+                    telegramBtn.href = `https://t.me/${botUsername}?start=verbinden`;
+                    telegramBox.style.display = 'block';
+                }
             } else {
                 let errorText = "Fehler bei der Erstellung des Accounts.";
                 const text = await response.text();
