@@ -263,9 +263,9 @@ public class RiNnoFinPublicController : ControllerBase
         var emailService = new EmailService(_logger);
 
         PluginLog.Info($"[PublicAPI] ResetPassword aufgerufen.");
-        if (string.IsNullOrWhiteSpace(request.Token) || string.IsNullOrWhiteSpace(request.NewPassword))
+        if (string.IsNullOrWhiteSpace(request.Token) || string.IsNullOrWhiteSpace(request.NewPassword) || string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Email))
         {
-            return BadRequest(new { message = "Alle Felder müssen ausgefüllt sein." });
+            return BadRequest(new { message = "Alle Felder müssen ausgefüllt sein (Token, Passwort, Benutzername, E-Mail)." });
         }
 
         if (!ResetTokenManager.TryGetAndRemoveResetToken(request.Token, out var userId))
@@ -281,13 +281,23 @@ public class RiNnoFinPublicController : ControllerBase
                 return BadRequest(new { message = "Benutzer nicht gefunden." });
             }
 
+            if (!string.Equals(user.Username, request.Username, StringComparison.OrdinalIgnoreCase))
+            {
+                return BadRequest(new { message = "Der eingegebene Benutzername stimmt nicht mit dem Account überein." });
+            }
+
+            var config = RiNnoFinPlugin.Instance?.Configuration;
+            var userLink = config?.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == userId);
+            if (userLink == null || !string.Equals(userLink.EmailAddress, request.Email, StringComparison.OrdinalIgnoreCase))
+            {
+                return BadRequest(new { message = "Die eingegebene E-Mail-Adresse stimmt nicht mit dem Account überein." });
+            }
+
             user.Password = cryptoProvider.CreatePasswordHash(request.NewPassword).ToString();
             await userManager.UpdateUserAsync(user).ConfigureAwait(false);
 
-            var config = RiNnoFinPlugin.Instance?.Configuration;
             if (config != null)
             {
-                var userLink = config.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == userId);
                 if (userLink != null && !string.IsNullOrEmpty(userLink.EmailAddress))
                 {
                     string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplatePasswordChanged)

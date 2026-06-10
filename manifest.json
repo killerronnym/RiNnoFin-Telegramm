@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.22",
+        "changelog": "Das Formular zum Zurücksetzen des Passworts fragt nun zur zusätzlichen Verifikation den Benutzernamen und die E-Mail-Adresse ab. Außerdem wurde eine visuelle Anzeige für die Passwortsicherheit hinzugefügt (mindestens 8 Zeichen, inklusive Sonderzeichen erforderlich).",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.22.zip",
+        "checksum": "160C45A78F6609FB39CF8769A432B12A",
+        "timestamp": "2026-06-10 15:15:00"
+      },
+      {
         "version": "1.0.4.21",
         "changelog": "Behebt das Problem (Fehler 404/400), dass man das Passwort beim Zurücksetzen oder der Neuanmeldung nicht abspeichern konnte. Außerdem wurde eine E-Mail-Login-Funktion hinzugefügt, mit der du dich in Jellyfin jetzt sowohl mit Benutzernamen als auch mit der verknüpften E-Mail-Adresse anmelden kannst. In der Willkommens-Mail wird der Benutzername nun explizit erwähnt.",
         "targetAbi": "10.9.0.0",
