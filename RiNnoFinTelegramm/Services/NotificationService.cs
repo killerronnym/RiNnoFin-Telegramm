@@ -225,12 +225,17 @@ public class NotificationService : IDisposable
         var yearStr = firstEp.ProductionYear.HasValue ? $" ({firstEp.ProductionYear.Value})" : string.Empty;
         var message = new StringBuilder();
 
+        var libraryName = seriesItem?.GetParents().LastOrDefault()?.Name 
+            ?? firstEp.GetParents().LastOrDefault()?.Name;
+
         if (episodes.Count == 1 && !isNewSeries)
         {
             // ── Single new episode ──────────────────────────────────────────
             var ep = episodes[0];
             var code = $"S{ep.ParentIndexNumber ?? 0:00}E{ep.IndexNumber ?? 0:00}";
             message.AppendLine($"📺 *Neue Episode:* {seriesTitleLink} \\- {TelegramMarkdown.Escape(code)} \\- {TelegramMarkdown.Escape(ep.Name)}");
+            if (!string.IsNullOrEmpty(libraryName))
+                message.AppendLine($"📁 *Ordner:* {TelegramMarkdown.Escape(libraryName)}");
 
             if (!string.IsNullOrEmpty(ep.Overview))
             {
@@ -244,6 +249,8 @@ public class NotificationService : IDisposable
             // ── Grouped: new series or multiple episodes ────────────────────
             string header = isNewSeries ? "Neue Serie" : "Neue Episoden";
             message.AppendLine($"📺 *{header}:* {seriesTitleLink}{TelegramMarkdown.Escape(yearStr)}");
+            if (!string.IsNullOrEmpty(libraryName))
+                message.AppendLine($"📁 *Ordner:* {TelegramMarkdown.Escape(libraryName)}");
 
             var bySeason = episodes
                 .GroupBy(ep => ep.ParentIndexNumber ?? 0)
@@ -384,6 +391,10 @@ public class NotificationService : IDisposable
             message.AppendLine($"🎵 *Neue Musik:* {titleLink}");
         else
             message.AppendLine($"🎉 *Neues Element:* {titleLink}");
+
+        var libraryName = item.GetParents().LastOrDefault()?.Name;
+        if (!string.IsNullOrEmpty(libraryName))
+            message.AppendLine($"📁 *Ordner:* {TelegramMarkdown.Escape(libraryName)}");
 
         if (isTimeout)
             message.AppendLine("_(Metadaten unvollständig)_");

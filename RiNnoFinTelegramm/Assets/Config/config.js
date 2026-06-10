@@ -137,7 +137,7 @@ const tgConfigPage = {
             }
             const tbody = page.querySelector("#UserListTbody");
             if(tbody) {
-                const msg = err?.responseJSON?.message || err?.responseText || "Unbekannter Fehler";
+                const msg = err?.responseJSON?.message || err?.responseText || (err && err.message ? err.message : "Unbekannter Fehler");
                 tbody.innerHTML = `<tr><td colspan="6" style="padding:10px;text-align:center;color:#ef4444;">Fehler beim Laden: ${msg}</td></tr>`;
             }
         });
@@ -186,16 +186,23 @@ const tgConfigPage = {
         }
 
         users.forEach(user => {
+            const userId = user.Id || user.id;
+            const userName = user.Name || user.name || user.Username || user.username || 'Unbekannt';
+            const isDisabled = user.IsDisabled !== undefined ? user.IsDisabled : user.isDisabled;
+            const email = user.Email || user.email || '-';
+            const hasTelegram = user.HasTelegram !== undefined ? user.HasTelegram : user.hasTelegram;
+            const lastActivity = user.LastActivityDate || user.lastActivityDate;
+
             if(profileSelect) {
                 const opt = document.createElement("option");
-                opt.value = user.Id;
-                opt.textContent = user.Name || user.Username;
+                opt.value = userId;
+                opt.textContent = userName;
                 profileSelect.appendChild(opt);
             }
             if(defaultProfileSelect) {
                 const opt = document.createElement("option");
-                opt.value = user.Id;
-                opt.textContent = user.Name || user.Username;
+                opt.value = userId;
+                opt.textContent = userName;
                 defaultProfileSelect.appendChild(opt);
             }
 
@@ -204,28 +211,28 @@ const tgConfigPage = {
             
             const checkboxTd = document.createElement("td");
             checkboxTd.style.padding = "10px";
-            checkboxTd.innerHTML = `<input type="checkbox" class="user-checkbox emby-checkbox" data-userid="${user.Id}" is="emby-checkbox"/>`;
+            checkboxTd.innerHTML = `<input type="checkbox" class="user-checkbox emby-checkbox" data-userid="${userId}" is="emby-checkbox"/>`;
             
             const nameTd = document.createElement("td");
             nameTd.style.padding = "10px";
-            nameTd.textContent = user.Name || user.Username || 'Unbekannt';
+            nameTd.textContent = userName;
 
             const statusTd = document.createElement("td");
             statusTd.style.padding = "10px";
-            statusTd.textContent = user.IsDisabled ? 'Deaktiviert' : 'Aktiv';
-            if(user.IsDisabled) statusTd.style.color = '#ef4444';
+            statusTd.textContent = isDisabled ? 'Deaktiviert' : 'Aktiv';
+            if(isDisabled) statusTd.style.color = '#ef4444';
 
             const emailTd = document.createElement("td");
             emailTd.style.padding = "10px";
-            emailTd.textContent = user.Email || '-'; 
+            emailTd.textContent = email; 
 
             const telegramTd = document.createElement("td");
             telegramTd.style.padding = "10px";
-            telegramTd.textContent = user.HasTelegram ? 'Verbunden' : 'Nein';
+            telegramTd.textContent = hasTelegram ? 'Verbunden' : 'Nein';
 
             const lastAccessTd = document.createElement("td");
             lastAccessTd.style.padding = "10px";
-            lastAccessTd.textContent = user.LastActivityDate ? new Date(user.LastActivityDate).toLocaleString('de-DE') : 'Niemals';
+            lastAccessTd.textContent = lastActivity ? new Date(lastActivity).toLocaleString('de-DE') : 'Niemals';
 
             tr.appendChild(checkboxTd);
             tr.appendChild(nameTd);

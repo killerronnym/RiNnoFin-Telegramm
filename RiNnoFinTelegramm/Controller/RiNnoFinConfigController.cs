@@ -18,7 +18,7 @@ using Telegram.Bot;
 namespace Jellyfin.Plugin.RiNnoFinTelegramm.Controller;
 
 [ApiController]
-[Route("api/{Controller}")]
+[Route("api/[controller]")]
 [Authorize(Policy = "RequiresElevation")]
 public class RiNnoFinConfigController : ControllerBase
 {
@@ -286,7 +286,8 @@ public class RiNnoFinConfigController : ControllerBase
                     try
                     {
                         var link = config?.TelegramUserLinks != null ? config.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == u.Id) : null;
-                        var uDto = userManager.GetUserDto(u, string.Empty);
+                        // Using null instead of string.Empty for remoteEndpoint to avoid potential parsing issues
+                        var uDto = userManager.GetUserDto(u, null);
                         dtos.Add(new UserDto
                         {
                             Id = u.Id,
@@ -301,10 +302,21 @@ public class RiNnoFinConfigController : ControllerBase
                     catch (Exception innerEx)
                     {
                         PluginLog.Error(innerEx, $"Fehler beim Verarbeiten des Benutzers '{u?.Username ?? "Unbekannt"}'");
+                        // Fallback object so we at least see the user
+                        dtos.Add(new UserDto
+                        {
+                            Id = u.Id,
+                            Username = u.Username ?? "Fehler",
+                            Email = "Fehler beim Laden",
+                            HasTelegram = false,
+                            IsDisabled = false,
+                            IsAdmin = false,
+                            LastActivityDate = null
+                        });
                     }
                 }
 
-                return Ok(dtos.OrderBy(d => d.Username));
+                return Ok(dtos.OrderBy(d => d.Username).ToList());
             }
             catch (Exception ex)
             {

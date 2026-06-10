@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.5",
+        "changelog": "Behebt den 'Unbekannter Fehler' im Dashboard (Benutzerverwaltung) beim Laden der Benutzerliste. Fügt die Anzeige des Ursprungsordners/Bibliothek in Telegram-Benachrichtigungen für neue Serien, Filme und Episoden hinzu.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "EDDA04CE6DE17E2409083E34AE265209",
+        "timestamp": "2026-06-10 07:15:00"
+      },
+      {
         "version": "1.0.4.4",
         "changelog": "Feature: Globales Standard-Profil und Theme-Auswahl für die Registrierungsseite hinzugefügt. Bugfix: Profil-Kloning funktioniert jetzt korrekt, sodass neue Benutzer sowohl Policy als auch UserConfiguration erhalten und direkt aktiviert werden.",
         "targetAbi": "10.9.0.0",
