@@ -12,6 +12,7 @@ using MediaBrowser.Controller.Providers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 
@@ -82,16 +83,18 @@ public class RiNnoFinConfigController : ControllerBase
 
     [HttpGet("GetRequests")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<MediaRequest>>> GetRequests([FromServices] RequestService requestService, CancellationToken cancellationToken)
+    public async Task<ActionResult<IReadOnlyList<MediaRequest>>> GetRequests(CancellationToken cancellationToken)
     {
+        var requestService = (RequestService)HttpContext.RequestServices.GetService(typeof(RequestService));
         var requests = await requestService.GetRequestsAsync(cancellationToken).ConfigureAwait(false);
         return Ok(requests);
     }
 
     [HttpPost("SetRequests")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult> SetRequests([FromServices] RequestService requestService, [FromBody] List<MediaRequest> requests, CancellationToken cancellationToken)
+    public async Task<ActionResult> SetRequests([FromBody] List<MediaRequest> requests, CancellationToken cancellationToken)
     {
+        var requestService = (RequestService)HttpContext.RequestServices.GetService(typeof(RequestService));
         await requestService.SetRequestsAsync(requests, cancellationToken).ConfigureAwait(false);
         return Ok();
     }
@@ -99,8 +102,10 @@ public class RiNnoFinConfigController : ControllerBase
     [HttpPost("AddRequest")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<RequestAddResult>> AddRequest([FromServices] RequestService requestService, [FromServices] IProviderManager providerManager, [FromBody] MediaRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<RequestAddResult>> AddRequest([FromBody] MediaRequest request, CancellationToken cancellationToken)
     {
+        var requestService = (RequestService)HttpContext.RequestServices.GetService(typeof(RequestService));
+        var providerManager = (IProviderManager)HttpContext.RequestServices.GetService(typeof(IProviderManager));
         if (string.IsNullOrWhiteSpace(request.ImdbId))
         {
             return BadRequest("ImdbId is required.");
@@ -125,8 +130,9 @@ public class RiNnoFinConfigController : ControllerBase
     [HttpPost("RemoveRequest")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult> RemoveRequest([FromServices] RequestService requestService, [FromQuery] string imdbId, CancellationToken cancellationToken)
+    public async Task<ActionResult> RemoveRequest([FromQuery] string imdbId, CancellationToken cancellationToken)
     {
+        var requestService = (RequestService)HttpContext.RequestServices.GetService(typeof(RequestService));
         if (string.IsNullOrWhiteSpace(imdbId))
             return BadRequest("ImdbId is required.");
 
@@ -138,8 +144,9 @@ public class RiNnoFinConfigController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> TriggerQuiz([FromServices] TelegramBotClientWrapper botClientWrapper, string groupName, CancellationToken cancellationToken)
+    public async Task<IActionResult> TriggerQuiz(string groupName, CancellationToken cancellationToken)
     {
+        var botClientWrapper = (TelegramBotClientWrapper)HttpContext.RequestServices.GetService(typeof(TelegramBotClientWrapper));
         var config = RiNnoFinPlugin.Instance?.Configuration;
         if (config == null)
         {
@@ -241,8 +248,9 @@ public class RiNnoFinConfigController : ControllerBase
 
         [HttpGet("GetUsers")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public IActionResult GetUsers([FromServices] MediaBrowser.Controller.Library.IUserManager userManager)
+        public IActionResult GetUsers()
         {
+            var userManager = (MediaBrowser.Controller.Library.IUserManager)HttpContext.RequestServices.GetService(typeof(MediaBrowser.Controller.Library.IUserManager));
             try
             {
                 var config = RiNnoFinPlugin.Instance?.Configuration;
@@ -300,8 +308,9 @@ public class RiNnoFinConfigController : ControllerBase
 
         [HttpPost("AdminCreateInvite")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult> AdminCreateInvite([FromServices] MediaBrowser.Controller.Library.IUserManager userManager, [FromBody] AdminCreateInviteRequest request)
+        public async Task<ActionResult> AdminCreateInvite([FromBody] AdminCreateInviteRequest request)
         {
+            var userManager = (MediaBrowser.Controller.Library.IUserManager)HttpContext.RequestServices.GetService(typeof(MediaBrowser.Controller.Library.IUserManager));
             if (string.IsNullOrWhiteSpace(request.Email))
                 return BadRequest(new { message = "E-Mail darf nicht leer sein." });
 
@@ -402,8 +411,9 @@ public class RiNnoFinConfigController : ControllerBase
         }
 
         [HttpPost("AdminEnableUser")]
-        public async Task<ActionResult> AdminEnableUser([FromServices] MediaBrowser.Controller.Library.IUserManager userManager, [FromBody] List<Guid> userIds)
+        public async Task<ActionResult> AdminEnableUser([FromBody] List<Guid> userIds)
         {
+            var userManager = (MediaBrowser.Controller.Library.IUserManager)HttpContext.RequestServices.GetService(typeof(MediaBrowser.Controller.Library.IUserManager));
             foreach (var id in userIds)
             {
                 var user = userManager.GetUserById(id);
@@ -418,8 +428,9 @@ public class RiNnoFinConfigController : ControllerBase
         }
 
         [HttpPost("AdminDisableUser")]
-        public async Task<ActionResult> AdminDisableUser([FromServices] MediaBrowser.Controller.Library.IUserManager userManager, [FromBody] List<Guid> userIds)
+        public async Task<ActionResult> AdminDisableUser([FromBody] List<Guid> userIds)
         {
+            var userManager = (MediaBrowser.Controller.Library.IUserManager)HttpContext.RequestServices.GetService(typeof(MediaBrowser.Controller.Library.IUserManager));
             foreach (var id in userIds)
             {
                 var user = userManager.GetUserById(id);
@@ -434,8 +445,9 @@ public class RiNnoFinConfigController : ControllerBase
         }
 
         [HttpPost("AdminDeleteUser")]
-        public async Task<ActionResult> AdminDeleteUser([FromServices] MediaBrowser.Controller.Library.IUserManager userManager, [FromBody] List<Guid> userIds)
+        public async Task<ActionResult> AdminDeleteUser([FromBody] List<Guid> userIds)
         {
+            var userManager = (MediaBrowser.Controller.Library.IUserManager)HttpContext.RequestServices.GetService(typeof(MediaBrowser.Controller.Library.IUserManager));
             foreach (var id in userIds)
             {
                 var user = userManager.GetUserById(id);
@@ -448,8 +460,9 @@ public class RiNnoFinConfigController : ControllerBase
         }
 
         [HttpPost("AdminSendPasswordReset")]
-        public async Task<ActionResult> AdminSendPasswordReset([FromServices] MediaBrowser.Controller.Library.IUserManager userManager, [FromBody] List<Guid> userIds)
+        public async Task<ActionResult> AdminSendPasswordReset([FromBody] List<Guid> userIds)
         {
+            var userManager = (MediaBrowser.Controller.Library.IUserManager)HttpContext.RequestServices.GetService(typeof(MediaBrowser.Controller.Library.IUserManager));
             var config = RiNnoFinPlugin.Instance?.Configuration;
             if (config == null || !config.EnableEmail)
                 return BadRequest(new { message = "E-Mail-Versand ist nicht aktiviert." });
@@ -616,3 +629,4 @@ public static class ResetTokenManager
         return true;
     }
 }
+

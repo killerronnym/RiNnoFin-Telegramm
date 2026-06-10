@@ -9,6 +9,7 @@ using Jellyfin.Plugin.RiNnoFinTelegramm.Telegram;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.RiNnoFinTelegramm.Controller;
@@ -29,12 +30,13 @@ public class RiNnoFinPublicController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> AcceptInvite(
-        [FromServices] MediaBrowser.Controller.Library.IUserManager userManager,
-        [FromServices] MediaBrowser.Model.Cryptography.ICryptoProvider cryptoProvider,
-        [FromServices] EmailService emailService,
         [FromBody] AcceptInviteRequest request,
         CancellationToken cancellationToken)
     {
+        var userManager = (MediaBrowser.Controller.Library.IUserManager)HttpContext.RequestServices.GetService(typeof(MediaBrowser.Controller.Library.IUserManager));
+        var cryptoProvider = (MediaBrowser.Model.Cryptography.ICryptoProvider)HttpContext.RequestServices.GetService(typeof(MediaBrowser.Model.Cryptography.ICryptoProvider));
+        var emailService = (EmailService)HttpContext.RequestServices.GetService(typeof(EmailService));
+
         PluginLog.Info($"[PublicAPI] AcceptInvite aufgerufen für Username: '{request.Username}' mit Token: '{request.Token}'");
 
         if (string.IsNullOrWhiteSpace(request.Token) || string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
@@ -184,10 +186,12 @@ public class RiNnoFinPublicController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> RequestPasswordReset(
-        [FromServices] EmailService emailService,
         [FromBody] RequestPasswordResetRequest request,
         CancellationToken cancellationToken)
     {
+        var emailService = (EmailService)HttpContext.RequestServices.GetService(typeof(EmailService));
+
+        PluginLog.Info($"[PublicAPI] RequestPasswordReset aufgerufen für E-Mail: '{request.Email}'");
         if (string.IsNullOrWhiteSpace(request.Email))
         {
             return BadRequest(new { message = "E-Mail darf nicht leer sein." });
@@ -247,12 +251,14 @@ public class RiNnoFinPublicController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> ResetPassword(
-        [FromServices] MediaBrowser.Controller.Library.IUserManager userManager,
-        [FromServices] MediaBrowser.Model.Cryptography.ICryptoProvider cryptoProvider,
-        [FromServices] EmailService emailService,
         [FromBody] ResetPasswordRequest request,
         CancellationToken cancellationToken)
     {
+        var userManager = (MediaBrowser.Controller.Library.IUserManager)HttpContext.RequestServices.GetService(typeof(MediaBrowser.Controller.Library.IUserManager));
+        var cryptoProvider = (MediaBrowser.Model.Cryptography.ICryptoProvider)HttpContext.RequestServices.GetService(typeof(MediaBrowser.Model.Cryptography.ICryptoProvider));
+        var emailService = (EmailService)HttpContext.RequestServices.GetService(typeof(EmailService));
+
+        PluginLog.Info($"[PublicAPI] ResetPassword aufgerufen.");
         if (string.IsNullOrWhiteSpace(request.Token) || string.IsNullOrWhiteSpace(request.NewPassword))
         {
             return BadRequest(new { message = "Alle Felder müssen ausgefüllt sein." });
@@ -304,3 +310,4 @@ public class RiNnoFinPublicController : ControllerBase
         }
     }
 }
+

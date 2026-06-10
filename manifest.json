@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.11",
+        "changelog": "Fehlerbehebung für Jellyfin 10.9: Vollständige Entfernung des 'FromServices'-Attributs in allen API-Routen, da dieses in Jellyfins Swagger/OpenApi-Generator zu Parsing-Fehlern führt und die Controller blockiert. Abhängigkeiten werden nun über den HttpContext manuell aufgelöst. Dies behebt den permanenten 'HTTP 500 - Error processing request' endgültig.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.11.zip",
+        "checksum": "71BF78F26CE646864448358058868AE4",
+        "timestamp": "2026-06-10 08:24:00"
+      },
+      {
         "version": "1.0.4.10",
         "changelog": "Wichtiger Hotfix: Vollständige Entfernung aller Abhängigkeiten aus dem Controller-Konstruktor. Dependency Injection (IProviderManager, RequestService, TelegramBotClientWrapper) wurde komplett in die jeweiligen Methoden verschoben. Dadurch wird der 'Error processing request'-Absturz beim Laden der API sicher behoben.",
         "targetAbi": "10.9.0.0",
