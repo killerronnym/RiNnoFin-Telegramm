@@ -6,7 +6,7 @@
 </head>
 <body>
 <div class="page type-interior pluginConfigurationPage rinnofin-page"
-     data-controller="__plugin/RiNnoFinTelegramm_v10419.js"
+     data-controller="__plugin/RiNnoFinTelegramm_v10420.js"
      data-require="emby-input,emby-button,emby-select,emby-checkbox,listViewStyle,paper-icon-button"
      data-role="page"
      id="rinnofin-config-page">
@@ -350,7 +350,7 @@
                         <button class="action-btn" id="ActionLoadAll" type="button">Load All</button>
                         <button class="action-btn btn-green" id="ActionAddUser" type="button">Benutzer hinzufügen</button>
                         <button class="action-btn" id="ActionAnnounce" type="button" style="display:none;">Ankündigen</button>
-                        <button class="action-btn" id="ActionSettings" type="button" style="display:none;">Einstellungen ändern</button>
+                        <button class="action-btn" id="ActionSettings" type="button">Benutzer bearbeiten</button>
                         <button class="action-btn" id="ActionRecommendations" type="button" style="display:none;">Empfehlungen aktivieren</button>
                         <button class="action-btn" id="ActionExpiry" type="button" style="display:none;">Ablaufdatum</button>
                         <button class="action-btn btn-yellow" id="AdminDisableUser" type="button">Deaktivieren</button>
@@ -380,6 +380,24 @@
                         </div>
                         <button class="action-btn btn-green" id="CreateInviteBtn" type="button">Einladung Senden</button>
                         <button class="action-btn" id="CancelInviteBtn" type="button">Abbrechen</button>
+                    </div>
+
+                    <div id="EditUserPanel" style="display:none; background: rgba(0,0,0,0.1); padding: 15px; margin-bottom: 15px; border-radius: 6px;">
+                        <h3>Benutzer bearbeiten</h3>
+                        <p style="font-size: 13px; color: #aaa; margin-bottom: 15px;">Passe die E-Mail oder den verknüpften Telegram-Benutzernamen an.</p>
+                        <input type="hidden" id="EditUserId" />
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
+                            <div style="flex: 1; min-width: 200px;">
+                                <label class="inputLabel" for="EditUserEmail">E-Mail Adresse:</label>
+                                <input class="sso-text" id="EditUserEmail" is="emby-input" type="email" placeholder="example@example.com"/>
+                            </div>
+                            <div style="flex: 1; min-width: 200px;">
+                                <label class="inputLabel" for="EditUserTelegram">Telegram-Benutzername:</label>
+                                <input class="sso-text" id="EditUserTelegram" is="emby-input" type="text" placeholder="Ohne @ (z.B. maxmuster)"/>
+                            </div>
+                        </div>
+                        <button class="action-btn btn-green" id="SaveEditUserBtn" type="button">Änderungen speichern</button>
+                        <button class="action-btn" id="CancelEditUserBtn" type="button">Abbrechen</button>
                     </div>
 
                     <div class="tableScrollSlider" style="overflow-x: auto;">

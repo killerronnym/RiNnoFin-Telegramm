@@ -211,7 +211,7 @@ const tgConfigPage = {
             const userName = user.Name || user.name || user.Username || user.username || 'Unbekannt';
             const isDisabled = user.IsDisabled !== undefined ? user.IsDisabled : user.isDisabled;
             const email = user.Email || user.email || '-';
-            const hasTelegram = user.HasTelegram !== undefined ? user.HasTelegram : user.hasTelegram;
+            const telegramUsername = user.TelegramUsername || user.telegramUsername || '';
             const lastActivity = user.LastActivityDate || user.lastActivityDate;
 
             if(profileSelect) {
@@ -249,7 +249,7 @@ const tgConfigPage = {
 
             const telegramTd = document.createElement("td");
             telegramTd.style.padding = "10px";
-            telegramTd.textContent = hasTelegram ? 'Verbunden' : 'Nein';
+            telegramTd.textContent = telegramUsername ? `@${telegramUsername}` : 'Nein';
 
             const lastAccessTd = document.createElement("td");
             lastAccessTd.style.padding = "10px";
@@ -902,7 +902,54 @@ export default function (view) {
 
     view.querySelector('#ActionSettings')?.addEventListener('click', (e) => {
         e.preventDefault();
-        window.Dashboard.alert('Einstellungen ändern ist in Entwicklung.');
+        const userIds = tgConfigPage.getSelectedUserIds(view);
+        if (userIds.length !== 1) {
+            window.Dashboard.alert('Bitte wähle genau EINEN Benutzer zum Bearbeiten aus.');
+            return;
+        }
+
+        const userId = userIds[0];
+        
+        // Find row to extract current email and telegram
+        const row = view.querySelector(`.user-checkbox[data-userid="${userId}"]`).closest('tr');
+        const email = row.children[3].textContent.trim() === '-' ? '' : row.children[3].textContent.trim();
+        let telegram = row.children[4].textContent.trim();
+        telegram = telegram.startsWith('@') ? telegram.substring(1) : (telegram === 'Nein' ? '' : telegram);
+
+        view.querySelector('#EditUserId').value = userId;
+        view.querySelector('#EditUserEmail').value = email;
+        view.querySelector('#EditUserTelegram').value = telegram;
+        
+        view.querySelector('#EditUserPanel').style.display = 'block';
+    });
+
+    view.querySelector('#CancelEditUserBtn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        view.querySelector('#EditUserPanel').style.display = 'none';
+    });
+
+    view.querySelector('#SaveEditUserBtn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        const userId = view.querySelector('#EditUserId').value;
+        const email = view.querySelector('#EditUserEmail').value.trim();
+        let telegram = view.querySelector('#EditUserTelegram').value.trim();
+        if (telegram.startsWith('@')) telegram = telegram.substring(1);
+
+        window.Dashboard.showLoadingMsg();
+        window.ApiClient.ajax({
+            url: window.ApiClient.getUrl('/api/RiNnoFinConfig/AdminUpdateUser'),
+            type: 'POST',
+            data: JSON.stringify({ UserId: userId, Email: email, TelegramUsername: telegram }),
+            contentType: 'application/json'
+        }).then((res) => {
+            window.Dashboard.hideLoadingMsg();
+            window.Dashboard.alert(res.message || 'Benutzer erfolgreich aktualisiert.');
+            view.querySelector('#EditUserPanel').style.display = 'none';
+            tgConfigPage.loadUsers(view);
+        }).catch(err => {
+            window.Dashboard.hideLoadingMsg();
+            window.Dashboard.alert('Fehler beim Speichern: ' + (err.responseJSON?.message || err.message || ''));
+        });
     });
 
     view.querySelector('#ActionRecommendations')?.addEventListener('click', (e) => {

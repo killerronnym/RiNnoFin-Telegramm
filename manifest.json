@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.20",
+        "changelog": "Fügt eine neue Funktion hinzu, um Benutzer zu bearbeiten (E-Mail und Telegram-Benutzername hinzufügen/ändern). Außerdem wurde die Benutzerliste überarbeitet, sodass unter 'Telegram' jetzt nicht mehr nur 'Ja/Nein' steht, sondern der verknüpfte Telegram-Name (z.B. @Nutzername).",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.20.zip",
+        "checksum": "B8207ACE86F5E6E8D97F3B17DA8DD763",
+        "timestamp": "2026-06-10 14:41:00"
+      },
+      {
         "version": "1.0.4.19",
         "changelog": "Behebt das Problem endgültig, dass der Browser die alte `config.js`-Datei im Zwischenspeicher behält, wodurch die Buttons bei einigen Benutzern nach dem Update auf 1.0.4.18 immer noch nicht funktionierten.",
         "targetAbi": "10.9.0.0",

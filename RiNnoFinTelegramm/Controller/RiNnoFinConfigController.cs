@@ -369,7 +369,7 @@ public class RiNnoFinConfigController : ControllerBase
                             Id = uId,
                             Username = uUsername,
                             Email = link?.EmailAddress ?? "",
-                            HasTelegram = link?.TelegramUserId > 0,
+                            TelegramUsername = link?.TelegramUsername ?? "",
                             IsDisabled = uDto?.Policy?.IsDisabled ?? false,
                             IsAdmin = uDto?.Policy?.IsAdministrator ?? false,
                             LastActivityDate = uLastActivityDate
@@ -385,7 +385,7 @@ public class RiNnoFinConfigController : ControllerBase
                                 Id = u.Id,
                                 Username = u.Username ?? "Fehler",
                                 Email = "Fehler beim Laden",
-                                HasTelegram = false,
+                                TelegramUsername = "",
                                 IsDisabled = false,
                                 IsAdmin = false,
                                 LastActivityDate = null
@@ -614,6 +614,40 @@ public class RiNnoFinConfigController : ControllerBase
 
             return Ok(new { message = $"{sentCount} Reset-E-Mails erfolgreich versendet." });
         }
+
+        [HttpPost("AdminUpdateUser")]
+        public async Task<ActionResult> AdminUpdateUser([FromBody] AdminUpdateUserRequest request)
+        {
+            if (!await IsUserAdmin().ConfigureAwait(false)) return StatusCode(StatusCodes.Status403Forbidden, new { message = "Admin-Rechte erforderlich." });
+            
+            var config = RiNnoFinPlugin.Instance?.Configuration;
+            if (config == null) return BadRequest(new { message = "Konfiguration nicht gefunden." });
+
+            if (config.TelegramUserLinks == null) config.TelegramUserLinks = new();
+
+            var existingLink = config.TelegramUserLinks.FirstOrDefault(l => l.JellyfinUserId == request.UserId);
+            if (existingLink != null)
+            {
+                existingLink.EmailAddress = request.Email;
+                existingLink.TelegramUsername = request.TelegramUsername;
+            }
+            else
+            {
+                var userManager = RiNnoFinPlugin.UserManager;
+                var user = userManager?.GetUserById(request.UserId);
+                
+                config.TelegramUserLinks.Add(new TelegramUserLink
+                {
+                    JellyfinUserId = request.UserId,
+                    JellyfinUsername = user?.Username ?? "Unknown",
+                    EmailAddress = request.Email,
+                    TelegramUsername = request.TelegramUsername
+                });
+            }
+
+            RiNnoFinPlugin.Instance?.SaveConfiguration(config);
+            return Ok(new { message = "Benutzer erfolgreich aktualisiert." });
+        }
     [HttpPost("UploadLogo")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -699,12 +733,19 @@ public class AdminCreateInviteRequest
     public string? Username { get; set; }
 }
 
+public class AdminUpdateUserRequest
+{
+    public Guid UserId { get; set; }
+    public string Email { get; set; } = string.Empty;
+    public string TelegramUsername { get; set; } = string.Empty;
+}
+
 public class UserDto
 {
     public Guid Id { get; set; }
     public string Username { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
-    public bool HasTelegram { get; set; }
+    public string TelegramUsername { get; set; } = string.Empty;
     public bool IsDisabled { get; set; }
     public bool IsAdmin { get; set; }
     public DateTime? LastActivityDate { get; set; }
