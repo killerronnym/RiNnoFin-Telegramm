@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.28",
+        "changelog": "Behebt das Problem, dass die Konfigurations-Reiter ('Unterpunkte') im Plugin-Dashboard nach dem Update nicht mehr anklickbar waren. Durch das Ändern der JavaScript-Dateiversion wird der Browser-Cache für alle Nutzer automatisch umgangen.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "5F335CADA820217235C3BBD2A07930EB",
+        "timestamp": "2026-06-11 00:25:00"
+      },
+      {
         "version": "1.0.4.26",
         "changelog": "Newsletter Splitting: E-Mail und Telegram Newsletter können nun komplett getrennt voneinander gesteuert werden. Der /newsletter Befehl im Telegram-Bot zeigt jetzt ein interaktives Menü für beide Kanäle an. Zudem sendet der /rueckblick Befehl neue Medien direkt an den Chat und versendet nun parallel wunderschön formatierte E-Mails.",
         "targetAbi": "10.9.0.0",
