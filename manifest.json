@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.21",
+        "changelog": "Behebt das Problem (Fehler 404/400), dass man das Passwort beim Zurücksetzen oder der Neuanmeldung nicht abspeichern konnte. Außerdem wurde eine E-Mail-Login-Funktion hinzugefügt, mit der du dich in Jellyfin jetzt sowohl mit Benutzernamen als auch mit der verknüpften E-Mail-Adresse anmelden kannst. In der Willkommens-Mail wird der Benutzername nun explizit erwähnt.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.21.zip",
+        "checksum": "92A976C4BBA5957CE0659DEE2DABC95D",
+        "timestamp": "2026-06-10 15:06:00"
+      },
+      {
         "version": "1.0.4.20",
         "changelog": "Fügt eine neue Funktion hinzu, um Benutzer zu bearbeiten (E-Mail und Telegram-Benutzername hinzufügen/ändern). Außerdem wurde die Benutzerliste überarbeitet, sodass unter 'Telegram' jetzt nicht mehr nur 'Ja/Nein' steht, sondern der verknüpfte Telegram-Name (z.B. @Nutzername).",
         "targetAbi": "10.9.0.0",

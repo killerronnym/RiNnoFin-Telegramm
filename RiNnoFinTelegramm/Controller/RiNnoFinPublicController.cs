@@ -151,7 +151,11 @@ public class RiNnoFinPublicController : ControllerBase
                             <h2 style='color: #2563eb;'>Willkommen an Bord! 🍿</h2>
                             <p>Hallo <strong>{user.Username}</strong>,</p>
                             <p>Dein Account bei <strong>RiNnoFin Media</strong> wurde erfolgreich erstellt.</p>
-                            <p>Du kannst dich ab sofort mit deinem gewählten Passwort auf all deinen Geräten einloggen.</p>
+                            <div style='background-color: #f8fafc; padding: 15px; border-radius: 6px; margin: 20px 0; border: 1px solid #e2e8f0;'>
+                                <p style='margin: 0;'><strong>Benutzername:</strong> {user.Username}</p>
+                                <p style='margin: 5px 0 0 0;'><strong>E-Mail:</strong> {email}</p>
+                            </div>
+                            <p>Du kannst dich ab sofort mit deinem <strong>Benutzernamen</strong> ODER deiner <strong>E-Mail-Adresse</strong> und deinem gewählten Passwort einloggen.</p>
                             <br/>
                             <p style='color: #9ca3af; font-size: 12px; text-align: center;'>Viel Spaß beim Streamen! 🍿 Dein RiNnoFin-Team</p>
                         </div>

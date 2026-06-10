@@ -3,9 +3,9 @@
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
         <RootNamespace>Jellyfin.Plugin.RiNnoFinTelegramm</RootNamespace>
-        <AssemblyVersion>1.0.4.20</AssemblyVersion>
-        <FileVersion>1.0.4.20</FileVersion>
-        <Version>1.0.4.20</Version>
+        <AssemblyVersion>1.0.4.21</AssemblyVersion>
+        <FileVersion>1.0.4.21</FileVersion>
+        <Version>1.0.4.21</Version>
         <GenerateDocumentationFile>false</GenerateDocumentationFile>
         <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
         <MSBuildArgs>/property:GenerateFullPaths=true</MSBuildArgs>
@@ -24,10 +24,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <FrameworkReference Include="Microsoft.AspNetCore.App"/>
-        <PackageReference Include="Jellyfin.Controller" Version="10.11.3"/>
-        <PackageReference Include="Jellyfin.Model" Version="10.11.3"/>
-        <PackageReference Include="Telegram.Bot" Version="22.7.5" PrivateAssets="All"/>
+        <FrameworkReference Include="Microsoft.AspNetCore.App" />
+        <PackageReference Include="Jellyfin.Controller" Version="10.11.3" />
+        <PackageReference Include="Jellyfin.Data" Version="10.11.3" />
+        <PackageReference Include="Jellyfin.Database.Implementations" Version="10.11.3" />
+        <PackageReference Include="Jellyfin.Model" Version="10.11.3" />
+        <PackageReference Include="Telegram.Bot" Version="22.7.5" PrivateAssets="All" />
         <PackageReference Include="ILRepack.Lib.MSBuild.Task" Version="2.0.44.1">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -35,7 +37,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <EmbeddedResource Include="Assets\**" Exclude="**/.DS_Store"/>
+        <EmbeddedResource Include="Assets\**" Exclude="**/.DS_Store" />
     </ItemGroup>
 
     <PropertyGroup>
