@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.31",
+        "changelog": "WICHTIGER HOTFIX: Behebt den Fehler 'HTTP 403 - Admin-Rechte erforderlich.' in der Benutzerverwaltung unter Jellyfin 10.9. API-Anfragen im Dashboard enthalten nun die zwingend erforderlichen Client- und Device-Metadaten für eine erfolgreiche Authentifizierung.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "7105E2D444233C40FE2F867D6FDF4610",
+        "timestamp": "2026-06-10 22:55:00"
+      },
+      {
         "version": "1.0.4.30",
         "changelog": "Cache-Buster Update: Behebt das Problem, dass Jellyfin die Version 1.0.4.29 nicht erkannt hat. Enthält das neue E-Mail/Telegram Ankündigungs-System und den Schalter für Bot-Administrator-Rechte.",
         "targetAbi": "10.9.0.0",

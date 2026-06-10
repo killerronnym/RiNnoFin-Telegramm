@@ -148,27 +148,11 @@ const tgConfigPage = {
 
     loadUsers: (page) => {
         const url = window.ApiClient.getUrl("/api/RiNnoFinConfig/GetUsers");
-        const token = window.ApiClient.accessToken();
         
-        fetch(url, {
-            method: "GET",
-            headers: {
-                "Authorization": `MediaBrowser Token=${token}`,
-                "Accept": "application/json"
-            }
-        })
-        .then(async (response) => {
-            if (!response.ok) {
-                let errText = await response.text();
-                throw new Error(`HTTP ${response.status} ${response.statusText} - ${errText}`);
-            }
-            const contentType = response.headers.get("content-type");
-            if (contentType && contentType.indexOf("application/json") !== -1) {
-                return response.json();
-            } else {
-                let errText = await response.text();
-                throw new Error(`Invalid content-type. Expected JSON. Response: ${errText.substring(0, 100)}`);
-            }
+        window.ApiClient.ajax({
+            url: url,
+            type: "GET",
+            dataType: "json"
         })
         .then((users) => {
             tgConfigPage.populateUsers(page, users);
@@ -1219,22 +1203,19 @@ export default function (view) {
         view.querySelector("#SendGroupAnnounceBtn").disabled = true;
 
         try {
-            const response = await fetch('/api/RiNnoFinConfig/SendGroupAnnouncement?groupName=' + encodeURIComponent(tgConfigPage.currentGroup), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'MediaBrowser Token="' + window.ApiClient.accessToken() + '"'
-                },
-                body: JSON.stringify({ Message: message })
-            });
-
-            if (response.ok) {
+            const url = window.ApiClient.getUrl('/api/RiNnoFinConfig/SendGroupAnnouncement?groupName=' + encodeURIComponent(tgConfigPage.currentGroup));
+            window.ApiClient.ajax({
+                url: url,
+                type: 'POST',
+                data: JSON.stringify({ Message: message }),
+                contentType: 'application/json'
+            }).then(() => {
                 window.Dashboard.alert('Gruppen-Ankündigung erfolgreich gesendet.');
                 view.querySelector("#GroupAnnouncePanel").style.display = "none";
-            } else {
-                let errText = await response.text();
-                window.Dashboard.alert('Fehler: ' + errText);
-            }
+            }).catch(err => {
+                const msg = err?.responseJSON?.message || err?.responseText || err?.message || "Unbekannter Fehler";
+                window.Dashboard.alert('Fehler: ' + msg);
+            });
         } catch (err) {
             window.Dashboard.alert('Netzwerkfehler: ' + err.message);
         } finally {
@@ -1342,28 +1323,24 @@ export default function (view) {
         const isBotAdmin = view.querySelector("#EditUserIsBotAdmin").checked;
 
         try {
-            const response = await fetch('/api/RiNnoFinConfig/UpdateUserLink', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'MediaBrowser Token="' + window.ApiClient.accessToken() + '"'
-                },
-                body: JSON.stringify({
+            window.ApiClient.ajax({
+                url: window.ApiClient.getUrl('/api/RiNnoFinConfig/UpdateUserLink'),
+                type: 'POST',
+                data: JSON.stringify({
                     UserId: userId,
                     Email: email,
                     TelegramUsername: telegram,
                     ExpirationDate: expiration ? new Date(expiration).toISOString() : null,
                     IsBotAdmin: isBotAdmin
-                })
-            });
-
-            if (response.ok) {
+                }),
+                contentType: 'application/json'
+            }).then(() => {
                 window.Dashboard.alert('Benutzer erfolgreich aktualisiert.');
                 view.querySelector("#EditUserPanel").style.display = "none";
                 tgConfigPage.loadUsers(view);
-            } else {
+            }).catch(err => {
                 window.Dashboard.alert('Fehler beim Aktualisieren des Benutzers.');
-            }
+            });
         } catch (err) {
             window.Dashboard.alert('Netzwerkfehler: ' + err.message);
         }
@@ -1393,8 +1370,12 @@ export default function (view) {
             
             window.Dashboard.showLoadingMsg();
             try {
-                const response = await fetch('/api/RiNnoFinConfig/UploadLogo', {
+                // fetch works for FormData, but we need full auth headers
+                const response = await fetch(window.ApiClient.getUrl('/api/RiNnoFinConfig/UploadLogo'), {
                     method: 'POST',
+                    headers: {
+                        'Authorization': window.ApiClient.getAuthorizationHeader()
+                    },
                     body: formData
                 });
                 if(response.ok) {
@@ -1416,12 +1397,14 @@ export default function (view) {
         btnResetLogo.addEventListener("click", async () => {
             window.Dashboard.showLoadingMsg();
             try {
-                const response = await fetch('/api/RiNnoFinConfig/ResetLogo', { method: 'POST' });
-                if(response.ok) {
+                window.ApiClient.ajax({
+                    url: window.ApiClient.getUrl('/api/RiNnoFinConfig/ResetLogo'),
+                    type: 'POST'
+                }).then(() => {
                     window.Dashboard.alert("Logo wurde erfolgreich auf den Standard zurückgesetzt.");
-                } else {
+                }).catch(() => {
                     throw new Error("Fehler");
-                }
+                });
             } catch(e) {
                 window.Dashboard.alert("Fehler beim Zurücksetzen des Logos.");
             } finally {
