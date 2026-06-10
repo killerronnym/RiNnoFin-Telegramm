@@ -345,27 +345,102 @@ public class RiNnoFinConfigController : ControllerBase
             if (config == null || !config.EnableEmail)
                 return BadRequest(new { message = "E-Mail-Versand ist in der Konfiguration nicht aktiviert." });
 
-            string token = Guid.NewGuid().ToString("N");
-            Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.Commands.InviteTokenManager.AddInvite(token, request.Email, request.ProfileUserId);
+            if (!string.IsNullOrWhiteSpace(request.Username))
+            {
+                // Konto sofort anlegen
+                try
+                {
+                    PluginLog.Info($"[ConfigAPI] Erstelle sofortigen Account für Benutzer '{request.Username}'...");
+                    var newUser = await _userManager.CreateUserAsync(request.Username);
 
-            string inviteUrl = $"{config.LoginBaseUrl?.TrimEnd('/')}/sso/Telegram/invite?token={token}";
-            string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplateInvite)
-                ? config.EmailTemplateInvite.Replace("{inviteLink}", inviteUrl)
-                : $@"
-                <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
-                    <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
-                        <h2 style='color: #3b82f6;'>Du wurdest eingeladen! ðŸŽ‰</h2>
-                        <p>Hallo,</p>
-                        <p>Du wurdest eingeladen, einen Account auf unserem Media-Server zu erstellen.</p>
-                        <p>Klicke auf den Button unten, um deinen Account einzurichten:</p>
-                        <a href='{inviteUrl}' style='display: inline-block; padding: 10px 20px; margin-top: 20px; background-color: #3b82f6; color: #fff; text-decoration: none; border-radius: 4px; font-weight: bold;'>Account erstellen</a>
-                    </div>
-                </div>";
+                    // Policy & Config von Profil-Vorlage klonen (falls angegeben)
+                    if (Guid.TryParse(request.ProfileUserId, out var profileId))
+                    {
+                        var profileUser = _userManager.GetUserById(profileId);
+                        if (profileUser != null)
+                        {
+                            var profileDto = _userManager.GetUserDto(profileUser, string.Empty);
+                            profileDto.Policy.IsDisabled = false;
+                            await _userManager.UpdatePolicyAsync(newUser.Id, profileDto.Policy).ConfigureAwait(false);
 
-            var emailService = new Jellyfin.Plugin.RiNnoFinTelegramm.Services.EmailService(_logger);
-            await emailService.SendEmailAsync(config, request.Email, "Einladung zum Media-Server", htmlBody);
+                            if (profileDto.Configuration != null)
+                            {
+                                var clonedConfigJson = System.Text.Json.JsonSerializer.Serialize(profileDto.Configuration);
+                                var clonedConfig = System.Text.Json.JsonSerializer.Deserialize<MediaBrowser.Model.Configuration.UserConfiguration>(clonedConfigJson);
+                                if (clonedConfig != null)
+                                {
+                                    await _userManager.UpdateConfigurationAsync(newUser.Id, clonedConfig).ConfigureAwait(false);
+                                }
+                            }
+                        }
+                    }
 
-            return Ok(new { message = "Einladung erfolgreich versendet." });
+                    // E-Mail verknüpfen
+                    if (config.TelegramUserLinks == null) config.TelegramUserLinks = new();
+                    config.TelegramUserLinks.Add(new TelegramUserLink
+                    {
+                        JellyfinUserId = newUser.Id,
+                        JellyfinUsername = newUser.Username,
+                        EmailAddress = request.Email
+                    });
+                    RiNnoFinPlugin.Instance?.UpdateConfiguration(config);
+
+                    // Reset-Token generieren für Passwort-Vergabe
+                    string token = Guid.NewGuid().ToString("N");
+                    ResetTokenManager.AddResetToken(token, newUser.Id);
+
+                    string resetUrl = $"{config.LoginBaseUrl?.TrimEnd('/')}/sso/Telegram/reset?token={token}";
+                    
+                    // Willkommens/Reset E-Mail
+                    string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplateInvite)
+                        ? config.EmailTemplateInvite.Replace("{inviteLink}", resetUrl).Replace("Du wurdest eingeladen!", "Dein Account wurde erstellt!").Replace("Account erstellen", "Passwort festlegen")
+                        : $@"
+                        <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
+                            <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
+                                <h2 style='color: #3b82f6;'>Dein Account wurde erstellt! 🎉</h2>
+                                <p>Hallo {request.Username},</p>
+                                <p>Dein Account auf unserem Media-Server wurde eingerichtet.</p>
+                                <p>Klicke auf den Button unten, um dein persönliches Passwort festzulegen:</p>
+                                <a href='{resetUrl}' style='display: inline-block; padding: 10px 20px; margin-top: 20px; background-color: #3b82f6; color: #fff; text-decoration: none; border-radius: 4px; font-weight: bold;'>Passwort festlegen</a>
+                            </div>
+                        </div>";
+
+                    var emailService = new Jellyfin.Plugin.RiNnoFinTelegramm.Services.EmailService(_logger);
+                    await emailService.SendEmailAsync(config, request.Email, "Dein Account wurde erstellt", htmlBody);
+
+                    return Ok(new { message = $"Benutzer '{request.Username}' wurde erstellt und eine E-Mail zur Passwortvergabe gesendet." });
+                }
+                catch (Exception ex)
+                {
+                    PluginLog.Error(ex, $"[ConfigAPI] Fehler beim sofortigen Anlegen des Benutzers '{request.Username}'.");
+                    return StatusCode(500, new { message = "Fehler beim Anlegen des Benutzers: " + ex.Message });
+                }
+            }
+            else
+            {
+                // Standard Einladungs-Flow (User wählt Namen selbst)
+                string token = Guid.NewGuid().ToString("N");
+                Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.Commands.InviteTokenManager.AddInvite(token, request.Email, request.ProfileUserId);
+
+                string inviteUrl = $"{config.LoginBaseUrl?.TrimEnd('/')}/sso/Telegram/invite?token={token}";
+                string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplateInvite)
+                    ? config.EmailTemplateInvite.Replace("{inviteLink}", inviteUrl)
+                    : $@"
+                    <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
+                        <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
+                            <h2 style='color: #3b82f6;'>Du wurdest eingeladen! 🎉</h2>
+                            <p>Hallo,</p>
+                            <p>Du wurdest eingeladen, einen Account auf unserem Media-Server zu erstellen.</p>
+                            <p>Klicke auf den Button unten, um deinen Account einzurichten:</p>
+                            <a href='{inviteUrl}' style='display: inline-block; padding: 10px 20px; margin-top: 20px; background-color: #3b82f6; color: #fff; text-decoration: none; border-radius: 4px; font-weight: bold;'>Account erstellen</a>
+                        </div>
+                    </div>";
+
+                var emailService = new Jellyfin.Plugin.RiNnoFinTelegramm.Services.EmailService(_logger);
+                await emailService.SendEmailAsync(config, request.Email, "Einladung zum Media-Server", htmlBody);
+
+                return Ok(new { message = "Einladung erfolgreich versendet." });
+            }
         }
 
         [HttpPost("AdminEnableUser")]
@@ -535,6 +610,7 @@ public class AdminCreateInviteRequest
 {
     public string Email { get; set; } = string.Empty;
     public string ProfileUserId { get; set; } = string.Empty;
+    public string? Username { get; set; }
 }
 
 public class UserDto

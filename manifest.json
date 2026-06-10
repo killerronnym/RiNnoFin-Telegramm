@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.8",
+        "changelog": "Feature-Erweiterung: Beim Einladen kann nun optional ein Benutzername angegeben werden. Wenn ein Benutzername ausgefüllt wird, erstellt das System das Jellyfin-Konto *sofort* (es erscheint direkt in der Liste) und versendet einen speziellen Link zum Festlegen des Passworts. Bleibt das Feld leer, läuft der bisherige Invite-Prozess. Weiterhin wurde die Browser-Caching-Problematik für das Dashboard vollständig umgangen.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.8.zip",
+        "checksum": "7324AAE03949F5598BB98992DC00F252",
+        "timestamp": "2026-06-10 08:05:00"
+      },
+      {
         "version": "1.0.4.7",
         "changelog": "Cache-Bypass für GitHub: Dieser Release erzwingt durch einen neuen Dateinamen den direkten Download der reparierten Version ohne fehlerhaftes Caching. Behebt zudem endgültig den 'Unbekannter Fehler' im Dashboard durch verbesserte Fehlerausgaben im Frontend, falls doch noch etwas hakt.",
         "targetAbi": "10.9.0.0",

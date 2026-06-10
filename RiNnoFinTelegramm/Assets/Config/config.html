@@ -6,8 +6,8 @@
 </head>
 <body>
 <div class="page type-interior pluginConfigurationPage rinnofin-page"
-     data-controller="__plugin/RiNnoFinTelegramm.js"
-     data-require="emby-input,emby-button,emby-select,emby-checkbox"
+     data-controller="__plugin/RiNnoFinTelegramm_v1048.js"
+     data-require="emby-input,emby-button,emby-select,emby-checkbox,listViewStyle,paper-icon-button"
      data-role="page"
      id="rinnofin-config-page">
     <div data-role="content">
@@ -359,13 +359,18 @@
                     </div>
 
                     <div id="InviteUserPanel" style="display:none; background: rgba(0,0,0,0.1); padding: 15px; margin-bottom: 15px; border-radius: 6px;">
-                        <h3>Neuen Benutzer einladen</h3>
-                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                            <div style="flex: 1;">
+                        <h3>Neuen Benutzer anlegen & Einladen</h3>
+                        <p style="font-size: 13px; color: #aaa; margin-bottom: 15px;">Wenn du einen Benutzernamen angibst, wird das Konto sofort erstellt und der Nutzer erhält einen Link, um sein Passwort festzulegen.</p>
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
+                            <div style="flex: 1; min-width: 200px;">
+                                <label class="inputLabel" for="InviteUsername">Benutzername (Optional):</label>
+                                <input class="sso-text" id="InviteUsername" is="emby-input" type="text" placeholder="Benutzername"/>
+                            </div>
+                            <div style="flex: 1; min-width: 200px;">
                                 <label class="inputLabel" for="InviteEmail">E-Mail Adresse:</label>
                                 <input class="sso-text" id="InviteEmail" is="emby-input" type="email" placeholder="example@example.com"/>
                             </div>
-                            <div style="flex: 1;">
+                            <div style="flex: 1; min-width: 200px;">
                                 <label class="inputLabel" for="InviteProfile">Profil-Vorlage (Rechte klonen):</label>
                                 <select class="emby-select-withcolor emby-select" id="InviteProfile">
                                     <option value="">Lade Profile...</option>

@@ -298,6 +298,7 @@ const tgConfigPage = {
     createInvite: (page) => {
         const email = page.querySelector("#InviteEmail").value.trim();
         const profileId = page.querySelector("#InviteProfile").value;
+        const username = page.querySelector("#InviteUsername").value.trim();
 
         if (!email) {
             window.Dashboard.alert("Bitte eine E-Mail-Adresse eingeben.");
@@ -308,12 +309,13 @@ const tgConfigPage = {
         window.ApiClient.ajax({
             url: window.ApiClient.getUrl("/api/RiNnoFinConfig/AdminCreateInvite"),
             type: "POST",
-            data: JSON.stringify({ Email: email, ProfileUserId: profileId }),
+            data: JSON.stringify({ Email: email, ProfileUserId: profileId, Username: username }),
             contentType: "application/json"
         }).then((res) => {
             window.Dashboard.hideLoadingMsg();
             window.Dashboard.alert("Einladung erfolgreich versendet!");
             page.querySelector("#InviteEmail").value = "";
+            page.querySelector("#InviteUsername").value = "";
         }).catch(err => {
             window.Dashboard.hideLoadingMsg();
             window.Dashboard.alert("Fehler: " + (err.responseJSON?.message || err.message || ""));
