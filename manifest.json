@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.15",
+        "changelog": "Behebung der System.MissingMethodException beim Abrufen der Jellyfin-Benutzer unter Jellyfin 10.11+. Der Zugriff auf IUserManager wurde mittels Reflection dynamisiert, um sowohl die ältere 'Users'-Eigenschaft als auch die neuere 'GetUsers()'-Methode zur Laufzeit vollautomatisch und abwärtskompatibel zu unterstützen. Zudem wurden alle Gating-Authentifizierungsprüfungen für verbesserte Stabilität in asynchrone Tasks umgestellt.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.15.zip",
+        "checksum": "70763F2489E411BDF109C0A0DF2BB889",
+        "timestamp": "2026-06-10 13:48:00"
+      },
+      {
         "version": "1.0.4.14",
         "changelog": "Bypass aller ASP.NET Core Autorisierungs-Filter über [AllowAnonymous] am Controller. Der Sicherheitscheck läuft nun vollautomatisch und absolut robust direkt im C#-Code über einen Claims- und IAuthService-Fallback-Check. Dies behebt jegliche verbleibenden HTTP 500er Fehler der Routing-Engine auf Jellyfin 10.9.",
         "targetAbi": "10.9.0.0",
