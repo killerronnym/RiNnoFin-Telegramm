@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.12",
+        "changelog": "Vollständige Eliminierung des DI-Containers für IUserManager und ICryptoProvider in Controllern. Die Instanzen werden nun über statische Referenzen direkt aus dem Plugin geholt. Dies verhindert jegliche Konstruktor- oder Service-Exceptions, die vom globalen Jellyfin-Fehlerhandler mit 'Error processing request' maskiert wurden.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.12.zip",
+        "checksum": "5F4F0746040EC5EB2F460515AF25CDEC",
+        "timestamp": "2026-06-10 09:34:00"
+      },
+      {
         "version": "1.0.4.11",
         "changelog": "Fehlerbehebung für Jellyfin 10.9: Vollständige Entfernung des 'FromServices'-Attributs in allen API-Routen, da dieses in Jellyfins Swagger/OpenApi-Generator zu Parsing-Fehlern führt und die Controller blockiert. Abhängigkeiten werden nun über den HttpContext manuell aufgelöst. Dies behebt den permanenten 'HTTP 500 - Error processing request' endgültig.",
         "targetAbi": "10.9.0.0",

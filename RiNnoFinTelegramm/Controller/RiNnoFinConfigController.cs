@@ -250,9 +250,9 @@ public class RiNnoFinConfigController : ControllerBase
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult GetUsers()
         {
-            var userManager = (MediaBrowser.Controller.Library.IUserManager)HttpContext.RequestServices.GetService(typeof(MediaBrowser.Controller.Library.IUserManager));
             try
             {
+                var userManager = RiNnoFinPlugin.UserManager;
                 var config = RiNnoFinPlugin.Instance?.Configuration;
                 var users = userManager.Users.ToList();
                 var dtos = new List<UserDto>();
@@ -310,7 +310,7 @@ public class RiNnoFinConfigController : ControllerBase
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult> AdminCreateInvite([FromBody] AdminCreateInviteRequest request)
         {
-            var userManager = (MediaBrowser.Controller.Library.IUserManager)HttpContext.RequestServices.GetService(typeof(MediaBrowser.Controller.Library.IUserManager));
+            var userManager = RiNnoFinPlugin.UserManager;
             if (string.IsNullOrWhiteSpace(request.Email))
                 return BadRequest(new { message = "E-Mail darf nicht leer sein." });
 
@@ -413,7 +413,7 @@ public class RiNnoFinConfigController : ControllerBase
         [HttpPost("AdminEnableUser")]
         public async Task<ActionResult> AdminEnableUser([FromBody] List<Guid> userIds)
         {
-            var userManager = (MediaBrowser.Controller.Library.IUserManager)HttpContext.RequestServices.GetService(typeof(MediaBrowser.Controller.Library.IUserManager));
+            var userManager = RiNnoFinPlugin.UserManager;
             foreach (var id in userIds)
             {
                 var user = userManager.GetUserById(id);
@@ -430,7 +430,7 @@ public class RiNnoFinConfigController : ControllerBase
         [HttpPost("AdminDisableUser")]
         public async Task<ActionResult> AdminDisableUser([FromBody] List<Guid> userIds)
         {
-            var userManager = (MediaBrowser.Controller.Library.IUserManager)HttpContext.RequestServices.GetService(typeof(MediaBrowser.Controller.Library.IUserManager));
+            var userManager = RiNnoFinPlugin.UserManager;
             foreach (var id in userIds)
             {
                 var user = userManager.GetUserById(id);
@@ -447,7 +447,7 @@ public class RiNnoFinConfigController : ControllerBase
         [HttpPost("AdminDeleteUser")]
         public async Task<ActionResult> AdminDeleteUser([FromBody] List<Guid> userIds)
         {
-            var userManager = (MediaBrowser.Controller.Library.IUserManager)HttpContext.RequestServices.GetService(typeof(MediaBrowser.Controller.Library.IUserManager));
+            var userManager = RiNnoFinPlugin.UserManager;
             foreach (var id in userIds)
             {
                 var user = userManager.GetUserById(id);
@@ -462,7 +462,7 @@ public class RiNnoFinConfigController : ControllerBase
         [HttpPost("AdminSendPasswordReset")]
         public async Task<ActionResult> AdminSendPasswordReset([FromBody] List<Guid> userIds)
         {
-            var userManager = (MediaBrowser.Controller.Library.IUserManager)HttpContext.RequestServices.GetService(typeof(MediaBrowser.Controller.Library.IUserManager));
+            var userManager = RiNnoFinPlugin.UserManager;
             var config = RiNnoFinPlugin.Instance?.Configuration;
             if (config == null || !config.EnableEmail)
                 return BadRequest(new { message = "E-Mail-Versand ist nicht aktiviert." });
@@ -629,4 +629,5 @@ public static class ResetTokenManager
         return true;
     }
 }
+
 

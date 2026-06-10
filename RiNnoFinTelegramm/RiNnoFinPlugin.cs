@@ -16,17 +16,24 @@ public class RiNnoFinPlugin : BasePlugin<PluginConfiguration>, IPlugin, IHasWebP
     private readonly NotificationService _notificationService;
     private readonly ILogger<RiNnoFinPlugin> _logger;
 
+    public static MediaBrowser.Controller.Library.IUserManager? UserManager { get; private set; }
+    public static MediaBrowser.Model.Cryptography.ICryptoProvider? CryptoProvider { get; private set; }
+
     public RiNnoFinPlugin(
         ILogger<RiNnoFinPlugin> logger,
         IApplicationPaths applicationPaths,
         IXmlSerializer xmlSerializer,
         ILibraryManager libraryManager,
-        NotificationService notificationService)
+        NotificationService notificationService,
+        MediaBrowser.Controller.Library.IUserManager userManager,
+        MediaBrowser.Model.Cryptography.ICryptoProvider cryptoProvider)
         : base(applicationPaths, xmlSerializer)
     {
         _logger = logger;
         ApplicationPaths = applicationPaths;
         Instance = this;
+        UserManager = userManager;
+        CryptoProvider = cryptoProvider;
         _libraryManager = libraryManager;
         _notificationService = notificationService;
         

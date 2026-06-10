@@ -33,9 +33,9 @@ public class RiNnoFinPublicController : ControllerBase
         [FromBody] AcceptInviteRequest request,
         CancellationToken cancellationToken)
     {
-        var userManager = (MediaBrowser.Controller.Library.IUserManager)HttpContext.RequestServices.GetService(typeof(MediaBrowser.Controller.Library.IUserManager));
-        var cryptoProvider = (MediaBrowser.Model.Cryptography.ICryptoProvider)HttpContext.RequestServices.GetService(typeof(MediaBrowser.Model.Cryptography.ICryptoProvider));
-        var emailService = (EmailService)HttpContext.RequestServices.GetService(typeof(EmailService));
+        var userManager = RiNnoFinPlugin.UserManager;
+        var cryptoProvider = RiNnoFinPlugin.CryptoProvider;
+        var emailService = new EmailService(_logger);
 
         PluginLog.Info($"[PublicAPI] AcceptInvite aufgerufen für Username: '{request.Username}' mit Token: '{request.Token}'");
 
@@ -189,7 +189,7 @@ public class RiNnoFinPublicController : ControllerBase
         [FromBody] RequestPasswordResetRequest request,
         CancellationToken cancellationToken)
     {
-        var emailService = (EmailService)HttpContext.RequestServices.GetService(typeof(EmailService));
+        var emailService = new EmailService(_logger);
 
         PluginLog.Info($"[PublicAPI] RequestPasswordReset aufgerufen für E-Mail: '{request.Email}'");
         if (string.IsNullOrWhiteSpace(request.Email))
@@ -254,9 +254,9 @@ public class RiNnoFinPublicController : ControllerBase
         [FromBody] ResetPasswordRequest request,
         CancellationToken cancellationToken)
     {
-        var userManager = (MediaBrowser.Controller.Library.IUserManager)HttpContext.RequestServices.GetService(typeof(MediaBrowser.Controller.Library.IUserManager));
-        var cryptoProvider = (MediaBrowser.Model.Cryptography.ICryptoProvider)HttpContext.RequestServices.GetService(typeof(MediaBrowser.Model.Cryptography.ICryptoProvider));
-        var emailService = (EmailService)HttpContext.RequestServices.GetService(typeof(EmailService));
+        var userManager = RiNnoFinPlugin.UserManager;
+        var cryptoProvider = RiNnoFinPlugin.CryptoProvider;
+        var emailService = new EmailService(_logger);
 
         PluginLog.Info($"[PublicAPI] ResetPassword aufgerufen.");
         if (string.IsNullOrWhiteSpace(request.Token) || string.IsNullOrWhiteSpace(request.NewPassword))
@@ -310,4 +310,5 @@ public class RiNnoFinPublicController : ControllerBase
         }
     }
 }
+
 
