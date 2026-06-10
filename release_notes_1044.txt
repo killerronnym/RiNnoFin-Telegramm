@@ -1,0 +1,19 @@
+## Was ist neu in v1.0.4.4
+
+### Bugfix: Profil-Kloning funktioniert jetzt
+- Ursache behoben: Die Methode UpdateConfigurationAsync() wurde korrekt aufgerufen (durch Reflection-Analyse der Jellyfin 10.11.3-Assembly ermittelt)
+- Neue Benutzer erhalten nun sowohl die Policy (Rechte) als auch die UserConfiguration des definierten Standard-Profils
+- Status wird explizit auf IsDisabled = false gesetzt, damit neu angelegte User sofort aktiv sind
+
+### Neues Feature: Globales Standard-Profil
+- Im Admin-Dashboard unter Benutzereinstellungen und Design kann ein globales Standard-Profil aus allen Jellyfin-Benutzern gewaehlt werden
+- Dieses Profil wird automatisch auf jeden neuen Benutzer angewendet, wenn beim Einladungslink kein spezifisches Profil definiert ist
+
+### Neues Feature: Theme-Auswahl fuer Registrierungsseite
+- Admins koennen das visuelle Design der oeffentlichen Registrierungsseite anpassen
+- Verfuegbare Themes: Jellyfin (Standard), Dark, Light, Blue, Green, Red
+- Einstellung wird in der Plugin-Konfiguration gespeichert und ueberlebt Server-Neustarts
+
+### Technisch
+- Neue Config-Felder: DefaultProfileUserId, RegistrationTheme
+- Dynamische CSS-Theme-Injektion in TelegramController

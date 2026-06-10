@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.4",
+        "changelog": "Feature: Globales Standard-Profil und Theme-Auswahl für die Registrierungsseite hinzugefügt. Bugfix: Profil-Kloning funktioniert jetzt korrekt, sodass neue Benutzer sowohl Policy als auch UserConfiguration erhalten und direkt aktiviert werden.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "3DBD3729A81896F7D3F0B7FC32D28A77",
+        "timestamp": "2026-06-10 06:20:00"
+      },
+      {
         "version": "1.0.4.3",
         "changelog": "Hotfix: Persistiert Einladungs- und Passwort-Reset-Token in der Plugin-Konfiguration. Dadurch bleiben sie auch nach Server-Neustarts und Plugin-Updates gültig und verfallen nicht mehr ungeplant.",
         "targetAbi": "10.9.0.0",
