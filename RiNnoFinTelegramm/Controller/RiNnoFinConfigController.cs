@@ -26,20 +26,17 @@ public class RiNnoFinConfigController : ControllerBase
     private readonly RequestService _requestService;
     private readonly TelegramBotClientWrapper _botClientWrapper;
     private readonly ILogger<RiNnoFinConfigController> _logger;
-    private readonly MediaBrowser.Controller.Library.IUserManager _userManager;
 
     public RiNnoFinConfigController(
         RequestService requestService,
         IProviderManager providerManager,
         TelegramBotClientWrapper botClientWrapper,
-        ILogger<RiNnoFinConfigController> _loggerVal,
-        MediaBrowser.Controller.Library.IUserManager userManager)
+        ILogger<RiNnoFinConfigController> _loggerVal)
     {
         _requestService = requestService ?? throw new ArgumentNullException(nameof(requestService));
         _providerManager = providerManager ?? throw new ArgumentNullException(nameof(providerManager));
         _botClientWrapper = botClientWrapper ?? throw new ArgumentNullException(nameof(botClientWrapper));
         _logger = _loggerVal ?? throw new ArgumentNullException(nameof(_loggerVal));
-        _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
     }
 
     [HttpPost(nameof(TestBotToken))]
@@ -276,12 +273,12 @@ public class RiNnoFinConfigController : ControllerBase
 
         [HttpGet("GetUsers")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public IActionResult GetUsers()
+        public IActionResult GetUsers([FromServices] MediaBrowser.Controller.Library.IUserManager userManager)
         {
             try
             {
                 var config = RiNnoFinPlugin.Instance?.Configuration;
-                var users = _userManager.Users.ToList();
+                var users = userManager.Users.ToList();
                 var dtos = new List<UserDto>();
 
                 foreach (var u in users)
@@ -289,7 +286,7 @@ public class RiNnoFinConfigController : ControllerBase
                     try
                     {
                         var link = config?.TelegramUserLinks != null ? config.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == u.Id) : null;
-                        var uDto = _userManager.GetUserDto(u, null);
+                        var uDto = userManager.GetUserDto(u, string.Empty);
                         dtos.Add(new UserDto
                         {
                             Id = u.Id,
@@ -336,7 +333,7 @@ public class RiNnoFinConfigController : ControllerBase
 
         [HttpPost("AdminCreateInvite")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult> AdminCreateInvite([FromBody] AdminCreateInviteRequest request)
+        public async Task<ActionResult> AdminCreateInvite([FromServices] MediaBrowser.Controller.Library.IUserManager userManager, [FromBody] AdminCreateInviteRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.Email))
                 return BadRequest(new { message = "E-Mail darf nicht leer sein." });
@@ -351,17 +348,17 @@ public class RiNnoFinConfigController : ControllerBase
                 try
                 {
                     PluginLog.Info($"[ConfigAPI] Erstelle sofortigen Account für Benutzer '{request.Username}'...");
-                    var newUser = await _userManager.CreateUserAsync(request.Username);
+                    var newUser = await userManager.CreateUserAsync(request.Username);
 
                     // Policy & Config von Profil-Vorlage klonen (falls angegeben)
                     if (Guid.TryParse(request.ProfileUserId, out var profileId))
                     {
-                        var profileUser = _userManager.GetUserById(profileId);
+                        var profileUser = userManager.GetUserById(profileId);
                         if (profileUser != null)
                         {
-                            var profileDto = _userManager.GetUserDto(profileUser, string.Empty);
+                            var profileDto = userManager.GetUserDto(profileUser, string.Empty);
                             profileDto.Policy.IsDisabled = false;
-                            await _userManager.UpdatePolicyAsync(newUser.Id, profileDto.Policy).ConfigureAwait(false);
+                            await userManager.UpdatePolicyAsync(newUser.Id, profileDto.Policy).ConfigureAwait(false);
 
                             if (profileDto.Configuration != null)
                             {
@@ -369,7 +366,7 @@ public class RiNnoFinConfigController : ControllerBase
                                 var clonedConfig = System.Text.Json.JsonSerializer.Deserialize<MediaBrowser.Model.Configuration.UserConfiguration>(clonedConfigJson);
                                 if (clonedConfig != null)
                                 {
-                                    await _userManager.UpdateConfigurationAsync(newUser.Id, clonedConfig).ConfigureAwait(false);
+                                    await userManager.UpdateConfigurationAsync(newUser.Id, clonedConfig).ConfigureAwait(false);
                                 }
                             }
                         }

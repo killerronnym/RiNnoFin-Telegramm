@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.9",
+        "changelog": "Fehlerbehebung: Behebt den 'HTTP 500 Internal Server Error - Error processing request'-Fehler, der aufgetreten ist, weil die Abhängigkeit IUserManager nicht direkt im Konstruktor des API-Controllers gelöst werden konnte. Die Dependency Injection wurde nun in die einzelnen API-Routen verschoben.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.9.zip",
+        "checksum": "6D767928E77FC394F0CA2301A255861D",
+        "timestamp": "2026-06-10 08:12:00"
+      },
+      {
         "version": "1.0.4.8",
         "changelog": "Feature-Erweiterung: Beim Einladen kann nun optional ein Benutzername angegeben werden. Wenn ein Benutzername ausgefüllt wird, erstellt das System das Jellyfin-Konto *sofort* (es erscheint direkt in der Liste) und versendet einen speziellen Link zum Festlegen des Passworts. Bleibt das Feld leer, läuft der bisherige Invite-Prozess. Weiterhin wurde die Browser-Caching-Problematik für das Dashboard vollständig umgangen.",
         "targetAbi": "10.9.0.0",
