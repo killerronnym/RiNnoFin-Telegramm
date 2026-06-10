@@ -18,7 +18,7 @@ Wenn der Benutzer dich auffordert, einen Release nach dieser Anleitung zu erstel
 Führe den folgenden PowerShell-Befehl aus:
 ```powershell
 cd "RiNnoFinTelegramm"
-dotnet build -c Release
+dotnet publish -c Release
 cd ..
 ```
 *Prüfe mit deinem Status-Tool zwingend, ob der Build fehlerfrei (`Exit code: 0`) durchgelaufen ist, bevor du weitermachst!*

@@ -124,21 +124,42 @@ const tgConfigPage = {
     },
 
     loadUsers: (page) => {
-        window.ApiClient.ajax({
-            url: window.ApiClient.getUrl("/api/RiNnoFinConfig/GetUsers"),
-            type: "GET",
-            dataType: "json"
-        }).then((users) => {
+        const url = window.ApiClient.getUrl("/api/RiNnoFinConfig/GetUsers");
+        const token = window.ApiClient.accessToken();
+        
+        fetch(url, {
+            method: "GET",
+            headers: {
+                "Authorization": `MediaBrowser Token=${token}`,
+                "Accept": "application/json"
+            }
+        })
+        .then(async (response) => {
+            if (!response.ok) {
+                let errText = await response.text();
+                throw new Error(`HTTP ${response.status} ${response.statusText} - ${errText}`);
+            }
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                return response.json();
+            } else {
+                let errText = await response.text();
+                throw new Error(`Invalid content-type. Expected JSON. Response: ${errText.substring(0, 100)}`);
+            }
+        })
+        .then((users) => {
             tgConfigPage.populateUsers(page, users);
-        }).catch((err) => {
+        })
+        .catch((err) => {
+            console.error("RiNnoFin GetUsers Error:", err);
             const profileSelect = page.querySelector("#InviteProfile");
             if(profileSelect) {
                 profileSelect.innerHTML = '<option value="">Fehler beim Laden der Profile</option>';
             }
             const tbody = page.querySelector("#UserListTbody");
             if(tbody) {
-                const msg = err?.responseJSON?.message || err?.responseText || (err && err.message ? err.message : "Unbekannter Fehler");
-                tbody.innerHTML = `<tr><td colspan="6" style="padding:10px;text-align:center;color:#ef4444;">Fehler beim Laden: ${msg}</td></tr>`;
+                const msg = err.message || JSON.stringify(err) || "Unbekannter Fehler";
+                tbody.innerHTML = `<tr><td colspan="6" style="padding:10px;text-align:center;color:#ef4444;word-break:break-all;">Fehler beim Laden: ${msg}</td></tr>`;
             }
         });
     },
