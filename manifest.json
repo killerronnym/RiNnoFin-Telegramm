@@ -12,7 +12,7 @@
         "version": "1.0.4.36",
         "changelog": "Newsletter Verwaltung Update: Administratoren können ab sofort die Newsletter-Abonnements (E-Mail & Telegram) für einzelne Nutzer direkt im Dashboard über 'Bearbeiten' (Zahnrad-Symbol) manuell setzen. Zudem wurde der Fehler behoben, dass Nutzer als 'mit Telegram verknüpft' angezeigt wurden, obwohl noch keine aktive Bot-Verbindung bestand.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "4D124F575A7FD2A90B21C48084F3E35C",
         "timestamp": "2026-06-11 12:20:00"
       },
@@ -20,7 +20,7 @@
         "version": "1.0.4.31",
         "changelog": "WICHTIGER HOTFIX: Behebt den Fehler 'HTTP 403 - Admin-Rechte erforderlich.' in der Benutzerverwaltung unter Jellyfin 10.9. API-Anfragen im Dashboard enthalten nun die zwingend erforderlichen Client- und Device-Metadaten für eine erfolgreiche Authentifizierung.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "7105E2D444233C40FE2F867D6FDF4610",
         "timestamp": "2026-06-10 22:55:00"
       },
@@ -28,7 +28,7 @@
         "version": "1.0.4.30",
         "changelog": "Cache-Buster Update: Behebt das Problem, dass Jellyfin die Version 1.0.4.29 nicht erkannt hat. Enthält das neue E-Mail/Telegram Ankündigungs-System und den Schalter für Bot-Administrator-Rechte.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "775ECF81EDB9ED287C06CC774E028BEA",
         "timestamp": "2026-06-10 22:45:00"
       },
@@ -36,7 +36,7 @@
         "version": "1.0.4.29",
         "changelog": "Neue Ankündigungs-Steuerung: Ankündigungen können nun separat per E-Mail (HTML) und/oder Telegram (Markdown) verschickt werden. Es wurde zudem ein neuer Schalter hinzugefügt, um Telegram-Nutzern direkt im Jellyfin-Dashboard Bot-Administrator-Rechte zuzuweisen.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "42F3121DE5E35430387BF0B16D68FCA5",
         "timestamp": "2026-06-10 22:40:00"
       },
@@ -44,7 +44,7 @@
         "version": "1.0.4.28",
         "changelog": "Behebt das Problem, dass die Konfigurations-Reiter ('Unterpunkte') im Plugin-Dashboard nach dem Update nicht mehr anklickbar waren. Durch das Ändern der JavaScript-Dateiversion wird der Browser-Cache für alle Nutzer automatisch umgangen.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "5F335CADA820217235C3BBD2A07930EB",
         "timestamp": "2026-06-11 00:25:00"
       },
@@ -52,7 +52,7 @@
         "version": "1.0.4.26",
         "changelog": "Newsletter Splitting: E-Mail und Telegram Newsletter können nun komplett getrennt voneinander gesteuert werden. Der /newsletter Befehl im Telegram-Bot zeigt jetzt ein interaktives Menü für beide Kanäle an. Zudem sendet der /rueckblick Befehl neue Medien direkt an den Chat und versendet nun parallel wunderschön formatierte E-Mails.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "221B9CCE13B0695BCB1CE5472889B211",
         "timestamp": "2026-06-10 23:54:00"
       },
@@ -212,7 +212,7 @@
         "version": "1.0.4.6",
         "changelog": "Wirklicher Fix für 'Unbekannter Fehler': Das vorherige Release enthielt durch einen Build-Fehler nicht die aktualisierte Backend-DLL. Diese Version bringt nun den korrekten Code mit robuster Fehlerbehandlung (inklusive Stacktrace-Reporting falls es noch klemmt) und IUserManager-Constructor-Injection.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "A05704032969DF3E72375F51E2E3A6BE",
         "timestamp": "2026-06-10 07:27:00"
       },
@@ -220,7 +220,7 @@
         "version": "1.0.4.5",
         "changelog": "Behebt den 'Unbekannter Fehler' im Dashboard (Benutzerverwaltung) beim Laden der Benutzerliste. Fügt die Anzeige des Ursprungsordners/Bibliothek in Telegram-Benachrichtigungen für neue Serien, Filme und Episoden hinzu.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "EDDA04CE6DE17E2409083E34AE265209",
         "timestamp": "2026-06-10 07:15:00"
       },
@@ -228,7 +228,7 @@
         "version": "1.0.4.4",
         "changelog": "Feature: Globales Standard-Profil und Theme-Auswahl für die Registrierungsseite hinzugefügt. Bugfix: Profil-Kloning funktioniert jetzt korrekt, sodass neue Benutzer sowohl Policy als auch UserConfiguration erhalten und direkt aktiviert werden.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "3DBD3729A81896F7D3F0B7FC32D28A77",
         "timestamp": "2026-06-10 06:20:00"
       },
@@ -236,7 +236,7 @@
         "version": "1.0.4.3",
         "changelog": "Hotfix: Persistiert Einladungs- und Passwort-Reset-Token in der Plugin-Konfiguration. Dadurch bleiben sie auch nach Server-Neustarts und Plugin-Updates gültig und verfallen nicht mehr ungeplant.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "79D3F0CFC2744D926CF299AB154167FD",
         "timestamp": "2026-06-09 21:40:00"
       },
@@ -244,7 +244,7 @@
         "version": "1.0.4.2",
         "changelog": "Hotfix: Behebt den 500-Fehler bei der Registrierung durch Hinzufügen eines ILogger<EmailService> Konstruktors im EmailService. Dadurch kann Jellyfin den EmailService im öffentlichen Controller korrekt instanziieren und auflösen.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "BDAB19A5EDF7F3A17BD816F9A491EC00",
         "timestamp": "2026-06-09 21:30:00"
       },
@@ -252,7 +252,7 @@
         "version": "1.0.3.9",
         "changelog": "Hotfix: Behebt das 'Error processing request.'-Problem bei der Registrierung. Fehler beim E-Mail-Versand (z.B. falsche SMTP-Daten) blockieren nun nicht mehr die erfolgreiche Accounterstellung. Zusätzlich werden generelle Fehler jetzt sauber im Web-Frontend angezeigt statt als 500-Error abzustürzen.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "53045C2E38A32624B2312F49DAB0E6B9",
         "timestamp": "2026-06-09 21:10:00"
       },
@@ -260,7 +260,7 @@
         "version": "1.0.3.8",
         "changelog": "Feature: Im Plugin-Dashboard (Reiter 'Allgemein') kann nun ein eigenes, benutzerdefiniertes Logo für die SSO- und Einladungsseiten hochgeladen werden. Es ersetzt das Standardlogo und kann jederzeit wieder zurückgesetzt werden.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "5F9ECEB2213FCBFCB57B8C76938DA13F",
         "timestamp": "2026-06-09 21:05:00"
       },
@@ -268,7 +268,7 @@
         "version": "1.0.3.7",
         "changelog": "Hotfix: Behebt einen Fehler im Web-Frontend (body stream already read), der verhinderte, dass die korrekte Fehlermeldung 'Benutzername ist bereits vergeben' angezeigt wurde, wenn ein Benutzerkonto bereits existierte.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "371317AC6B559FD4FF255BA40F0091D8",
         "timestamp": "2026-06-09 21:00:00"
       },
@@ -276,7 +276,7 @@
         "version": "1.0.3.6",
         "changelog": "UI Update & Bugfix: Die Einladungs-, Passwort-Vergessen- und Passwort-Zurücksetzen-Seiten wurden vollständig an das elegante Jellyfin Design angepasst. Außerdem wurde ein Fehler ('Unexpected token E...') beim Erstellen von Accounts behoben, der auftrat, wenn der gewählte Benutzername bereits vergeben war.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "26A821E96BCF7168EC98CE78628F407E",
         "timestamp": "2026-06-09 20:55:00"
       },
@@ -284,7 +284,7 @@
         "version": "1.0.3.5",
         "changelog": "Hotfix: Fehlerhaften Link in der Einladungs-E-Mail korrigiert. Die E-Mails führen nun auf die korrekte Seite '/sso/Telegram/invite' anstatt 'Register'.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "22E0E375F6E75707BE4F78DA768822E8",
         "timestamp": "2026-06-09 20:50:00"
       },
@@ -292,7 +292,7 @@
         "version": "1.0.3.4",
         "changelog": "Hotfix: Behebt einen kritischen Server-Fehler, der verhinderte, dass die Benutzerliste im Admin-Dashboard geladen wurde, wenn die Telegram-Verknüpfungen noch nicht initialisiert waren. Das Profil-Klonen-Dropdown funktioniert nun wieder wie vorgesehen.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "957BF1463CFE6224D33C51204C4FB89E",
         "timestamp": "2026-06-09 20:45:00"
       },
@@ -300,7 +300,7 @@
         "version": "1.0.3.3",
         "changelog": "Fix: Plugin-Ordner (Icon) wird nun im Jellyfin Dashboard Menü korrekt angezeigt. Reiter-Navigation der Konfigurationsseite vollständig repariert (Tabs blenden nun korrekt ein/aus). Neues separates E-Mail-Menü für alle SMTP-Einstellungen und hinzugefügte Vorlagen für Account-Aktivierung und Deaktivierung. Bug beim Klonen von Standard-Profilen (doppelte Dropdowns) behoben.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "948F6C72D3D5B3C1ED086D7E28559D31",
         "timestamp": "2026-06-09 20:34:00"
       },
@@ -308,7 +308,7 @@
         "version": "1.0.3.2",
         "changelog": "Feat: Neues Tab-Layout (Seitenmenü) im Dashboard. Tabelle mit neuen Spalten (Name, Status, E-Mail, Telegram, Letzter Zugriff) und interaktiven Buttons (Benutzer hinzufügen, Deaktivieren, etc.) ähnlich wie JFA-Go hinzugefügt.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "5429477F1FF5989404E2DF503B49F176",
         "timestamp": "2026-06-09 20:30:00"
       },
@@ -316,7 +316,7 @@
         "version": "1.0.3.1",
         "changelog": "Feat: Vollständige Benutzerverwaltung integriert! Administratoren können nun Jellyfin-Konten (inklusive Telegram-Verknüpfung) direkt im Plugin-Dashboard ansehen, verwalten (Aktivieren/Deaktivieren/Löschen), Passwörter zurücksetzen und neue Benutzer mit Rechte-Profil-Klonierung einladen.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "165917ADA25822F2A37BFE6BF33868F7",
         "timestamp": "2026-06-09 19:30:00"
       },
@@ -324,7 +324,7 @@
         "version": "1.0.3.0",
         "changelog": "Feat: Neues E-Mail-Template System implementiert! Administratoren können nun in den Plugin-Einstellungen das Aussehen und den Text der Einladungs-, Willkommens- und Passwort-E-Mails direkt bearbeiten. Zudem gibt es nun ein Feld, um die Test-E-Mail an eine spezifische Adresse zu senden.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "58FA482BEBE65E49EB56A1BD0F944CF2",
         "timestamp": "2026-06-09 16:30:00"
       },
@@ -332,7 +332,7 @@
         "version": "1.0.2.9",
         "changelog": "Feat: JFA-Go Integration komplett entfernt und durch internes Plugin-System mit nativer E-Mail-Unterstützung (SMTP) ersetzt. Die gesamte Benutzererstellung, Einladungen und Passwort-Resets laufen nun über moderne Web-Schnittstellen (invite.html, forgot.html, reset.html) direkt vom Plugin.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "F815BAA6447BE6F46BE3B0B67E784000",
         "timestamp": "2026-06-09 15:50:00"
       },
@@ -340,7 +340,7 @@
         "version": "1.0.2.8",
         "changelog": "Fix: Beim Passwort-Reset über /passwort wird nun explizit der Jellyfin-Benutzername und die (falls vorhanden) in JFA-Go hinterlegte E-Mail-Adresse angezeigt, um Verwirrungen durch den SSO-Auto-Namen zu vermeiden.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "C907FB3889E40B2C914CADF225DAA045",
         "timestamp": "2026-06-09 15:08:00"
       },
@@ -348,7 +348,7 @@
         "version": "1.0.2.7",
         "changelog": "Feat: Multi-Step Dialog für das Zurücksetzen von Passwörtern mit Sicherheitsabfrage via Buttons hinzugefügt.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "E82B7896FB7C87222C97E2587015DD1B",
         "timestamp": "2026-06-09 14:55:00"
       },
@@ -356,7 +356,7 @@
         "version": "1.0.2.6",
         "changelog": "Fix: JFA-Go JSON-Payload auf Bindestrich-Format ('send-to', 'no-limit', 'remaining-uses') umgestellt. E-Mail-Versand und Limitierungen (unbegrenzt) funktionieren nun korrekt.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "A61DF59E5DDDDDF36C229F7B2E9CFF23",
         "timestamp": "2026-06-08 10:35:00"
       },
@@ -364,7 +364,7 @@
         "version": "1.0.2.5",
         "changelog": "Fix: JFA-Go Invites verfallen nicht mehr sofort. Gültigkeit auf 1 Tag (days: 1) und 1 Verwendung (remaining_uses: 1) gesetzt.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "7F298B1CCE82ADAC1915F61E9738ECF1",
         "timestamp": "2026-06-08 10:20:00"
       },
@@ -372,7 +372,7 @@
         "version": "1.0.2.4",
         "changelog": "Fix: E-Mail Validierung hinzugefügt und JFA-Go Error-Handling (HTTP 401 & 404) verbessert, damit Login-Fehler für Nutzer besser erkennbar sind.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "33411CF843567CFA532F28CBD6208DED",
         "timestamp": "2026-06-08 10:10:00"
       },
@@ -380,7 +380,7 @@
         "version": "1.0.2.3",
         "changelog": "Fix: Befehl '/NeuerBenutzer' (sowie das Alias '/NeuBenutzer') korrekt in der Hilfe und im Bot registriert. Auth-Methode in JFA-Go auf Login mit Benutzername und Passwort umgestellt (die Einstellungen wurden entsprechend auf Benutzername/Passwort geändert).",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "6DE0BBB20F1B293A73B677BE59EBF20C",
         "timestamp": "2026-06-07 23:40:00"
       },
@@ -388,7 +388,7 @@
         "version": "1.0.2.1",
         "changelog": "Feat: JFA-Go Integration hinzugefügt. Administratoren können nun über '/invite <benutzername> <email>' direkt Einladungen erstellen. Die JFA-Go URL und der API-Key können in den Plugin-Einstellungen konfiguriert werden.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "78A068F851357967F2027DCAD3F4894E",
         "timestamp": "2026-06-07 23:30:00"
       },
@@ -396,7 +396,7 @@
         "version": "1.0.2.0",
         "changelog": "Fix: Quizfrage-Fehler vollständig behoben – Telegram-Fehlermeldungen werden jetzt klar im Dashboard angezeigt statt 'Unbekannter Fehler'. QuizHelper gibt Fehler nicht mehr still zurück, sondern leitet sie an den Controller weiter.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "E9B9B5B51F1A71C95C4399B8FACC7A21",
         "timestamp": "2026-06-07 23:00:00"
       },
@@ -404,7 +404,7 @@
         "version": "1.0.1.9",
         "changelog": "Fix: Quiz-Fehler 'Unbekannter Fehler' behoben – Topic-IDs sind jetzt wirklich optional (leer = Quizfrage im Hauptchat). Echte Fehlermeldungen von Telegram werden nun im UI angezeigt.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "E8DE1072E8480791AE9F25E122C65024",
         "timestamp": "2026-06-07 22:50:00"
       },
@@ -412,7 +412,7 @@
         "version": "1.0.1.8",
         "changelog": "Feat: Newsletter bündelt Episoden einer Serie jetzt in einer Nachricht (z.B. Staffel 1 · Episode 1 bis 12). Einzelne neue Episoden werden weiterhin separat gemeldet. Serien- und Staffel-Events werden nicht mehr doppelt gesendet.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "EC6B74F68DA10095E0DD8DC821B470C3",
         "timestamp": "2026-06-07 22:15:00"
       },
@@ -420,7 +420,7 @@
         "version": "1.0.1.7",
         "changelog": "Fix: Eingabefelder für Chat-ID und Topic-IDs in der Gruppeneinstellung sind nun immer editierbar, sobald eine Gruppe ausgewählt ist. Vorher waren sie gesperrt bis eine Chat-ID bereits hinterlegt war (Sackgasse).",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "6178FA569930AACF8B206103C2F37928",
         "timestamp": "2026-06-07 22:10:00"
       },
@@ -428,7 +428,7 @@
         "version": "1.0.1.6",
         "changelog": "Feat: Neues Quizbot-System (/quiz) hinzugefügt, das zufällige Quizfragen aus der Jellyfin-Bibliothek stellt. Kanäle/Gruppen können nun getrennte Topic-IDs für Medien-News und Quizze sowie eine direkte Chat-ID-Eingabe nutzen.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "81B130DA4F16E0D76EE857BC214748CE",
         "timestamp": "2026-06-07 19:40:00"
       },
@@ -436,7 +436,7 @@
         "version": "1.0.1.5",
         "changelog": "Feat: Newsletter-Meldungen enthalten nun den Filmtitel/Serientitel verlinkt, das Veröffentlichungsjahr, eine Beschreibung (Overview) des Mediums auf Deutsch sowie Direktsprung-Links (Jellyfin, IMDb, TMDb) am Ende der Nachricht.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "B2F4187D21772D824C6CC74A7D05D7B4",
         "timestamp": "2026-06-07 19:25:00"
       },
@@ -444,7 +444,7 @@
         "version": "1.0.1.4",
         "changelog": "Fix: Telegram-Bestätigungsmeldung bei erfolgreicher SSO-Verknüpfung hinzugefügt. Zusätzlich wurden alle Bot-Befehle (wie /start, /ping, etc.) auf korrekte Funktionsweise überprüft und der isAdmin-Check im Bot-Handler auf Case-Insensitivity und Fallbacks angepasst.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "5A6AB602D699698747804224085E263D",
         "timestamp": "2026-06-07 19:20:00"
       },
@@ -452,7 +452,7 @@
         "version": "1.0.1.3",
         "changelog": "Fix: Umstellung des Verknüpfungs-Buttons im Telegram-Bot auf Telegrams natives LoginUrl-Verfahren. Dies behebt Fehler beim Aufrufen des Links über In-App-Browser auf Mobilgeräten, da Telegram den Benutzer nun direkt in der App autorisiert und weiterleitet, anstatt den fehleranfälligen Web-Widget-Flow zu nutzen.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "3F6D6059D9ABE0B5F41E6FEC9F4315E5",
         "timestamp": "2026-06-07 19:15:00"
       },
@@ -460,7 +460,7 @@
         "version": "1.0.1.2",
         "changelog": "Fix: Veraltetes data-auth-url-Attribut aus login.html entfernt, um den veralteten Redirect-Flow von Telegram zu umgehen. Es wird nun ausschließlich der moderne Callback-Flow (data-onauth) genutzt, welcher von Telegram voll unterstützt wird. Update auf Version 23 des Widget-Skripts.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "5DE9D7DB9C6DF4FE6E48A57B16CE770C",
         "timestamp": "2026-06-07 19:05:00"
       },
@@ -468,7 +468,7 @@
         "version": "1.0.1.1",
         "changelog": "Fix: Schema-Konflikt behoben (HTTPS zu HTTP). Das Plugin respektiert nun das konfigurierte LoginBaseUrl für data-auth-url.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "FA2B11B5AE75B8844DD29C0D61CB4192",
         "timestamp": "2026-06-07 18:58:00"
       },
@@ -476,7 +476,7 @@
         "version": "1.0.1.0",
         "changelog": "Fix: Problem mit Zeitabweichungen behoben (AllowedTimeOffset auf 24h erhöht) und Signatur-Verifikation vereinfacht. Zudem Bootstrap-Admin für killerronnym und den ersten User hinzugefügt falls kein Admin vorhanden ist.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "A402EE11067E51260DAD77FE0748CB65",
         "timestamp": "2026-06-07 18:50:00"
       },
@@ -484,7 +484,7 @@
         "version": "1.0.0.9",
         "changelog": "Fix: Problem behoben, dass das Telegram-Widget 'deprecated' meldete, wenn Browser Popups blockierten. Jetzt wird der korrekte Redirect-Fallback mit data-auth-url verwendet.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "956BD87C6AE831CED00F2E2402FD94C1",
         "timestamp": "2026-06-07 18:45:00"
       },
@@ -492,7 +492,7 @@
         "version": "1.0.0.8",
         "changelog": "Cache-Buster: Erzwingt das Herunterladen des neuen direkten Repository-Links, um den Caching-Fehler von Jellyfin zu umgehen.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "878D0976ECD5699727CD78339907AB8F",
         "timestamp": "2026-06-07 18:37:00"
       },
@@ -500,7 +500,7 @@
         "version": "1.0.0.7",
         "changelog": "Stabilitäts-Update und Checksum-Fix für den Download-Link.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "8DCD6DD563B57090F8ED45C649784E87",
         "timestamp": "2026-06-07 18:27:00"
       },
@@ -508,7 +508,7 @@
         "version": "1.0.0.6",
         "changelog": "Bugfix: Groß-/Kleinschreibung beim Laden des Logos auf der Login-Seite korrigiert.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://github.com/killerronnym/RiNnoFin-Telegramm/releases/download/v1.0.0.6/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://github.com/killerronnym/RiNnoFin-Telegramm/releases/download/v1.0.0.6/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "B806026711061647E609AFA1B36B26C4",
         "timestamp": "2026-06-07 18:16:00"
       },
@@ -516,7 +516,7 @@
         "version": "1.0.0.5",
         "changelog": "Feature: Telegram-Bot sendet nun einen direkten 'Mit Jellyfin verknüpfen'-Button in den Chat, wenn ein Nutzer Befehle ausführt, aber sein Konto noch nicht verknüpft hat. Der Button führt direkt zum SSO-Login.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://github.com/killerronnym/RiNnoFin-Telegramm/releases/download/v1.0.0.5/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://github.com/killerronnym/RiNnoFin-Telegramm/releases/download/v1.0.0.5/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "08ED8C252D83DD1A0B13800CD13108D3",
         "timestamp": "2026-06-07 17:15:00"
       },
@@ -524,7 +524,7 @@
         "version": "1.0.0.4",
         "changelog": "Fix: Problem behoben, dass Javascript und CSS nach Namensänderung des Plugins nicht geladen wurden (404 Not Found), wodurch keine Buttons funktionierten.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://github.com/killerronnym/RiNnoFin-Telegramm/releases/download/v1.0.0.4/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://github.com/killerronnym/RiNnoFin-Telegramm/releases/download/v1.0.0.4/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "441581A2268062B74CE684D82C638A1C",
         "timestamp": "2026-06-07 17:07:00"
       },
@@ -532,7 +532,7 @@
         "version": "1.0.0.3",
         "changelog": "Fix für defekte Event-Listener (Save Button & Test Button reagierten aufgrund von Browser-Caching Fehler nicht).",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://github.com/killerronnym/RiNnoFin-Telegramm/releases/download/v1.0.0.3/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://github.com/killerronnym/RiNnoFin-Telegramm/releases/download/v1.0.0.3/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "46D7DAB65829353569009DB5C6264DA1",
         "timestamp": "2026-06-07 16:59:00"
       },
@@ -540,7 +540,7 @@
         "version": "1.0.0.2",
         "changelog": "Verbesserte Konfigurations-UI: Speichern-Button blockiert nicht mehr; separater 'Token testen'-Button hinzugefügt, der nun eine private Testnachricht an Administratoren sendet.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://github.com/killerronnym/RiNnoFin-Telegramm/releases/download/v1.0.0.2/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://github.com/killerronnym/RiNnoFin-Telegramm/releases/download/v1.0.0.2/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "CAEAC8281633199BB7D4BB188CBD3A83",
         "timestamp": "2026-06-07 16:45:00"
       },
@@ -548,7 +548,7 @@
         "version": "1.0.0.1",
         "changelog": "Verbesserte Benutzeroberfläche für den Verbindungsstatus, neuer /ping Befehl und bessere /start Rückmeldung für den Admin-Status.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://github.com/killerronnym/RiNnoFin-Telegramm/releases/download/v1.0.0.1/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://github.com/killerronnym/RiNnoFin-Telegramm/releases/download/v1.0.0.1/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "BEF96094B0A7EFDFC13D745E9EC55FF8",
         "timestamp": "2026-06-07 16:30:00"
       },
@@ -556,7 +556,7 @@
         "version": "1.0.0.0",
         "changelog": "Erste Version von RiNnoFin Telegramm mit kompletter deutscher UI, Telegram SSO, Newsletter-Support für Musik, Filme, Serien und automatischem Request-Management.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.36.zip",
         "checksum": "2c2554a357ccab1edff9ef815fc5e466",
         "timestamp": "2026-06-07 15:55:00"
       }
