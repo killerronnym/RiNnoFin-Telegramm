@@ -890,6 +890,9 @@ const tgTokenHelper = {
 }
 
 export default function (view) {
+    view.addEventListener('viewshow', function (e) {
+        tgConfigPage.loadConfiguration(view);
+    });
 
     const tabItems = view.querySelectorAll('.rinnofin-menu-item');
     tabItems.forEach(item => {
