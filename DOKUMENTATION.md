@@ -1,5 +1,5 @@
 # RiNnoFin Telegramm & E-Mail Plugin - Dokumentation
-*Stand: v1.0.4.32*
+*Stand: v1.0.4.33*
 
 Dieses Dokument bietet einen vollständigen Überblick über die Funktionen, den Registrierungsprozess und die Hintergrundprozesse des RiNnoFin Jellyfin Plugins.
 

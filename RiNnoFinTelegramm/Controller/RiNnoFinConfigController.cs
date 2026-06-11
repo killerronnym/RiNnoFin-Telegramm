@@ -375,6 +375,8 @@ public class RiNnoFinConfigController : ControllerBase
                             IsAdmin = uDto?.Policy?.IsAdministrator ?? false,
                             IsBotAdmin = isBotAdmin,
                             IsTelegramLinked = link != null,
+                            SubscribeEmailNewsletter = link?.SubscribeEmailNewsletter ?? false,
+                            SubscribeTelegramNewsletter = link?.SubscribeTelegramNewsletter ?? false,
                             LastActivityDate = uLastActivityDate,
                             ExpirationDate = link?.ExpirationDate
                         });
@@ -393,6 +395,8 @@ public class RiNnoFinConfigController : ControllerBase
                                 IsDisabled = false,
                                 IsAdmin = false,
                                 IsTelegramLinked = false,
+                                SubscribeEmailNewsletter = false,
+                                SubscribeTelegramNewsletter = false,
                                 LastActivityDate = null,
                                 ExpirationDate = null
                             });
@@ -1033,6 +1037,8 @@ public class UserDto
     public bool IsAdmin { get; set; }
     public bool IsBotAdmin { get; set; }
     public bool IsTelegramLinked { get; set; }
+    public bool SubscribeEmailNewsletter { get; set; }
+    public bool SubscribeTelegramNewsletter { get; set; }
     public DateTime? LastActivityDate { get; set; }
     public DateTime? ExpirationDate { get; set; }
 }

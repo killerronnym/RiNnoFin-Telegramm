@@ -1,6 +1,6 @@
 # 📋 RiNnoFin Telegramm – To-Do Liste
 
-> Stand: v1.0.4.32 – zuletzt aktualisiert: 11.06.2026
+> Stand: v1.0.4.33 – zuletzt aktualisiert: 11.06.2026
 
 ---
 
@@ -39,7 +39,7 @@
 - ✅ **Benutzer namentlich ansprechen:** `{username}` Platzhalter in allen Templates sichergestellt
 - ✅ Multi-Kanal Ankündigung (E-Mail + Telegram Checkboxen)
 - ✅ Bot-Administrator Rechte-Schalter im Benutzer-Bearbeiten-Dialog
-- ✅ HTTP 403 Fehler in der Benutzerliste (GetUsers) behoben (v1.0.4.32)
+- ✅ HTTP 403 Fehler in der Benutzerliste (GetUsers) behoben (v1.0.4.33)
 - ✅ Browser-Cache-Problem mit JS-Versionen gelöst
 - ✅ UTC-Timestamp-Problem im Manifest behoben (v1.0.4.30)
 

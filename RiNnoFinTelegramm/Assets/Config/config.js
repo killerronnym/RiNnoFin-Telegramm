@@ -259,6 +259,14 @@ const tgConfigPage = {
                 telegramTd.innerHTML = '<span style="color: #9ca3af;">-</span>';
             }
 
+            const aboTd = document.createElement("td");
+            aboTd.style.padding = "10px";
+            let aboStr = "";
+            if (user.SubscribeEmailNewsletter) aboStr += '<span style="color: #3b82f6;">📧 E-Mail</span><br/>';
+            if (user.SubscribeTelegramNewsletter) aboStr += '<span style="color: #10b981;">💬 Telegram</span><br/>';
+            if (!user.SubscribeEmailNewsletter && !user.SubscribeTelegramNewsletter) aboStr = '<span style="color: #9ca3af;">Keine</span>';
+            aboTd.innerHTML = aboStr;
+
             const expirationTd = document.createElement("td");
             expirationTd.style.padding = "10px";
             expirationTd.textContent = user.ExpirationDate ? new Date(user.ExpirationDate).toLocaleString('de-DE') : 'Niemals';
@@ -272,6 +280,7 @@ const tgConfigPage = {
             tr.appendChild(statusTd);
             tr.appendChild(emailTd);
             tr.appendChild(telegramTd);
+            tr.appendChild(aboTd);
             tr.appendChild(expirationTd);
             tr.appendChild(lastAccessTd);
 
