@@ -892,7 +892,6 @@ const tgTokenHelper = {
 export default function (view) {
     view.addEventListener('viewshow', function (e) {
         tgConfigPage.loadConfiguration(view);
-    });
 
     const tabItems = view.querySelectorAll('.rinnofin-menu-item');
     tabItems.forEach(item => {
@@ -1425,4 +1424,5 @@ Mit Telegram anmelden
     view.querySelector("#ExampleBrandingCode").innerHTML = brandingWidget.replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
 
     window.Dashboard.hideLoadingMsg();
+    });
 }
