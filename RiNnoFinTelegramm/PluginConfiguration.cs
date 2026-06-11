@@ -226,6 +226,7 @@ public class PersistedInvite
 {
     public string Token { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
+    public string? Username { get; set; }
     public string? ProfileUserId { get; set; }
     public int? ExpirationDays { get; set; }
 }

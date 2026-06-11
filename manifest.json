@@ -9,11 +9,11 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
-        "version": "1.0.4.34",
+        "version": "1.0.4.35",
         "changelog": "Newsletter Verwaltung Update: Administratoren können ab sofort die Newsletter-Abonnements (E-Mail & Telegram) für einzelne Nutzer direkt im Dashboard über 'Bearbeiten' (Zahnrad-Symbol) manuell setzen. Zudem wurde der Fehler behoben, dass Nutzer als 'mit Telegram verknüpft' angezeigt wurden, obwohl noch keine aktive Bot-Verbindung bestand.",
         "targetAbi": "10.9.0.0",
         "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
-        "checksum": "38E7D57750D4C887D9BE144B22479215",
+        "checksum": "0E9930E05C5650BA5389FC584535A535",
         "timestamp": "2026-06-11 12:20:00"
       },
       {

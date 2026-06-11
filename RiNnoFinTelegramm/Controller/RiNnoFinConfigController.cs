@@ -508,7 +508,7 @@ public class RiNnoFinConfigController : ControllerBase
             else
             {
                 string token = Guid.NewGuid().ToString("N");
-                Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.Commands.InviteTokenManager.AddInvite(token, request.Email, request.ProfileUserId, request.ExpirationDays);
+                Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.Commands.InviteTokenManager.AddInvite(token, request.Email, "", request.ProfileUserId, request.ExpirationDays);
 
                 string inviteUrl = $"{config.LoginBaseUrl?.TrimEnd('/')}/sso/Telegram/invite?token={token}";
                 string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplateInvite)

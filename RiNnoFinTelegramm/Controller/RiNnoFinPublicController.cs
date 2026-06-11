@@ -45,7 +45,7 @@ public class RiNnoFinPublicController : ControllerBase
             return BadRequest(new { message = "Alle Felder müssen ausgefüllt sein." });
         }
 
-        if (!Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.Commands.InviteTokenManager.TryGetInvite(request.Token, out var email, out var profileUserId, out var expirationDays))
+        if (!Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.Commands.InviteTokenManager.TryGetInvite(request.Token, out var email, out var inviteUsername, out var profileUserId, out var expirationDays))
         {
             PluginLog.Warn($"[PublicAPI] AcceptInvite abgelehnt: Token '{request.Token}' ist ungültig oder abgelaufen.");
             return BadRequest(new { message = "Ungültiger oder abgelaufener Einladungslink." });

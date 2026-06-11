@@ -344,9 +344,9 @@ internal sealed class TelegramBotService : ITelegramBotService
         else if (message.ReplyToMessage != null)
         {
             var replyText = message.ReplyToMessage.Text ?? "";
-            if (replyText.Contains("Bitte Benutzername eingeben"))
+            if (replyText.Contains("Bitte gib den gewünschten Benutzernamen für die neue Einladung ein"))
                 commandText = "neubenutzer_step1";
-            else if (replyText.Contains("Bitte E-Mail eingeben"))
+            else if (replyText.Contains("Bitte gib nun die E-Mail-Adresse für den Benutzer"))
                 commandText = "neubenutzer_step2";
             else if (replyText.Contains("Geben Sie bitte das neue Passwort ein"))
                 commandText = "passwort_step2";

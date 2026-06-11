@@ -336,11 +336,20 @@
     // URL Check
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
+    const paramUsername = urlParams.get('username');
+    const paramEmail = urlParams.get('email');
     if (!token) {
         const err = document.getElementById('errorMsg');
         err.innerText = "Ungültiger oder fehlender Einladungslink.";
         err.style.display = 'block';
         document.getElementById('submitBtn').disabled = true;
+    }
+    
+    if (paramUsername) {
+        document.getElementById('username').value = paramUsername;
+    }
+    if (paramEmail) {
+        document.getElementById('email').value = paramEmail;
     }
 
     // Password Strength
