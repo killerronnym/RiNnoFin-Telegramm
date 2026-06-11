@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.33",
+        "changelog": "Dashboard Update: Implementierte Anzeige der E-Mail- und Telegram-Newsletter Abonnements im Jellyfin Dashboard. Das Jellyfin Plugin wurde mit Fehlerbehebungen für den E-Mail-Newsletter-Versand und den Lösch-Vorgang verbessert.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "7083984B87D05850A362CD2820098834",
+        "timestamp": "2026-06-11 12:00:00"
+      },
+      {
         "version": "1.0.4.31",
         "changelog": "WICHTIGER HOTFIX: Behebt den Fehler 'HTTP 403 - Admin-Rechte erforderlich.' in der Benutzerverwaltung unter Jellyfin 10.9. API-Anfragen im Dashboard enthalten nun die zwingend erforderlichen Client- und Device-Metadaten für eine erfolgreiche Authentifizierung.",
         "targetAbi": "10.9.0.0",

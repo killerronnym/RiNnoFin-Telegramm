@@ -35,14 +35,7 @@ namespace Jellyfin.Plugin.RiNnoFinTelegramm.Tasks
 
         public IEnumerable<TaskTriggerInfo> GetDefaultTriggers()
         {
-            return new[]
-            {
-                new TaskTriggerInfo
-                {
-                    Type = TaskTriggerInfo.TriggerInterval,
-                    IntervalTicks = TimeSpan.FromHours(2).Ticks // Default: Alle 2 Stunden
-                }
-            };
+            return Array.Empty<TaskTriggerInfo>();
         }
 
         public async Task ExecuteAsync(IProgress<double> progress, CancellationToken cancellationToken)

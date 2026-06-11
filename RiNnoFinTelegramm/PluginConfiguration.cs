@@ -48,6 +48,7 @@ public class PluginConfiguration : BasePluginConfiguration
     public string EmailSubjectPasswordChanged { get; set; } = "Passwort erfolgreich geändert ✅";
     public string EmailSubjectAccountEnabled { get; set; } = "Dein RiNnoFin Account wurde wieder aktiviert! 🎉";
     public string EmailSubjectAccountDisabled { get; set; } = "Dein RiNnoFin Account wurde deaktiviert ⚠️";
+    public string EmailSubjectAccountDeleted { get; set; } = "Dein RiNnoFin Account wurde gelöscht 🗑️";
     public string EmailSubjectNewsletterMovies { get; set; } = "Neue Filme auf RiNnoFin! 🍿";
     public string EmailSubjectNewsletterSeries { get; set; } = "Neue Serien & Episoden! 📺";
     public string EmailSubjectRueckblick { get; set; } = "Dein wöchentlicher RiNnoFin Rückblick 📺";
