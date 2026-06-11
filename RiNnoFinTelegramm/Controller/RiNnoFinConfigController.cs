@@ -374,7 +374,7 @@ public class RiNnoFinConfigController : ControllerBase
                             IsDisabled = uDto?.Policy?.IsDisabled ?? false,
                             IsAdmin = uDto?.Policy?.IsAdministrator ?? false,
                             IsBotAdmin = isBotAdmin,
-                            IsTelegramLinked = link != null,
+                            IsTelegramLinked = link != null && link.TelegramUserId != 0,
                             SubscribeEmailNewsletter = link?.SubscribeEmailNewsletter ?? false,
                             SubscribeTelegramNewsletter = link?.SubscribeTelegramNewsletter ?? false,
                             LastActivityDate = uLastActivityDate,
@@ -702,6 +702,8 @@ public class RiNnoFinConfigController : ControllerBase
             userLink.EmailAddress = request.Email ?? "";
             userLink.TelegramUsername = request.TelegramUsername ?? "";
             userLink.ExpirationDate = request.ExpirationDate;
+            userLink.SubscribeEmailNewsletter = request.SubscribeEmailNewsletter;
+            userLink.SubscribeTelegramNewsletter = request.SubscribeTelegramNewsletter;
             
             // Falls das Ablaufdatum in der Zukunft liegt, die Benachrichtigung zurücksetzen
             if (userLink.ExpirationDate.HasValue && userLink.ExpirationDate.Value > DateTime.UtcNow)
@@ -1025,6 +1027,8 @@ public class UpdateUserLinkRequest
     public string TelegramUsername { get; set; } = string.Empty;
     public DateTime? ExpirationDate { get; set; }
     public bool IsBotAdmin { get; set; }
+    public bool SubscribeEmailNewsletter { get; set; }
+    public bool SubscribeTelegramNewsletter { get; set; }
 }
 
 public class UserDto

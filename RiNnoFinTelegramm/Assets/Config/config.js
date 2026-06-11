@@ -229,7 +229,7 @@ const tgConfigPage = {
             
             const checkboxTd = document.createElement("td");
             checkboxTd.style.padding = "10px";
-            checkboxTd.innerHTML = `<input type="checkbox" class="user-checkbox" data-userid="${user.Id}" data-botadmin="${user.IsBotAdmin ? 'true' : 'false'}" data-isadmin="${user.IsAdmin ? 'true' : 'false'}" style="width: 18px; height: 18px; cursor: pointer; accent-color: #3b82f6;"/>`;
+            checkboxTd.innerHTML = `<input type="checkbox" class="user-checkbox" data-userid="${user.Id}" data-botadmin="${user.IsBotAdmin ? 'true' : 'false'}" data-isadmin="${user.IsAdmin ? 'true' : 'false'}" data-subemail="${user.SubscribeEmailNewsletter ? 'true' : 'false'}" data-subtg="${user.SubscribeTelegramNewsletter ? 'true' : 'false'}" style="width: 18px; height: 18px; cursor: pointer; accent-color: #3b82f6;"/>`;
             
             const nameTd = document.createElement("td");
             nameTd.style.padding = "10px";
@@ -1019,108 +1019,6 @@ export default function (view) {
         });
     });
 
-    view.querySelector('#ActionSettings')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        const userIds = tgConfigPage.getSelectedUserIds(view);
-        if (userIds.length !== 1) {
-            window.Dashboard.alert('Bitte wähle genau EINEN Benutzer zum Bearbeiten aus.');
-            return;
-        }
-
-        const userId = userIds[0];
-        
-        // Find row to extract current email and telegram
-        const row = view.querySelector(`.user-checkbox[data-userid="${userId}"]`).closest('tr');
-        const email = row.children[3].textContent.trim() === '-' ? '' : row.children[3].textContent.trim();
-        let telegram = row.children[4].textContent.trim();
-        telegram = telegram.startsWith('@') ? telegram.substring(1) : (telegram === 'Nein' ? '' : telegram);
-
-        view.querySelector('#EditUserId').value = userId;
-        view.querySelector('#EditUserEmail').value = email;
-        view.querySelector('#EditUserTelegram').value = telegram;
-        
-        view.querySelector('#EditUserPanel').style.display = 'block';
-    });
-
-    view.querySelector('#CancelEditUserBtn')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        view.querySelector('#EditUserPanel').style.display = 'none';
-    });
-
-    view.querySelector('#SaveEditUserBtn')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        const userId = view.querySelector('#EditUserId').value;
-        const email = view.querySelector('#EditUserEmail').value.trim();
-        let telegram = view.querySelector('#EditUserTelegram').value.trim();
-        if (telegram.startsWith('@')) telegram = telegram.substring(1);
-
-        window.Dashboard.showLoadingMsg();
-        window.ApiClient.ajax({
-            url: window.ApiClient.getUrl('/api/RiNnoFinConfig/AdminUpdateUser'),
-            type: 'POST',
-            data: JSON.stringify({ UserId: userId, Email: email, TelegramUsername: telegram }),
-            contentType: 'application/json'
-        }).then((res) => {
-            window.Dashboard.hideLoadingMsg();
-            window.Dashboard.alert(res.message || 'Benutzer erfolgreich aktualisiert.');
-            view.querySelector('#EditUserPanel').style.display = 'none';
-            tgConfigPage.loadUsers(view);
-        }).catch(err => {
-            window.Dashboard.hideLoadingMsg();
-            window.Dashboard.alert('Fehler beim Speichern: ' + (err.responseJSON?.message || err.message || ''));
-        });
-    });
-
-    view.querySelector('#ActionRecommendations')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        window.Dashboard.alert('Empfehlungen aktivieren ist in Entwicklung.');
-    });
-
-    view.querySelector('#ActionExpiry')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        window.Dashboard.alert('Ablaufdatum-Funktion ist in Entwicklung.');
-    });
-
-    window.Dashboard.showLoadingMsg();
-
-    tgConfigPage.addTextAreaStyle(view);
-    tgConfigPage.loadConfiguration(view);
-    tgConfigPage.loadRequests(view);
-    tgConfigPage.loadUsers(view);
-    tgConfigPage.loadLogs(view);
-
-    tgConfigPage.populateFolders(view).then(() => {
-        const inputs = [
-            "#EnableAllFolders",
-            "#UserNames",
-            ".folder-checkbox",
-            "#SyncUserNames",
-            "#NotifyNewContent",
-            "#AllowRequests",
-            "#LinkedTelegramGroupIdInput",
-            "#ContentTopicId",
-            "#QuizTopicId",
-            "#EnableQuiz"
-        ];
-
-        inputs.forEach(selector => {
-            const elements = view.querySelectorAll(selector);
-            elements.forEach(element => {
-                element.addEventListener('change', () => tgConfigPage.updateGroupData(view));
-            });
-        });
-    });
-
-    view.querySelector("#LinkedTelegramGroupIdInput")?.addEventListener("input", () => {
-        tgConfigPage.updateGroupData(view);
-        const linkedVal = Number(view.querySelector("#LinkedTelegramGroupIdInput").value) || 0;
-        const groupData = {
-            GroupName: tgConfigPage.currentGroup,
-            TelegramGroupChat: {
-                TelegramChatId: linkedVal
-            }
-        };
-        tgConfigPage.updateTelegramSettingsUI(view, groupData);
     });
 
     view.querySelector("#EnableQuiz")?.addEventListener("change", () => {
@@ -1344,6 +1242,8 @@ export default function (view) {
         }
         
         view.querySelector("#EditUserIsBotAdmin").checked = cb.dataset.botadmin === 'true';
+        view.querySelector("#EditUserSubscribeEmailNewsletter").checked = cb.dataset.subemail === 'true';
+        view.querySelector("#EditUserSubscribeTelegramNewsletter").checked = cb.dataset.subtg === 'true';
 
         view.querySelector("#EditUserPanel").style.display = "block";
     });
@@ -1360,6 +1260,8 @@ export default function (view) {
         const telegram = view.querySelector("#EditUserTelegram").value.trim();
         const expiration = view.querySelector("#EditUserExpiration").value; // YYYY-MM-DD
         const isBotAdmin = view.querySelector("#EditUserIsBotAdmin").checked;
+        const subEmail = view.querySelector("#EditUserSubscribeEmailNewsletter").checked;
+        const subTg = view.querySelector("#EditUserSubscribeTelegramNewsletter").checked;
 
         try {
             window.ApiClient.ajax({
@@ -1370,7 +1272,9 @@ export default function (view) {
                     Email: email,
                     TelegramUsername: telegram,
                     ExpirationDate: expiration ? new Date(expiration).toISOString() : null,
-                    IsBotAdmin: isBotAdmin
+                    IsBotAdmin: isBotAdmin,
+                    SubscribeEmailNewsletter: subEmail,
+                    SubscribeTelegramNewsletter: subTg
                 }),
                 contentType: 'application/json'
             }).then(() => {
