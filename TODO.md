@@ -1,103 +1,47 @@
-# ✅ RiNnoFin Telegramm – To-Do Liste
+# 📋 RiNnoFin Telegramm – To-Do Liste
 
-> Zuletzt aktualisiert: 10.06.2026  
-> Legende: ✅ Fertig | 🔄 In Arbeit | 🔲 Noch zu tun | 💡 Idee / Zukunft
-
----
-
-## ✅ Bereits erledigt
-
-- ✅ Benutzer einladen per E-Mail (Admin-Panel + Telegram `/NeuerBenutzer`)
-- ✅ Registrierungsseite mit Passwort-Stärkenanzeige
-- ✅ Passwort-Reset per E-Mail (Benutzername + E-Mail müssen übereinstimmen) 
-- ✅ Willkommens-E-Mail nach Registrierung (persönlich mit Benutzername)
-- ✅ Bestätigungs-E-Mail nach Passwortänderung
-- ✅ Account deaktivieren / aktivieren mit E-Mail-Benachrichtigung + Grund
-- ✅ Account löschen mit E-Mail-Benachrichtigung + Grund
-- ✅ Telegram-Bot: `/start`, `/ping`, `/help`, `/passwort`, `/status`, `/link`, `/unlink`, `/userlist`, `/quiz`, `/abonnieren`, `/deabonnieren`, `/newsletter`
-- ✅ Telegram-Konto verknüpfen via Browser (SSO)
-- ✅ Telegram-Konto verknüpfen direkt im Chat (`/verbinden` → E-Mail → Passwort)
-- ✅ ToS-Checkbox (Nutzungsbedingungen) auf Registrierungsseite (Pflichtfeld)
-- ✅ Newsletter-Checkbox auf Registrierungsseite (optional, wird in DB gespeichert)
-- ✅ „Jetzt mit Telegram verbinden"-Button auf Erfolgsseite nach Registrierung
-- ✅ Benutzer bearbeiten: E-Mail und Telegram-Username ändern (Admin-Panel)
-- ✅ Admin-Panel: „Aktivieren"- und „Deaktivieren"-Buttons getrennt
-- ✅ Plugin Erklärungsdokument (PLUGIN_ERKLAERUNG.md)
+> Stand: v1.0.4.32 – zuletzt aktualisiert: 11.06.2026
 
 ---
 
-## 🔲 Priorität 1 – Nächste Schritte (Kern-Features)
+## 🔴 KRITISCH
+(Alle kritischen Bugs wurden behoben! 🎉)
 
-### 🖥️ Weboberfläche / Registrierungsseite
-- ✅ **Logo / Bild austauschbar machen** – Im Admin-Panel ein eigenes Logo hochladen, das dann auf allen Seiten (invite, reset, login) erscheint statt dem Standard-Bild
-- ✅ **E-Mail-Betreff pro Vorlage anpassen** – Für jede E-Mail-Art (Einladung, Willkommen, Passwort-Reset, Passwort geändert, Deaktiviert, Aktiviert, Gelöscht) einen eigenen, editierbaren Betreff im Admin-Panel hinterlegen können
+## 🟠 WICHTIG – E-Mail Templates
+(Alle E-Mail-bezogenen Anforderungen wurden umgesetzt! ✉️)
 
-### 👤 Benutzerverwaltung (Admin-Panel)
-- ✅ **Ablaufdatum für Accounts** – Admin kann pro User ein Ablaufdatum setzen
-  - User bekommt X Tage vorher eine automatische E-Mail: *„Dein Account läuft in X Tagen ab – bitte wende dich an einen Administrator"*
-  - Account wird nach Ablauf automatisch deaktiviert
-  - Benachrichtigung auch per Telegram an den User (falls verknüpft)
-- ✅ **Ankündigungsnachrichten an einzelne oder mehrere User**
-  - Admin klickt auf einen oder mehrere User → Button „Ankündigung senden"
-  - Felder: Betreff, HTML-Nachricht (mit `{username}`, `{email}` etc. als Platzhalter)
-  - Versand per **E-Mail (HTML)** + **Telegram-Nachricht** gleichzeitig
-  - Funktioniert für einzelne User oder als Mehrfachauswahl (Checkbox pro User)
-- ✅ **Gruppen-Ankündigung** – Nachricht direkt in die verknüpfte Telegram-Gruppe posten (mit optionalem Inhalt aus dem Admin-Panel)
+## 🟡 UI / DASHBOARD
+- 🔲 **Ankündigungs-Panel:** Vorschau der E-Mail im Browser anzeigen, bevor gesendet wird
+- 🔲 **Template-Auswahl:** Dropdown für verschiedene Vorlagen (Ankündigung, Willkommen, Neuheiten, etc.)
 
-### 🤖 Telegram-Bot überprüfen & verbessern
-- ✅ **Vollständiger Bot-Test** – Alle Befehle auf Funktion prüfen:
-  - `/start` – Willkommen, Status, Buttons (Browser / Chat verknüpfen)
-  - `/verbinden` – E-Mail → Passwort → Verknüpfung
-  - `/passwort` – Passwort ändern
-  - `/newsletter`, `/abonnieren`, `/deabonnieren`
-  - Admin-Befehle wirklich nur für Admins zugänglich?
-- ✅ **Newsletter automatisch in Gruppe posten** – Wenn ein neuer Film oder eine neue Serie in Jellyfin erscheint, wird automatisch eine Nachricht in die verknüpfte Telegram-Gruppe gepostet (für Newsletter-Abonnenten)
-- ✅ **Bot-Nachrichten überarbeiten** – Alle Bot-Texte überprüfen, schöner und professioneller formulieren
+## 🔵 QUALITÄT / LOGGING
+- 🔲 **Fehlerlogs verbessern:** Ausführlichere Protokollierung im Jellyfin-Log, inkl. Zeitstempel, Methodenname und Ursache
+- 🔲 **Logging-Tab im Dashboard:** Mehr Details anzeigen (Typ, Quelle, Nachricht)
 
 ---
 
-## 🔲 Priorität 2 – Erweiterungen
+## ✅ ERLEDIGT
+<details open>
+<summary>Klicken um kürzlich erledigte Aufgaben anzuzeigen</summary>
 
-### 📊 Automatische Berichte & Statistiken
-- ✅ **Monatliche Server-Charts** – Bot postet am Monatsende automatisch: *„Top 3 der beliebtesten Filme/Serien diesen Monat"* in die Telegram-Gruppe
-- ✅ **Persönlicher Wochenrückblick** – Jeden Freitag bekommt jeder User eine Telegram-Nachricht oder HTML-E-Mail: *„Das hast du diese Woche verpasst: 3 neue Folgen von Serie X ..."*
+- ✅ **Telegram-Status:** Das Dashboard zeigt nun korrekt an, ob ein User mit Telegram verknüpft ist, selbst wenn der Telegram-Benutzername noch nicht bekannt ist.
+- ✅ **Benutzerliste:** E-Mail-Adressen werden in der User-Tabelle nun korrekt aus den UserLinks geladen und angezeigt.
 
-### 🎬 Film-/Serien-Wunschsystem
-- ✅ **`/wunsch [Filmname]`** – User kann einen Film- oder Serienwunsch einschicken
-  - Bot sucht automatisch über TMDB-API (zeigt Bild + Titel)
-  - Admin bekommt Push-Nachricht mit Buttons: `✅ Genehmigen` / `❌ Ablehnen`
-  - User bekommt Benachrichtigung wenn Wunsch genehmigt oder abgelehnt wurde
+- ✅ **Registrierung:** Bestätigungs-E-Mail enthält nun den Benutzernamen und eine Anleitung zum Einloggen.
+- ✅ **Newsletter-E-Mail:** Richtiger Bibliotheks-Ordner (z.B. „Netflix Serien") wird nun korrekt ermittelt, nicht mehr "root".
+- ✅ **Newsletter-E-Mail:** Titelbilder / Cover-Bilder der Medien werden in den HTML E-Mails eingebunden.
+- ✅ **Ankündigung:** Variablen `{serverName}`, `{username}`, `{platformLink}` und `{message}` werden beim Senden nun korrekt aufgelöst.
+- ✅ **Admin-Schutz:** Jellyfin-Administratoren dürfen NICHT gelöscht oder deaktiviert werden (Backend & Frontend abgesichert)
+- ✅ **resetpassword-Fehler:** "Ressource nicht gefunden: 'resetpassword'" Route im PublicController behoben
+- ✅ **Telegram-Verknüpfung:** SSO-Login repariert – Verknüpfung über jellyfinuserid für eingeloggte User im Browser hinzugefügt
+- ✅ **E-Mail Templates:** Premium-HTML-Template als Standard für Ankündigungen und Newsletter hinterlegt
+- ✅ **E-Mail Dashboard:** Alle E-Mail Templates im Plugin-Dashboard editierbar gemacht (Willkommen, Einladung, Account gelöscht, Neue Filme, Neue Serien etc.)
+- ✅ **Benutzer namentlich ansprechen:** `{username}` Platzhalter in allen Templates sichergestellt
+- ✅ Multi-Kanal Ankündigung (E-Mail + Telegram Checkboxen)
+- ✅ Bot-Administrator Rechte-Schalter im Benutzer-Bearbeiten-Dialog
+- ✅ HTTP 403 Fehler in der Benutzerliste (GetUsers) behoben (v1.0.4.32)
+- ✅ Browser-Cache-Problem mit JS-Versionen gelöst
+- ✅ UTC-Timestamp-Problem im Manifest behoben (v1.0.4.30)
 
-### 🔒 Sicherheit & Gast-Zugänge
-- ✅ **Temporäre Gast-Accounts** – Einladungen mit automatischem Ablaufdatum (z. B. „Zugang nur für 7 Tage")
-- ✅ **2FA via Telegram** – Bei Login von einem neuen Gerät schickt der Bot eine Autorisierungs-Anfrage. Ohne Autorisierung wird die Wiedergabe blockiert.
-
-### 🖥️ Server-Überwachung / Alarme
-- ✅ **Uptime-Alarm** – Bot schickt Admin eine Warnung wenn Jellyfin-Server abstürzt oder nicht mehr erreichbar ist (als genereller Server-Alarm implementiert)
-- ✅ **Festplatten-Alarm** – Warnung wenn Festplatte zu mehr als 95% voll ist
-- ✅ **Transcoding-Warnung** – Hinweis wenn zu viele User gleichzeitig transkodieren (CPU-Überlastung)
-
----
-
-## 💡 Ideen für später (kein fixes Datum)
-
-
-- 💡 **Custom Telegram-Sticker-Set** – Kleine RiNnoFin-Sticker für den Bot (z. B. „Server läuft", „Filmwunsch eingegangen")
-- 💡 **Plugin-Seite im Jellyfin-Design** – Komplettes visuelles Redesign der Admin-Konfigurations-Seite
-
----
-
-## 📋 Reihenfolge Empfehlung
-
-```
-1. Logo austauschbar machen
-2. E-Mail-Betreff anpassbar
-3. Ablaufdatum für Accounts + Benachrichtigung
-4. Ankündigungsnachrichten (einzeln + Gruppe)
-5. Bot vollständig testen + Texte überarbeiten
-6. Newsletter automatisch in Gruppe posten
-7. Monatliche Charts + Wochenrückblick
-8. Wunschsystem (/wunsch)
-9. 2FA via Telegram
-10. Server-Alarme
-```
+*(Ältere erledigte Features befinden sich in der internen Projekthistorie)*
+</details>

@@ -57,6 +57,10 @@ public class TelegramController : ControllerBase
         {
             lowerFilename = "index";
         }
+        else if (lowerFilename == "resetpassword")
+        {
+            lowerFilename = "reset";
+        }
 
         var view = Constants.LoginFiles.FirstOrDefault(extra => extra.Name == lowerFilename);
         if (view == null)

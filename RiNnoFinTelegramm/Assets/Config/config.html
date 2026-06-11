@@ -609,7 +609,7 @@
                         <label class="inputLabel inputLabelUnfocused" for="EmailSubjectWelcome" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Willkommen</label>
                         <input class="sso-text" id="EmailSubjectWelcome" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
 
-                        <label class="inputLabel inputLabelUnfocused" for="EmailTemplateWelcome">Willkommens-E-Mail nach Setup (Variable: {username}):</label>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailTemplateWelcome">Willkommens-E-Mail nach Setup (Variablen: {username}, {serverUrl}):</label>
                         <textarea class="sso-text" id="EmailTemplateWelcome" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
                     </div>
                 </div>
@@ -656,10 +656,40 @@
 
                 <div class="inputContainer" style="margin-bottom: 30px;">
                     <div>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailSubjectAccountDeleted" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Account gelöscht</label>
+                        <input class="sso-text" id="EmailSubjectAccountDeleted" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
+
+                        <label class="inputLabel inputLabelUnfocused" for="EmailTemplateAccountDeleted">Account Gelöscht (Variable: {username}):</label>
+                        <textarea class="sso-text" id="EmailTemplateAccountDeleted" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+                    </div>
+                </div>
+
+                <div class="inputContainer" style="margin-bottom: 30px;">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailSubjectNewsletterMovies" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Neue Filme</label>
+                        <input class="sso-text" id="EmailSubjectNewsletterMovies" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
+
+                        <label class="inputLabel inputLabelUnfocused" for="EmailTemplateNewsletterMovies">Newsletter Neue Filme (Variablen: {username}, {content}, {serverUrl}):</label>
+                        <textarea class="sso-text" id="EmailTemplateNewsletterMovies" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+                    </div>
+                </div>
+
+                <div class="inputContainer" style="margin-bottom: 30px;">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailSubjectNewsletterSeries" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Neue Serien</label>
+                        <input class="sso-text" id="EmailSubjectNewsletterSeries" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
+
+                        <label class="inputLabel inputLabelUnfocused" for="EmailTemplateNewsletterSeries">Newsletter Neue Serien (Variablen: {username}, {content}, {serverUrl}):</label>
+                        <textarea class="sso-text" id="EmailTemplateNewsletterSeries" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+                    </div>
+                </div>
+
+                <div class="inputContainer" style="margin-bottom: 30px;">
+                    <div>
                         <label class="inputLabel inputLabelUnfocused" for="EmailSubjectAnnounce" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Ankündigung</label>
                         <input class="sso-text" id="EmailSubjectAnnounce" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
 
-                        <label class="inputLabel inputLabelUnfocused" for="EmailTemplateAnnounce">Benutzerdefinierte Ankündigung (Variable: {username}, {message}):</label>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailTemplateAnnounce">Benutzerdefinierte Ankündigung (Variablen: {username}, {message}, {serverName}, {platformLink}):</label>
                         <textarea class="sso-text" id="EmailTemplateAnnounce" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
                     </div>
                 </div>

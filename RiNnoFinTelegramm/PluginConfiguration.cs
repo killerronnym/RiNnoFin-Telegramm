@@ -25,6 +25,7 @@ public class PluginConfiguration : BasePluginConfiguration
     public string? DefaultProfileUserId { get; set; }
 
     public string RegistrationTheme { get; set; } = "jellyfin";
+    public DateTime LastEmailNewsletterSent { get; set; } = DateTime.UtcNow;
 
     public string TmdbApiKey { get; set; } = string.Empty;
 
@@ -47,7 +48,8 @@ public class PluginConfiguration : BasePluginConfiguration
     public string EmailSubjectPasswordChanged { get; set; } = "Passwort erfolgreich geändert ✅";
     public string EmailSubjectAccountEnabled { get; set; } = "Dein RiNnoFin Account wurde wieder aktiviert! 🎉";
     public string EmailSubjectAccountDisabled { get; set; } = "Dein RiNnoFin Account wurde deaktiviert ⚠️";
-    public string EmailSubjectNewsletter { get; set; } = "Neu auf RiNnoFin Media! 🍿";
+    public string EmailSubjectNewsletterMovies { get; set; } = "Neue Filme auf RiNnoFin! 🍿";
+    public string EmailSubjectNewsletterSeries { get; set; } = "Neue Serien & Episoden! 📺";
     public string EmailSubjectRueckblick { get; set; } = "Dein wöchentlicher RiNnoFin Rückblick 📺";
     public string EmailSubjectAnnounce { get; set; } = "Wichtige Ankündigung! 📢";
 
@@ -56,7 +58,7 @@ public class PluginConfiguration : BasePluginConfiguration
 <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
     <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
         <h2 style='color: #2563eb;'>Du wurdest eingeladen! 🍿</h2>
-        <p>Hallo!</p>
+        <p>Hallo <strong>{username}</strong>,</p>
         <p>Du wurdest eingeladen, Teil unserer <strong>RiNnoFin Media</strong> Community zu werden.</p>
         <p>Klicke auf den untenstehenden Button, um deinen Benutzernamen und dein Passwort festzulegen:</p>
         <div style='text-align: center; margin: 30px 0;'>
@@ -74,7 +76,13 @@ public class PluginConfiguration : BasePluginConfiguration
         <h2 style='color: #2563eb;'>Willkommen an Bord! 🐧🎬</h2>
         <p>Hallo <strong>{username}</strong>,</p>
         <p>Dein Account bei <strong>RiNnoFin Media</strong> wurde erfolgreich erstellt.</p>
-        <p>Du kannst dich ab sofort mit deinem gewählten Passwort auf all deinen Geräten einloggen.</p>
+        <div style='background-color: #f8fafc; padding: 15px; border-radius: 6px; margin: 20px 0; border: 1px solid #e2e8f0;'>
+            <h3 style='margin-top: 0; color: #334155; font-size: 16px;'>Deine Login-Daten:</h3>
+            <p style='margin: 5px 0;'><strong>Benutzername:</strong> {username}</p>
+            <p style='margin: 5px 0;'><strong>Passwort:</strong> Das von dir gewählte Passwort</p>
+            <p style='margin: 5px 0;'><strong>Server-URL:</strong> <a href='{serverUrl}'>{serverUrl}</a></p>
+        </div>
+        <p>Du kannst dich ab sofort auf all deinen Geräten einloggen (z.B. im Browser, auf dem Smart-TV oder in der mobilen App).</p>
         <br/>
         <p style='color: #9ca3af; font-size: 12px; text-align: center;'>Viel Spaß beim Streamen! 🍿 Dein RiNnoFin-Team</p>
     </div>
@@ -130,17 +138,44 @@ public class PluginConfiguration : BasePluginConfiguration
     </div>
 </div>";
 
-    public string EmailTemplateNewsletter { get; set; } = @"
+    public string EmailTemplateAccountDeleted { get; set; } = @"
 <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
     <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
-        <h2 style='color: #8b5cf6;'>Neu auf RiNnoFin! 🍿</h2>
+        <h2 style='color: #ef4444;'>Account gelöscht 🗑️</h2>
         <p>Hallo <strong>{username}</strong>,</p>
-        <p>Es gibt neue Inhalte auf dem Server:</p>
+        <p>Dein Account bei RiNnoFin Media wurde endgültig gelöscht. Alle deine persönlichen Daten wurden entfernt.</p>
+        <br/>
+        <p style='color: #9ca3af; font-size: 12px; text-align: center;'>Dein RiNnoFin-Team</p>
+    </div>
+</div>";
+
+    public string EmailTemplateNewsletterMovies { get; set; } = @"
+<div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
+    <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
+        <h2 style='color: #8b5cf6;'>Neue Filme auf RiNnoFin! 🍿</h2>
+        <p>Hallo <strong>{username}</strong>,</p>
+        <p>Es gibt neue Filme auf dem Server:</p>
         <div style='background: #f9fafb; padding: 15px; border-radius: 8px; margin: 20px 0;'>
             {content}
         </div>
         <div style='text-align: center; margin: 30px 0;'>
             <a href='{serverUrl}' style='background-color: #8b5cf6; color: #fff; padding: 14px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;'>Jetzt ansehen</a>
+        </div>
+        <p style='color: #9ca3af; font-size: 12px; text-align: center;'>Dein RiNnoFin-Team</p>
+    </div>
+</div>";
+
+    public string EmailTemplateNewsletterSeries { get; set; } = @"
+<div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
+    <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
+        <h2 style='color: #10b981;'>Neue Serien & Episoden! 📺</h2>
+        <p>Hallo <strong>{username}</strong>,</p>
+        <p>Es gibt neue Serien auf dem Server:</p>
+        <div style='background: #f9fafb; padding: 15px; border-radius: 8px; margin: 20px 0;'>
+            {content}
+        </div>
+        <div style='text-align: center; margin: 30px 0;'>
+            <a href='{serverUrl}' style='background-color: #10b981; color: #fff; padding: 14px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;'>Jetzt ansehen</a>
         </div>
         <p style='color: #9ca3af; font-size: 12px; text-align: center;'>Dein RiNnoFin-Team</p>
     </div>

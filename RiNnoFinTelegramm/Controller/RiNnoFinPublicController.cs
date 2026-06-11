@@ -155,8 +155,9 @@ public class RiNnoFinPublicController : ControllerBase
                     PluginLog.Info("[PublicAPI] E-Mail-Adresse erfolgreich verknüpft.");
 
                 // Send Welcome Email
+                var baseUrl = config.LoginBaseUrl?.TrimEnd('/') ?? "http://localhost:8096";
                 string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplateWelcome)
-                    ? config.EmailTemplateWelcome.Replace("{username}", user.Username)
+                    ? config.EmailTemplateWelcome.Replace("{username}", user.Username).Replace("{serverUrl}", baseUrl)
                     : $@"
                     <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
                         <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>

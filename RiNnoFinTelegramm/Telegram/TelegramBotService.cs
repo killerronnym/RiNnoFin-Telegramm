@@ -43,7 +43,7 @@ public static class TelegramBotServiceExtensions
         if (botClient == null) return;
 
         var baseUrl = telegramBotService.Config.LoginBaseUrl?.TrimEnd('/');
-        var ssoUrl = string.IsNullOrEmpty(baseUrl) ? string.Empty : $"{baseUrl}/sso/Telegram";
+        var ssoUrl = string.IsNullOrEmpty(baseUrl) ? string.Empty : $"{baseUrl}/sso/Telegram?action=link";
         
         global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup? replyMarkup = null;
         if (!string.IsNullOrEmpty(ssoUrl))

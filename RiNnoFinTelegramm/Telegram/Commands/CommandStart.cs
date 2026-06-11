@@ -52,7 +52,7 @@ internal class CommandStart : ICommandBase
                 welcomeText = "❌ Dein Telegram-Konto ist noch *nicht* mit einem Jellyfin-Konto verknüpft!\nUm alle Befehle nutzen zu können, verknüpfe bitte zuerst dein Konto:\n\n" + welcomeText;
                 
                 var baseUrl = telegramBotService.Config.LoginBaseUrl?.TrimEnd('/');
-                var ssoUrl = string.IsNullOrEmpty(baseUrl) ? string.Empty : $"{baseUrl}/sso/Telegram";
+                var ssoUrl = string.IsNullOrEmpty(baseUrl) ? string.Empty : $"{baseUrl}/sso/Telegram?action=link";
                 
                 var buttons = new System.Collections.Generic.List<global::Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton[]>();
                 

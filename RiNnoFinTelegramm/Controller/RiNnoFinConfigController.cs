@@ -374,6 +374,7 @@ public class RiNnoFinConfigController : ControllerBase
                             IsDisabled = uDto?.Policy?.IsDisabled ?? false,
                             IsAdmin = uDto?.Policy?.IsAdministrator ?? false,
                             IsBotAdmin = isBotAdmin,
+                            IsTelegramLinked = link != null,
                             LastActivityDate = uLastActivityDate,
                             ExpirationDate = link?.ExpirationDate
                         });
@@ -391,6 +392,7 @@ public class RiNnoFinConfigController : ControllerBase
                                 TelegramUsername = "",
                                 IsDisabled = false,
                                 IsAdmin = false,
+                                IsTelegramLinked = false,
                                 LastActivityDate = null,
                                 ExpirationDate = null
                             });
@@ -531,6 +533,9 @@ public class RiNnoFinConfigController : ControllerBase
         {
             if (!await IsUserAdmin().ConfigureAwait(false)) return StatusCode(StatusCodes.Status403Forbidden, new { message = "Admin-Rechte erforderlich." });
             var userManager = RiNnoFinPlugin.UserManager;
+            var config = RiNnoFinPlugin.Instance?.Configuration;
+            var emailService = new EmailService(_logger);
+
             foreach (var id in userIds)
             {
                 var user = userManager.GetUserById(id);
@@ -539,6 +544,28 @@ public class RiNnoFinConfigController : ControllerBase
                     var dto = userManager.GetUserDto(user, string.Empty);
                     dto.Policy.IsDisabled = false;
                     await userManager.UpdatePolicyAsync(id, dto.Policy).ConfigureAwait(false);
+
+                    if (config != null)
+                    {
+                        var userLink = config.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == id);
+                        if (userLink != null && !string.IsNullOrEmpty(userLink.EmailAddress))
+                        {
+                            string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplateAccountEnabled)
+                                ? config.EmailTemplateAccountEnabled.Replace("{username}", user.Username)
+                                : $@"
+                                <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
+                                    <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
+                                        <h2 style='color: #22c55e;'>Account aktiviert 🎉</h2>
+                                        <p>Hallo <strong>{user.Username}</strong>,</p>
+                                        <p>Dein Account bei RiNnoFin Media wurde aktiviert.</p>
+                                    </div>
+                                </div>";
+                            try { 
+                                var subject = !string.IsNullOrWhiteSpace(config.EmailSubjectAccountEnabled) ? config.EmailSubjectAccountEnabled : "Account aktiviert - RiNnoFin Media";
+                                await emailService.SendEmailAsync(config, userLink.EmailAddress, subject, htmlBody); 
+                            } catch { /* Ignore */ }
+                        }
+                    }
                 }
             }
             return Ok(new { message = "Benutzer erfolgreich aktiviert." });
@@ -558,6 +585,12 @@ public class RiNnoFinConfigController : ControllerBase
                 if (user != null)
                 {
                     var dto = userManager.GetUserDto(user, string.Empty);
+                    if (dto.Policy.IsAdministrator)
+                    {
+                        PluginLog.Warn($"[ConfigAPI] Versuch blockiert, den Administrator {user.Username} zu deaktivieren.");
+                        continue;
+                    }
+
                     dto.Policy.IsDisabled = true;
                     await userManager.UpdatePolicyAsync(id, dto.Policy).ConfigureAwait(false);
 
@@ -567,7 +600,9 @@ public class RiNnoFinConfigController : ControllerBase
                         if (userLink != null && !string.IsNullOrEmpty(userLink.EmailAddress))
                         {
                             string reasonHtml = string.IsNullOrWhiteSpace(request.Reason) ? "" : $"<p><strong>Grund:</strong> {request.Reason}</p>";
-                            string htmlBody = $@"
+                            string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplateAccountDisabled)
+                                ? config.EmailTemplateAccountDisabled.Replace("{username}", user.Username) + reasonHtml
+                                : $@"
                             <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
                                 <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
                                     <h2 style='color: #ef4444;'>Account deaktiviert ⚠️</h2>
@@ -602,13 +637,22 @@ public class RiNnoFinConfigController : ControllerBase
                 var user = userManager.GetUserById(id);
                 if (user != null)
                 {
+                    var dto = userManager.GetUserDto(user, string.Empty);
+                    if (dto.Policy.IsAdministrator)
+                    {
+                        PluginLog.Warn($"[ConfigAPI] Versuch blockiert, den Administrator {user.Username} zu löschen.");
+                        continue;
+                    }
+
                     if (config != null)
                     {
                         var userLink = config.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == id);
                         if (userLink != null && !string.IsNullOrEmpty(userLink.EmailAddress))
                         {
                             string reasonHtml = string.IsNullOrWhiteSpace(request.Reason) ? "" : $"<p><strong>Grund:</strong> {request.Reason}</p>";
-                            string htmlBody = $@"
+                            string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplateAccountDeleted)
+                                ? config.EmailTemplateAccountDeleted.Replace("{username}", user.Username) + reasonHtml
+                                : $@"
                             <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
                                 <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
                                     <h2 style='color: #ef4444;'>Account gelöscht 🗑️</h2>
@@ -620,7 +664,7 @@ public class RiNnoFinConfigController : ControllerBase
                             </div>";
                             
                             try { 
-                                var subject = "Account gelöscht - RiNnoFin Media"; // Not parameterized yet based on UI, but safe fallback
+                                var subject = !string.IsNullOrWhiteSpace(config.EmailSubjectAccountDeleted) ? config.EmailSubjectAccountDeleted : "Account gelöscht - RiNnoFin Media";
                                 await emailService.SendEmailAsync(config, userLink.EmailAddress, subject, htmlBody); 
                             } catch { /* Ignore */ }
                         }
@@ -714,7 +758,10 @@ public class RiNnoFinConfigController : ControllerBase
                                     : request.Subject;
 
                                 string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplateAnnounce)
-                                    ? config.EmailTemplateAnnounce.Replace("{username}", user.Username).Replace("{message}", personalMessage.Replace("\n", "<br/>"))
+                                    ? config.EmailTemplateAnnounce.Replace("{username}", user.Username)
+                                        .Replace("{message}", personalMessage.Replace("\n", "<br/>"))
+                                        .Replace("{serverName}", config.EmailSenderName ?? "Dein Media-Server")
+                                        .Replace("{platformLink}", config.LoginBaseUrl?.TrimEnd('/') ?? "http://localhost:8096")
                                     : $"<p>{personalMessage.Replace("\n", "<br/>")}</p>";
 
                                 await emailService.SendEmailAsync(config, userLink.EmailAddress, subject, htmlBody);
@@ -794,7 +841,7 @@ public class RiNnoFinConfigController : ControllerBase
 
                 string token = Guid.NewGuid().ToString("N");
                 ResetTokenManager.AddResetToken(token, id);
-                string resetUrl = $"{config.LoginBaseUrl?.TrimEnd('/')}/sso/Telegram/ResetPassword?token={token}";
+                string resetUrl = $"{config.LoginBaseUrl?.TrimEnd('/')}/sso/Telegram/reset?token={token}";
 
                 string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplatePasswordReset)
                     ? config.EmailTemplatePasswordReset.Replace("{resetLink}", resetUrl).Replace("{username}", user.Username)
@@ -985,6 +1032,7 @@ public class UserDto
     public bool IsDisabled { get; set; }
     public bool IsAdmin { get; set; }
     public bool IsBotAdmin { get; set; }
+    public bool IsTelegramLinked { get; set; }
     public DateTime? LastActivityDate { get; set; }
     public DateTime? ExpirationDate { get; set; }
 }

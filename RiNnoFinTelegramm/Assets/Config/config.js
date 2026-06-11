@@ -44,6 +44,9 @@ const tgConfigPage = {
         page.querySelector("#EmailTemplatePasswordChanged").value = config.EmailTemplatePasswordChanged ?? '';
         page.querySelector("#EmailTemplateAccountEnabled").value = config.EmailTemplateAccountEnabled ?? '';
         page.querySelector("#EmailTemplateAccountDisabled").value = config.EmailTemplateAccountDisabled ?? '';
+        page.querySelector("#EmailTemplateAccountDeleted").value = config.EmailTemplateAccountDeleted ?? '';
+        page.querySelector("#EmailTemplateNewsletterMovies").value = config.EmailTemplateNewsletterMovies ?? '';
+        page.querySelector("#EmailTemplateNewsletterSeries").value = config.EmailTemplateNewsletterSeries ?? '';
 
         const subjectInvite = page.querySelector("#EmailSubjectInvite");
         if (subjectInvite) subjectInvite.value = config.EmailSubjectInvite ?? '';
@@ -66,6 +69,13 @@ const tgConfigPage = {
         const subjectAnnounce = page.querySelector("#EmailSubjectAnnounce");
         if (subjectAnnounce) subjectAnnounce.value = config.EmailSubjectAnnounce ?? '';
         
+        const subjectAccountDeleted = page.querySelector("#EmailSubjectAccountDeleted");
+        if (subjectAccountDeleted) subjectAccountDeleted.value = config.EmailSubjectAccountDeleted ?? '';
+        const subjectNewsletterMovies = page.querySelector("#EmailSubjectNewsletterMovies");
+        if (subjectNewsletterMovies) subjectNewsletterMovies.value = config.EmailSubjectNewsletterMovies ?? '';
+        const subjectNewsletterSeries = page.querySelector("#EmailSubjectNewsletterSeries");
+        if (subjectNewsletterSeries) subjectNewsletterSeries.value = config.EmailSubjectNewsletterSeries ?? '';
+
         page.querySelector("#EmailTemplateAnnounce").value = config.EmailTemplateAnnounce ?? '';
     },
 
@@ -219,7 +229,7 @@ const tgConfigPage = {
             
             const checkboxTd = document.createElement("td");
             checkboxTd.style.padding = "10px";
-            checkboxTd.innerHTML = `<input type="checkbox" class="user-checkbox" data-userid="${user.Id}" data-botadmin="${user.IsBotAdmin ? 'true' : 'false'}" style="width: 18px; height: 18px; cursor: pointer; accent-color: #3b82f6;"/>`;
+            checkboxTd.innerHTML = `<input type="checkbox" class="user-checkbox" data-userid="${user.Id}" data-botadmin="${user.IsBotAdmin ? 'true' : 'false'}" data-isadmin="${user.IsAdmin ? 'true' : 'false'}" style="width: 18px; height: 18px; cursor: pointer; accent-color: #3b82f6;"/>`;
             
             const nameTd = document.createElement("td");
             nameTd.style.padding = "10px";
@@ -237,11 +247,17 @@ const tgConfigPage = {
 
             const emailTd = document.createElement("td");
             emailTd.style.padding = "10px";
-            emailTd.textContent = user.Email ? user.Email : '-'; 
+            emailTd.innerHTML = user.Email ? user.Email : '<span style="color: #9ca3af;">-</span>';
 
             const telegramTd = document.createElement("td");
             telegramTd.style.padding = "10px";
-            telegramTd.textContent = user.TelegramUsername ? '@' + user.TelegramUsername : '-';
+            if (user.IsTelegramLinked) {
+                telegramTd.innerHTML = user.TelegramUsername 
+                    ? `<span style="color: #10b981;">✔ Verknüpft</span> (@${user.TelegramUsername})` 
+                    : `<span style="color: #10b981;">✔ Verknüpft</span>`;
+            } else {
+                telegramTd.innerHTML = '<span style="color: #9ca3af;">-</span>';
+            }
 
             const expirationTd = document.createElement("td");
             expirationTd.style.padding = "10px";
@@ -268,6 +284,14 @@ const tgConfigPage = {
         if (userIds.length === 0) {
             window.Dashboard.alert("Bitte wähle mindestens einen Benutzer aus.");
             return;
+        }
+
+        if (actionName === "AdminDisableUser" || actionName === "AdminDeleteUser") {
+            const hasAdmins = Array.from(page.querySelectorAll(".user-checkbox:checked")).some(cb => cb.dataset.isadmin === "true");
+            if (hasAdmins) {
+                window.Dashboard.alert("Aktion abgebrochen: Jellyfin-Administratoren dürfen nicht gelöscht oder deaktiviert werden.");
+                return;
+            }
         }
 
         if (confirmMsg && !confirm(confirmMsg)) return;
@@ -389,6 +413,9 @@ const tgConfigPage = {
                 config.EmailTemplatePasswordChanged = (page.querySelector("#EmailTemplatePasswordChanged").value ?? "").trim() || undefined;
                 config.EmailTemplateAccountEnabled = (page.querySelector("#EmailTemplateAccountEnabled").value ?? "").trim() || undefined;
                 config.EmailTemplateAccountDisabled = (page.querySelector("#EmailTemplateAccountDisabled").value ?? "").trim() || undefined;
+                config.EmailTemplateAccountDeleted = (page.querySelector("#EmailTemplateAccountDeleted").value ?? "").trim() || undefined;
+                config.EmailTemplateNewsletterMovies = (page.querySelector("#EmailTemplateNewsletterMovies").value ?? "").trim() || undefined;
+                config.EmailTemplateNewsletterSeries = (page.querySelector("#EmailTemplateNewsletterSeries").value ?? "").trim() || undefined;
 
                 config.EmailSubjectInvite = (page.querySelector("#EmailSubjectInvite")?.value ?? "").trim() || undefined;
                 config.EmailSubjectWelcome = (page.querySelector("#EmailSubjectWelcome")?.value ?? "").trim() || undefined;
@@ -396,6 +423,9 @@ const tgConfigPage = {
                 config.EmailSubjectPasswordChanged = (page.querySelector("#EmailSubjectPasswordChanged")?.value ?? "").trim() || undefined;
                 config.EmailSubjectAccountEnabled = (page.querySelector("#EmailSubjectAccountEnabled")?.value ?? "").trim() || undefined;
                 config.EmailSubjectAccountDisabled = (page.querySelector("#EmailSubjectAccountDisabled")?.value ?? "").trim() || undefined;
+                config.EmailSubjectAccountDeleted = (page.querySelector("#EmailSubjectAccountDeleted")?.value ?? "").trim() || undefined;
+                config.EmailSubjectNewsletterMovies = (page.querySelector("#EmailSubjectNewsletterMovies")?.value ?? "").trim() || undefined;
+                config.EmailSubjectNewsletterSeries = (page.querySelector("#EmailSubjectNewsletterSeries")?.value ?? "").trim() || undefined;
                 config.EmailSubjectAnnounce = (page.querySelector("#EmailSubjectAnnounce")?.value ?? "").trim() || undefined;
 
                 config.EmailTemplateAnnounce = (page.querySelector("#EmailTemplateAnnounce").value ?? "").trim() || undefined;

@@ -62,9 +62,15 @@ public class TelegramLoginService
 
         var groups = _config.TelegramGroups;
         var userGroups = groups.Where(group => group.UserNames.Any(user => string.Equals(user, userName, StringComparison.CurrentCultureIgnoreCase))).ToArray();
-        if (!isAdmin && userGroups.Length == 0)
+        var telegramUserId = long.Parse(userId);
+        var existingLink = _config.TelegramUserLinks?.FirstOrDefault(l => l.TelegramUserId == telegramUserId || string.Equals(l.TelegramUsername, userName, StringComparison.OrdinalIgnoreCase));
+
+        var jellyfinUserIdStr = GetDictValue(authData, "jellyfinuserid");
+        Guid.TryParse(jellyfinUserIdStr ?? "", out var providedJellyfinUserId);
+
+        if (!isAdmin && userGroups.Length == 0 && existingLink == null && providedJellyfinUserId == Guid.Empty)
         {
-            throw new ArgumentException($"Benutzername '{userName}' steht nicht auf der Whitelist.");
+            throw new ArgumentException($"Benutzername '{userName}' steht nicht auf der Whitelist und ist noch nicht verknüpft.");
         }
 
         if (isAdmin && !_config.AdminUserNames.Any(admin => string.Equals(admin, userName, StringComparison.CurrentCultureIgnoreCase)))
@@ -73,9 +79,24 @@ public class TelegramLoginService
             _instance.SaveConfiguration(_config);
         }
 
-        var user = _userManager.GetUserByName(userName);
+        User user = null;
+        if (providedJellyfinUserId != Guid.Empty)
+        {
+            user = _userManager.GetUserById(providedJellyfinUserId);
+        }
+        else if (existingLink != null && existingLink.JellyfinUserId != Guid.Empty)
+        {
+            user = _userManager.GetUserById(existingLink.JellyfinUserId);
+        }
+
         if (user == null)
         {
+            user = _userManager.GetUserByName(userName);
+        }
+
+        if (user == null)
+        {
+            // Auto-create only for Whitelisted users or Admins
             user = await _userManager.CreateUserAsync(userName).ConfigureAwait(false);
 
             var randBytes = new byte[128];
@@ -85,15 +106,16 @@ public class TelegramLoginService
         }
 
         // Benutzer-Telegram-Verbindung registrieren/aktualisieren
-        var telegramUserId = long.Parse(userId);
         if (_config.TelegramUserLinks == null) _config.TelegramUserLinks = new List<TelegramUserLink>();
-        var link = _config.TelegramUserLinks?.FirstOrDefault(l => l.TelegramUserId == telegramUserId);
+        var link = existingLink ?? _config.TelegramUserLinks?.FirstOrDefault(l => l.TelegramUserId == telegramUserId || l.JellyfinUserId == user.Id);
+        
         if (link == null)
         {
             link = new TelegramUserLink
             {
                 TelegramUserId = telegramUserId,
                 TelegramUsername = userName,
+                JellyfinUserId = user.Id,
                 JellyfinUsername = user.Username,
                 SubscribeEmailNewsletter = true,
                 SubscribeTelegramNewsletter = true
@@ -103,7 +125,9 @@ public class TelegramLoginService
         }
         else
         {
+            link.TelegramUserId = telegramUserId;
             link.TelegramUsername = userName;
+            link.JellyfinUserId = user.Id;
             link.JellyfinUsername = user.Username;
             _instance.SaveConfiguration(_config);
         }
@@ -180,7 +204,10 @@ public class TelegramLoginService
             return new TelegramAuthResult { ErrorMessage = "Ungültiger Hash." };
         }
 
-        var orderedKeys = fields.Keys.Where(k => !string.Equals("hash", k, StringComparison.CurrentCultureIgnoreCase)).ToArray();
+        var orderedKeys = fields.Keys.Where(k => 
+            !string.Equals("hash", k, StringComparison.CurrentCultureIgnoreCase) &&
+            !string.Equals("jellyfinuserid", k, StringComparison.CurrentCultureIgnoreCase)
+        ).ToArray();
         var dataCheckString = string.Join("\n", orderedKeys.Select(key => $"{key}={fields[key]}"));
         var signature = _hmac.ComputeHash(Encoding.UTF8.GetBytes(dataCheckString));
 

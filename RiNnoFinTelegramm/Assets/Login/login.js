@@ -30,22 +30,22 @@ window.onload = function () {
             hash: params.get('hash')
         };
         
-        // Remove query parameters from URL so they don't stay in the history
         window.history.replaceState({}, document.title, window.location.pathname);
-        
-        // Execute the login logic immediately
         setTimeout(() => onTelegramAuth(user), 100);
         return;
     }
 
-    const creds = localStorage.getItem("jellyfin_credentials");
-    if (creds) {
-        const parsedCreds = JSON.parse(creds);
-        if (parsedCreds && parsedCreds.Servers && parsedCreds.Servers.length > 0) {
-            const server = parsedCreds.Servers[0];
-            if (server.Connect.Expires && new Date(server.Connect.Expires) > new Date()) {
-                const serverUrl = window.location.href.replace(/\/sso\/Telegram(\/login)?(\?.*)?/i, "");
-                window.location.replace(serverUrl);
+    // Redirect only if not explicitly trying to link
+    if (params.get('action') !== 'link') {
+        const creds = localStorage.getItem("jellyfin_credentials");
+        if (creds) {
+            const parsedCreds = JSON.parse(creds);
+            if (parsedCreds && parsedCreds.Servers && parsedCreds.Servers.length > 0) {
+                const server = parsedCreds.Servers[0];
+                if (server.Connect && server.Connect.Expires && new Date(server.Connect.Expires) > new Date()) {
+                    const serverUrl = window.location.href.replace(/\/sso\/Telegram(\/login)?(\?.*)?/i, "");
+                    window.location.replace(serverUrl);
+                }
             }
         }
     }
@@ -66,6 +66,12 @@ function onTelegramAuth(user) {
             deviceId = generateDeviceId2();
             localStorage.setItem("_deviceId2", deviceId);
         }
+    }
+
+    const creds = JSON.parse(localStorage.getItem("jellyfin_credentials") || "{}");
+    const server = creds.Servers ? creds.Servers[0] : null;
+    if (server && server.UserId) {
+        user.jellyfinuserid = server.UserId;
     }
 
     fetch("{{SERVER_URL}}/sso/Telegram/Authenticate", {
