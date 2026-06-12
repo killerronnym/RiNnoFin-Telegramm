@@ -484,10 +484,9 @@ public class RiNnoFinConfigController : ControllerBase
 
         [HttpGet("ViewLogs")]
         [Produces("text/html")]
-        public async Task<ActionResult> ViewLogs()
+        [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+        public ActionResult ViewLogs()
         {
-            if (!await IsUserAdmin().ConfigureAwait(false)) return Content("<html><body>Admin-Rechte erforderlich.</body></html>", "text/html");
-
             try
             {
                 var logs = Jellyfin.Plugin.RiNnoFinTelegramm.Classes.PluginLog.GetLogs();
