@@ -3,9 +3,9 @@
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
         <RootNamespace>Jellyfin.Plugin.RiNnoFinTelegramm</RootNamespace>
-        <AssemblyVersion>1.0.4.48</AssemblyVersion>
-        <FileVersion>1.0.4.48</FileVersion>
-        <Version>1.0.4.48</Version>
+        <AssemblyVersion>1.0.4.49</AssemblyVersion>
+        <FileVersion>1.0.4.49</FileVersion>
+        <Version>1.0.4.49</Version>
         <GenerateDocumentationFile>false</GenerateDocumentationFile>
         <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
         <MSBuildArgs>/property:GenerateFullPaths=true</MSBuildArgs>

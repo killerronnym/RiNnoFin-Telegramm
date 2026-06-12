@@ -331,15 +331,19 @@ const tgConfigPage = {
             expirationTd.style.padding = "10px";
             if (expirationDate) {
                 const exp = new Date(expirationDate);
-                const now = new Date();
-                const diffTime = exp - now;
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                if (diffDays < 0) {
-                    expirationTd.innerHTML = `<span style="color: #ef4444;">Abgelaufen</span><br><span style="font-size: 0.8em; color: #9ca3af;">(${exp.toLocaleDateString('de-DE')})</span>`;
-                } else if (diffDays === 0) {
-                    expirationTd.innerHTML = `<span style="color: #eab308;">Läuft heute ab</span>`;
+                if (isNaN(exp.getTime()) || exp.getFullYear() < 2000) {
+                    expirationTd.textContent = 'Niemals';
                 } else {
-                    expirationTd.innerHTML = `<span style="color: #10b981;">Noch ${diffDays} Tage</span><br><span style="font-size: 0.8em; color: #9ca3af;">(${exp.toLocaleDateString('de-DE')})</span>`;
+                    const now = new Date();
+                    const diffTime = exp - now;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    if (diffDays < 0) {
+                        expirationTd.innerHTML = `<span style="color: #ef4444;">Abgelaufen</span><br><span style="font-size: 0.8em; color: #9ca3af;">(${exp.toLocaleDateString('de-DE')})</span>`;
+                    } else if (diffDays === 0) {
+                        expirationTd.innerHTML = `<span style="color: #eab308;">Läuft heute ab</span>`;
+                    } else {
+                        expirationTd.innerHTML = `<span style="color: #10b981;">Noch ${diffDays} Tage</span><br><span style="font-size: 0.8em; color: #9ca3af;">(${exp.toLocaleDateString('de-DE')})</span>`;
+                    }
                 }
             } else {
                 expirationTd.textContent = 'Niemals';
@@ -347,7 +351,16 @@ const tgConfigPage = {
 
             const lastAccessTd = document.createElement("td");
             lastAccessTd.style.padding = "10px";
-            lastAccessTd.textContent = lastActivityDate ? new Date(lastActivityDate).toLocaleString('de-DE') : 'Niemals';
+            try {
+                if (lastActivityDate) {
+                    const lDate = new Date(lastActivityDate);
+                    lastAccessTd.textContent = (!isNaN(lDate.getTime()) && lDate.getFullYear() > 2000) ? lDate.toLocaleString('de-DE') : 'Niemals';
+                } else {
+                    lastAccessTd.textContent = 'Niemals';
+                }
+            } catch (e) {
+                lastAccessTd.textContent = 'Niemals';
+            }
 
             tr.appendChild(checkboxTd);
             tr.appendChild(nameTd);

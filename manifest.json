@@ -9,12 +9,12 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
-        "version": "1.0.4.48",
-        "changelog": "Bugfix: Die doppelte Versendung der E-Mail beim Erstellen einer Einladung wurde endgültig behoben. Zudem wird das Ablaufdatum in der Benutzerliste im Dashboard jetzt in einem benutzerfreundlichen Format ('Noch X Tage' oder 'Läuft heute ab' oder 'Abgelaufen') angezeigt.",
+        "version": "1.0.4.49",
+        "changelog": "Hotfix: Behebung eines Javascript-Fehlers, der dazu führte, dass die Benutzerliste nicht geladen wurde (Aufhängen der Tabelle), wenn Accounts mit bestimmten oder leeren Datumsformaten verarbeitet wurden.",
         "targetAbi": "10.9.0.0",
         "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
-        "checksum": "28192A5A5D07891A7852213E1FEE1D77",
-        "timestamp": "2026-06-12 14:45:00"
+        "checksum": "B0964A7EECBEB3EB8D97B9CA9D856C38",
+        "timestamp": "2026-06-12 14:50:00"
       },
       {
         "version": "1.0.4.47",
