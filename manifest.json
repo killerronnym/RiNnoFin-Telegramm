@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.44",
+        "changelog": "UI-Update: Die Willkommens-E-Mail (Standard) enthält nun einen echten Login-Button. Administratoren können für ihre eigenen Vorlagen jetzt den neuen Platzhalter `{loginLink}` verwenden, welcher direkt zum Web-Interface leitet. Zusätzlich wurde das CSS für das Passwort-Reset-Formular angepasst, sodass alle Eingabefelder (auch Benutzername & E-Mail) nun wieder korrekt das dunkle Jellyfin-Theme übernehmen und nicht mehr weiß-auf-schwarz angezeigt werden.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.44.zip",
+        "checksum": "2DF8B1438A86EFCE0A950A40C4FCF8B2",
+        "timestamp": "2026-06-12 13:36:00"
+      },
+      {
         "version": "1.0.4.43",
         "changelog": "Fehlerbehebung: Die doppelte Versendung der Einladungs-E-Mail durch wiederholte Event-Listener im Javascript wurde korrigiert. Der Passwort-Reset und die initiale Passworterstellung fragen nun visuell nach dem Benutzernamen und der E-Mail (wie es das Backend erfordert). Zudem wurde das Verhalten von `{reason}` bei der Deaktivierungs- und Lösch-E-Mail korrigiert: Es wird nun korrekt in der Vorlage platziert anstatt roh angehängt.",
         "targetAbi": "10.9.0.0",

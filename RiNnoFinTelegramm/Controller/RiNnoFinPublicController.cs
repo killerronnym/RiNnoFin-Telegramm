@@ -156,8 +156,9 @@ public class RiNnoFinPublicController : ControllerBase
 
                 // Send Welcome Email
                 var baseUrl = config.LoginBaseUrl?.TrimEnd('/') ?? "http://localhost:8096";
+                string loginLink = $"{baseUrl}/web/index.html";
                 string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplateWelcome)
-                    ? config.EmailTemplateWelcome.Replace("{username}", user.Username).Replace("{serverUrl}", baseUrl)
+                    ? config.EmailTemplateWelcome.Replace("{username}", user.Username).Replace("{serverUrl}", baseUrl).Replace("{loginLink}", loginLink)
                     : $@"
                     <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
                         <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
@@ -169,7 +170,9 @@ public class RiNnoFinPublicController : ControllerBase
                                 <p style='margin: 5px 0 0 0;'><strong>E-Mail:</strong> {email}</p>
                             </div>
                             <p>Du kannst dich ab sofort mit deinem <strong>Benutzernamen</strong> ODER deiner <strong>E-Mail-Adresse</strong> und deinem gewählten Passwort einloggen.</p>
-                            <br/>
+                            <div style='text-align: center; margin: 30px 0;'>
+                                <a href='{loginLink}' style='background-color: #2563eb; color: #ffffff !important; padding: 14px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;'>Jetzt Einloggen</a>
+                            </div>
                             <p style='color: #9ca3af; font-size: 12px; text-align: center;'>Viel Spaß beim Streamen! 🍿 Dein RiNnoFin-Team</p>
                         </div>
                     </div>";
