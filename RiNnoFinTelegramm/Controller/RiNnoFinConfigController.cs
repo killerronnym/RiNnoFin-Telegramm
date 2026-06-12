@@ -315,6 +315,63 @@ public class RiNnoFinConfigController : ControllerBase
         }
     }
 
+    [HttpPost("SendTestEmail")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> SendTestEmail(
+        [FromBody] SendTestEmailRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!await IsUserAdmin().ConfigureAwait(false)) return StatusCode(StatusCodes.Status403Forbidden, new { message = "Admin-Rechte erforderlich." });
+        try
+        {
+            var emailService = new EmailService(_logger);
+            var config = RiNnoFinPlugin.Instance?.Configuration;
+            if (config == null)
+            {
+                return BadRequest(new { message = "Konfiguration nicht gefunden." });
+            }
+
+            var tempConfig = new PluginConfiguration
+            {
+                EnableEmail = true,
+                SmtpServer = config.SmtpServer,
+                SmtpPort = config.SmtpPort,
+                SmtpUsername = config.SmtpUsername,
+                SmtpPassword = config.SmtpPassword,
+                EmailSenderAddress = config.EmailSenderAddress,
+                EmailSenderName = config.EmailSenderName,
+                SmtpUseSsl = config.SmtpUseSsl
+            };
+
+            string subject = request.Subject ?? "RiNnoFin - Test E-Mail";
+            string body = request.HtmlBody ?? "<p>Dies ist eine Test-E-Mail.</p>";
+            
+            // Platzhalter ersetzen
+            string serverUrl = Request.GetRequestBase(config);
+            body = body
+                .Replace("{username}", "TestAdmin")
+                .Replace("{inviteLink}", $"{serverUrl}/sso/Telegram/invite?token=test_token")
+                .Replace("{resetLink}", $"{serverUrl}/sso/Telegram/reset?token=test_token")
+                .Replace("{serverUrl}", serverUrl)
+                .Replace("{content}", "<p>🍿 <b>Inception (2010)</b> - Neu hinzugefügt!</p>")
+                .Replace("{message}", "Dies ist eine wichtige Ankündigung für alle Benutzer.")
+                .Replace("{serverName}", config.EmailSenderName ?? "Dein Media-Server");
+
+            var targetEmail = !string.IsNullOrWhiteSpace(request.TargetEmail) ? request.TargetEmail : config.SmtpUsername;
+
+            await emailService.SendEmailAsync(tempConfig, targetEmail, subject, body);
+
+            return Ok(new { message = $"Test-E-Mail erfolgreich an {targetEmail} versendet!" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Fehler beim Senden der Test-E-Mail.");
+            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
+        }
+    }
+
 
         [HttpGet("GetUsers")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -423,6 +480,31 @@ public class RiNnoFinConfigController : ControllerBase
         {
             if (!await IsUserAdmin().ConfigureAwait(false)) return StatusCode(StatusCodes.Status403Forbidden, new { message = "Admin-Rechte erforderlich." });
             return Ok(PluginLog.GetLogs());
+        }
+
+        [HttpGet("GetDefaultHtmlTemplates")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetDefaultHtmlTemplates()
+        {
+            if (!await IsUserAdmin().ConfigureAwait(false)) return StatusCode(StatusCodes.Status403Forbidden, new { message = "Admin-Rechte erforderlich." });
+
+            async Task<string> ReadResourceAsync(string name)
+            {
+                using var stream = GetType().Assembly.GetManifestResourceStream(name);
+                if (stream == null) return string.Empty;
+                using var reader = new StreamReader(stream);
+                return await reader.ReadToEndAsync().ConfigureAwait(false);
+            }
+
+            return Ok(new
+            {
+                loginHtml = await ReadResourceAsync("Jellyfin.Plugin.RiNnoFinTelegramm.Assets.Login.login.html"),
+                inviteHtml = await ReadResourceAsync("Jellyfin.Plugin.RiNnoFinTelegramm.Assets.Invite.invite.html"),
+                forgotHtml = await ReadResourceAsync("Jellyfin.Plugin.RiNnoFinTelegramm.Assets.Recovery.forgot.html"),
+                resetHtml = await ReadResourceAsync("Jellyfin.Plugin.RiNnoFinTelegramm.Assets.Recovery.reset.html"),
+                loginCss = await ReadResourceAsync("Jellyfin.Plugin.RiNnoFinTelegramm.Assets.Login.login.css"),
+                loginJs = await ReadResourceAsync("Jellyfin.Plugin.RiNnoFinTelegramm.Assets.Login.login.js")
+            });
         }
 
         [HttpPost("AdminCreateInvite")]
@@ -960,6 +1042,13 @@ public class TestSmtpRequest
     public string EmailSenderName { get; set; } = string.Empty;
     public string TestEmailAddress { get; set; } = string.Empty;
     public bool SmtpUseSsl { get; set; }
+}
+
+public class SendTestEmailRequest
+{
+    public string Subject { get; set; } = string.Empty;
+    public string HtmlBody { get; set; } = string.Empty;
+    public string TargetEmail { get; set; } = string.Empty;
 }
 
 public class AcceptInviteRequest

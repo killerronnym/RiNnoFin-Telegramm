@@ -92,12 +92,51 @@ public class TelegramController : ControllerBase
         var botUsername = _instance.Configuration.BotUsername;
         var serverUrl = Request.GetRequestBase(_instance.Configuration);
 
-        var textStream = GetType().Assembly.GetManifestResourceStream(view.EmbeddedResourcePath);
-        if (textStream == null)
+        var config = _instance.Configuration;
+        string html = string.Empty;
+        bool loadedFromConfig = false;
+
+        if (lowerFilename == "index" && !string.IsNullOrWhiteSpace(config.HtmlTemplateLogin))
         {
-            return StatusCode(500, $"Ressource konnte nicht geladen werden: {view.EmbeddedResourcePath}");
+            html = config.HtmlTemplateLogin;
+            loadedFromConfig = true;
+        }
+        else if (lowerFilename == "invite" && !string.IsNullOrWhiteSpace(config.HtmlTemplateInvite))
+        {
+            html = config.HtmlTemplateInvite;
+            loadedFromConfig = true;
+        }
+        else if (lowerFilename == "forgot" && !string.IsNullOrWhiteSpace(config.HtmlTemplateForgot))
+        {
+            html = config.HtmlTemplateForgot;
+            loadedFromConfig = true;
+        }
+        else if (lowerFilename == "reset" && !string.IsNullOrWhiteSpace(config.HtmlTemplateReset))
+        {
+            html = config.HtmlTemplateReset;
+            loadedFromConfig = true;
+        }
+        else if (lowerFilename == "login.css" && !string.IsNullOrWhiteSpace(config.HtmlTemplateLoginCss))
+        {
+            html = config.HtmlTemplateLoginCss;
+            loadedFromConfig = true;
+        }
+        else if (lowerFilename == "login.js" && !string.IsNullOrWhiteSpace(config.HtmlTemplateLoginJs))
+        {
+            html = config.HtmlTemplateLoginJs;
+            loadedFromConfig = true;
         }
 
+        if (!loadedFromConfig)
+        {
+            var textStream = GetType().Assembly.GetManifestResourceStream(view.EmbeddedResourcePath);
+            if (textStream == null)
+            {
+                return StatusCode(500, $"Ressource konnte nicht geladen werden: {view.EmbeddedResourcePath}");
+            }
+            using var reader = new StreamReader(textStream);
+            html = await reader.ReadToEndAsync();
+        }
         var theme = _instance.Configuration.RegistrationTheme ?? "jellyfin";
         var themeCss = string.Empty;
         if (theme == "dark")
@@ -160,8 +199,6 @@ body::before, body::after { display: none; }
 }";
         }
 
-        using var reader = new StreamReader(textStream);
-        var html = await reader.ReadToEndAsync();
         var replaced = html
             .Replace("{{SERVER_URL}}", serverUrl)
             .Replace("{{TELEGRAM_BOT_NAME}}", botUsername)

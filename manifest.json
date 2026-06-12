@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.40",
+        "changelog": "UI-Reorganisation & Professionalisierung: Die Benutzerverwaltung wurde an die erste Position verschoben und ist nun standardmäßig aktiv. Hilfreiche Info-Banner wurden auf allen Einstellungs-Tabs hinzugefügt. E-Mail-Vorlagen wurden visuell voneinander getrennt und bieten nun direkt Inline-Test-Buttons und eine Live-Vorschau. Ein neuer Tab für HTML-Vorlagen wurde hinzugefügt, über den die SSO-Seiten angepasst und im Sandbox-Iframe getestet oder auf den Standard zurückgesetzt werden können.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.40.zip",
+        "checksum": "AE21CE21218D15EAEC1FDA971C33F836",
+        "timestamp": "2026-06-12 12:55:00"
+      },
+      {
         "version": "1.0.4.39",
         "changelog": "Hotfix: Behebt den massiven Fehler (SyntaxError in Javascript), der dazu führte, dass die Plugin-Einstellungen gar nicht geladen wurden (Anzeige: 'Bitte aktiviere JavaScript'). Das Bedienfeld und alle Tabs funktionieren nun wieder einwandfrei.",
         "targetAbi": "10.9.0.0",

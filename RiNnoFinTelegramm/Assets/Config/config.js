@@ -77,6 +77,13 @@ const tgConfigPage = {
         if (subjectNewsletterSeries) subjectNewsletterSeries.value = config.EmailSubjectNewsletterSeries ?? '';
 
         page.querySelector("#EmailTemplateAnnounce").value = config.EmailTemplateAnnounce ?? '';
+
+        page.querySelector("#HtmlTemplateLogin").value = config.HtmlTemplateLogin ?? '';
+        page.querySelector("#HtmlTemplateInvite").value = config.HtmlTemplateInvite ?? '';
+        page.querySelector("#HtmlTemplateForgot").value = config.HtmlTemplateForgot ?? '';
+        page.querySelector("#HtmlTemplateReset").value = config.HtmlTemplateReset ?? '';
+        page.querySelector("#HtmlTemplateLoginCss").value = config.HtmlTemplateLoginCss ?? '';
+        page.querySelector("#HtmlTemplateLoginJs").value = config.HtmlTemplateLoginJs ?? '';
     },
 
     populateGroups: (page, config) => {
@@ -438,6 +445,13 @@ const tgConfigPage = {
                 config.EmailSubjectAnnounce = (page.querySelector("#EmailSubjectAnnounce")?.value ?? "").trim() || undefined;
 
                 config.EmailTemplateAnnounce = (page.querySelector("#EmailTemplateAnnounce").value ?? "").trim() || undefined;
+
+                config.HtmlTemplateLogin = (page.querySelector("#HtmlTemplateLogin").value ?? "").trim();
+                config.HtmlTemplateInvite = (page.querySelector("#HtmlTemplateInvite").value ?? "").trim();
+                config.HtmlTemplateForgot = (page.querySelector("#HtmlTemplateForgot").value ?? "").trim();
+                config.HtmlTemplateReset = (page.querySelector("#HtmlTemplateReset").value ?? "").trim();
+                config.HtmlTemplateLoginCss = (page.querySelector("#HtmlTemplateLoginCss").value ?? "").trim();
+                config.HtmlTemplateLoginJs = (page.querySelector("#HtmlTemplateLoginJs").value ?? "").trim();
 
                 window.ApiClient.updatePluginConfiguration(
                     tgConfigPage.pluginUniqueId,
@@ -1356,6 +1370,174 @@ export default function (view) {
             }
         });
     }
+
+    view.querySelector("#SaveConfigHtml")?.addEventListener("click", async (e) => {
+        e.preventDefault();
+        await tgConfigPage.saveConfig(view);
+    });
+
+    view.querySelectorAll(".preview-template-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            e.preventDefault();
+            const templateId = btn.getAttribute("data-template-id");
+            const textarea = view.querySelector("#" + templateId);
+            const previewDiv = view.querySelector("#Preview_" + templateId);
+            
+            if (previewDiv.style.display === "block") {
+                previewDiv.style.display = "none";
+                btn.textContent = "Vorschau";
+                return;
+            }
+            
+            let htmlContent = textarea.value || "";
+            if (!htmlContent.trim()) {
+                htmlContent = "<p><i>(Vorlage ist leer. Es wird das Standard-Design verwendet)</i></p>";
+            } else {
+                htmlContent = htmlContent
+                    .replace(/{username}/g, "Max Mustermann")
+                    .replace(/{inviteLink}/g, "https://jellyfin.example.com/sso/Telegram/invite?token=dummy_token")
+                    .replace(/{resetLink}/g, "https://jellyfin.example.com/sso/Telegram/reset?token=dummy_token")
+                    .replace(/{serverUrl}/g, "https://jellyfin.example.com")
+                    .replace(/{content}/g, "<p>🍿 <b>Inception (2010)</b> - Neu hinzugefügt!</p>")
+                    .replace(/{message}/g, "Dies ist eine wichtige Ankündigung für alle Benutzer.")
+                    .replace(/{serverName}/g, "Mein Media-Server")
+                    .replace(/{platformLink}/g, "https://jellyfin.example.com");
+            }
+            
+            previewDiv.innerHTML = htmlContent;
+            previewDiv.style.display = "block";
+            btn.textContent = "Vorschau ausblenden";
+        });
+    });
+
+    view.querySelectorAll(".test-template-btn").forEach(btn => {
+        btn.addEventListener("click", async (e) => {
+            e.preventDefault();
+            const templateId = btn.getAttribute("data-template-id");
+            const subjectId = btn.getAttribute("data-subject-id");
+            
+            const targetEmail = (view.querySelector("#TestEmailAddress").value ?? "").trim();
+            if (!targetEmail) {
+                window.Dashboard.alert("Bitte gib zuerst oben eine 'E-Mail für den Testversand' ein.");
+                return;
+            }
+            
+            const htmlBody = view.querySelector("#" + templateId).value;
+            const subject = view.querySelector("#" + subjectId).value;
+            
+            window.Dashboard.showLoadingMsg();
+            
+            window.ApiClient.ajax({
+                url: window.ApiClient.getUrl("/api/RiNnoFinConfig/SendTestEmail"),
+                type: "POST",
+                data: JSON.stringify({
+                    TargetEmail: targetEmail,
+                    Subject: subject,
+                    HtmlBody: htmlBody
+                }),
+                contentType: "application/json"
+            }).then((res) => {
+                window.Dashboard.hideLoadingMsg();
+                window.Dashboard.alert("✅ " + (res.message || "Test-E-Mail wurde erfolgreich versendet!"));
+            }).catch(err => {
+                window.Dashboard.hideLoadingMsg();
+                const msg = err?.responseJSON?.message || err?.responseText || err?.message || "Unbekannter Fehler beim Senden.";
+                window.Dashboard.alert("❌ Fehler beim Versenden der Test-E-Mail:\n" + msg);
+            });
+        });
+    });
+
+    view.querySelectorAll(".preview-html-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            e.preventDefault();
+            const templateId = btn.getAttribute("data-template-id");
+            const textarea = view.querySelector("#" + templateId);
+            const previewDiv = view.querySelector("#Preview_" + templateId);
+            
+            if (previewDiv.style.display === "block") {
+                previewDiv.style.display = "none";
+                btn.textContent = "Vorschau";
+                return;
+            }
+            
+            let htmlContent = textarea.value || "";
+            if (!htmlContent.trim()) {
+                htmlContent = "<html><body><p><i>(HTML-Vorlage ist leer. Es wird das Standard-Design verwendet)</i></p></body></html>";
+            }
+            
+            previewDiv.innerHTML = "";
+            const iframe = document.createElement("iframe");
+            iframe.style.width = "100%";
+            iframe.style.height = "400px";
+            iframe.style.border = "none";
+            previewDiv.appendChild(iframe);
+            
+            const iframeDoc = iframe.contentWindow || iframe.contentDocument;
+            const doc = iframeDoc.document ? iframeDoc.document : iframeDoc;
+            doc.open();
+            
+            if (templateId === "HtmlTemplateLogin") {
+                const css = view.querySelector("#HtmlTemplateLoginCss").value || "";
+                const js = view.querySelector("#HtmlTemplateLoginJs").value || "";
+                
+                if (htmlContent.includes("</head>")) {
+                    htmlContent = htmlContent.replace("</head>", `<style>${css}</style></head>`);
+                } else {
+                    htmlContent = `<style>${css}</style>` + htmlContent;
+                }
+                
+                const stubJs = `
+                    <script>
+                    window.Telegram = { Login: { auth: function() { console.log('Telegram Login clicked in preview'); } } };
+                    console.log('Stubbed Telegram Login widget.');
+                    </script>
+                `;
+                htmlContent = htmlContent + stubJs;
+            }
+            
+            doc.write(htmlContent);
+            doc.close();
+            
+            previewDiv.style.display = "block";
+            btn.textContent = "Vorschau ausblenden";
+        });
+    });
+
+    let defaultTemplatesCache = null;
+    view.querySelectorAll(".restore-html-btn").forEach(btn => {
+        btn.addEventListener("click", async (e) => {
+            e.preventDefault();
+            const templateId = btn.getAttribute("data-template-id");
+            const type = btn.getAttribute("data-type");
+            
+            if (!confirm("Möchtest du diese Vorlage wirklich auf den Standard zurücksetzen? Ungespeicherte Änderungen gehen verloren.")) {
+                return;
+            }
+            
+            try {
+                window.Dashboard.showLoadingMsg();
+                if (!defaultTemplatesCache) {
+                    defaultTemplatesCache = await window.ApiClient.ajax({
+                        url: window.ApiClient.getUrl("/api/RiNnoFinConfig/GetDefaultHtmlTemplates"),
+                        type: "GET",
+                        dataType: "json"
+                    });
+                }
+                
+                const defaultContent = defaultTemplatesCache[type];
+                if (defaultContent !== undefined) {
+                    view.querySelector("#" + templateId).value = defaultContent;
+                    window.Dashboard.alert("Standard-Design geladen. Bitte klicke unten auf 'HTML-Vorlagen speichern'!");
+                } else {
+                    window.Dashboard.alert("Fehler: Vorlage vom Typ " + type + " nicht in den Defaults gefunden.");
+                }
+            } catch (err) {
+                window.Dashboard.alert("Fehler beim Abrufen der Standard-Vorlagen: " + (err.message || err));
+            } finally {
+                window.Dashboard.hideLoadingMsg();
+            }
+        });
+    });
 
     view.querySelector("#TestSmtpBtn")?.addEventListener("click", async (e) => {
         e.preventDefault();

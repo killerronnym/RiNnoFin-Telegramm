@@ -37,22 +37,48 @@
   .action-btn.btn-blue { background: #3b82f6; } .action-btn.btn-blue:hover { background: #2563eb; }
   .action-btn.btn-yellow { background: #f59e0b; } .action-btn.btn-yellow:hover { background: #d97706; }
   .action-btn.btn-purple { background: #8b5cf6; } .action-btn.btn-purple:hover { background: #7c3aed; }
+  
+  .rinnofin-info-banner {
+      background: rgba(0, 164, 220, 0.1);
+      border-left: 4px solid #00a4dc;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+      font-size: 14px;
+      line-height: 1.5;
+  }
+  .rinnofin-info-banner h4 {
+      margin: 0 0 8px 0;
+      color: #00a4dc;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 16px;
+  }
+  .rinnofin-info-banner p {
+      margin: 0;
+  }
 </style>
 
 <div class="rinnofin-layout">
     <div class="rinnofin-sidebar" id="rinnofin-sidebar-menu">
-        <div class="rinnofin-menu-item active" data-tab="tab-general">🔌 Telegram & Allgemein</div>
+        <div class="rinnofin-menu-item active" data-tab="tab-users">👥 Benutzerverwaltung</div>
+        <div class="rinnofin-menu-item" data-tab="tab-general">🔌 Telegram & Allgemein</div>
         <div class="rinnofin-menu-item" data-tab="tab-groups">👥 Gruppenverwaltung</div>
-        <div class="rinnofin-menu-item" data-tab="tab-users">👥 Benutzerverwaltung</div>
         <div class="rinnofin-menu-item" data-tab="tab-user-settings">⚙️ Benutzereinstellungen</div>
         <div class="rinnofin-menu-item" data-tab="tab-email">📧 E-Mail-Einstellungen</div>
+        <div class="rinnofin-menu-item" data-tab="tab-html-templates">🌐 HTML-Vorlagen</div>
         <div class="rinnofin-menu-item" data-tab="tab-messages">✉️ Verlauf & Anfragen</div>
         <div class="rinnofin-menu-item" data-tab="tab-logs">📋 Protokoll (Logs)</div>
     </div>
     
     <div class="rinnofin-content">
 
-        <div id="tab-general" class="rinnofin-tab active">
+        <div id="tab-general" class="rinnofin-tab">
+            <div class="rinnofin-info-banner">
+                <h4>🔌 Telegram & Allgemein</h4>
+                <p>Richte die Verbindung zu deinem Telegram-Bot ein. Der Bot ermöglicht deinen Benutzern die automatische Registrierung (SSO), das Zurücksetzen von Passwörtern und den Empfang von Benachrichtigungen. Voraussetzungen: Ein Bot-Token von @BotFather und eine öffentlich erreichbare Jellyfin-Domain.</p>
+            </div>
             <div class="block">
                     <form id="InfoSectionForm">
                         <fieldset class="verticalSection">
@@ -209,6 +235,10 @@
                 </div>
         </div>
         <div id="tab-groups" class="rinnofin-tab">
+            <div class="rinnofin-info-banner">
+                <h4>👥 Gruppenverwaltung</h4>
+                <p>Verwalte Telegram-Gruppen, die mit deinem Jellyfin-Server verknüpft sind. Mitglieder verknüpfter Gruppen erhalten automatisch Zugriff auf definierte Jellyfin-Bibliotheken. Du kannst auch automatische Quiz-Fragen aktivieren, um die Interaktion in der Gruppe zu fördern.</p>
+            </div>
             <div class="block">
                     <form id="GroupManagementForm">
                         <fieldset class="verticalSection">
@@ -362,10 +392,14 @@
                 </div>
         </div>
         
-        <div id="tab-users" class="rinnofin-tab">
+        <div id="tab-users" class="rinnofin-tab active">
             <form id="UserManagementForm">
                 <fieldset class="verticalSection">
                     <legend><h3>Benutzerverwaltung</h3></legend>
+                    <div class="rinnofin-info-banner">
+                        <h4>👥 Benutzerverwaltung</h4>
+                        <p>Hier verwaltest du alle deine Jellyfin-Benutzer, die mit Telegram verknüpft sind oder eingeladen werden sollen. Du kannst neue Benutzer per E-Mail einladen, Ablaufdaten setzen, Berechtigungen klonen und Massenaktionen wie Aktivieren/Deaktivieren durchführen.</p>
+                    </div>
                     
                     <div class="action-btn-bar">
                         <button class="action-btn" id="ActionLoadAll" type="button">Load All</button>
@@ -498,6 +532,10 @@
             <form class="rinnofin-form">
                 <fieldset class="verticalSection">
                     <legend><h3>Benutzereinstellungen &amp; Design</h3></legend>
+                    <div class="rinnofin-info-banner">
+                        <h4>⚙️ Benutzereinstellungen &amp; Design</h4>
+                        <p>Definiere Standard-Zugriffsrechte für neue Benutzer. Wenn sich ein neuer Benutzer registriert, werden die Berechtigungen, Bibliotheken und Einstellungen des hier ausgewählten Profils kopiert. Außerdem kannst du das Farbschema für das Portal anpassen.</p>
+                    </div>
 
                     <div class="inputContainer">
                         <label class="inputLabel" for="DefaultProfileUserId">Globales Standard-Profil (Rechte &amp; Einstellungen klonen):</label>
@@ -529,6 +567,10 @@
         <div id="tab-email" class="rinnofin-tab">
             <fieldset class="verticalSection">
                 <legend><h3>E-Mail-Einstellungen</h3></legend>
+                <div class="rinnofin-info-banner">
+                    <h4>📧 E-Mail-Einstellungen &amp; Vorlagen</h4>
+                    <p>Konfiguriere den SMTP-Server für den automatischen Versand von System-Mails. Hier kannst du die E-Mail-Vorlagen für Einladungen, Willkommensnachrichten und Newsletter anpassen. Nutze die Vorschau und die Test-Funktion, um das Design zu prüfen.</p>
+                </div>
                 
                 <h3 style="margin-top:1em;">E-Mail Server (SMTP) Einstellungen</h3>
                 <p>Hier legst du fest, über welchen Server das Plugin Einladungen und Passwort-Reset-Mails verschickt.</p>
@@ -607,103 +649,163 @@
                 <legend><h3>E-Mail Vorlagen (HTML erlaubt)</h3></legend>
                 <p style="margin-bottom: 20px; font-size: 13px; color: #9ca3af;">Du kannst HTML verwenden. Ersetzbare Variablen: {inviteLink}, {resetLink}, {username}</p>
 
-                <div class="inputContainer" style="margin-bottom: 30px;">
+                <div class="inputContainer email-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
                     <div>
                         <label class="inputLabel inputLabelUnfocused" for="EmailSubjectInvite" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Einladung</label>
                         <input class="sso-text" id="EmailSubjectInvite" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
                         
                         <label class="inputLabel inputLabelUnfocused" for="EmailTemplateInvite">Einladungs-E-Mail (Variable: {inviteLink}):</label>
                         <textarea class="sso-text" id="EmailTemplateInvite" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+
+                        <div style="margin-top: 10px; display: flex; gap: 10px;">
+                            <button class="action-btn btn-blue test-template-btn" data-template-id="EmailTemplateInvite" data-subject-id="EmailSubjectInvite" type="button">Test-Mail senden</button>
+                            <button class="action-btn preview-template-btn" data-template-id="EmailTemplateInvite" type="button">Vorschau</button>
+                        </div>
+                        <div class="template-preview-container" id="Preview_EmailTemplateInvite" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 400px; border: 1px solid #ccc;"></div>
                     </div>
                 </div>
 
-                <div class="inputContainer" style="margin-bottom: 30px;">
+                <div class="inputContainer email-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
                     <div>
                         <label class="inputLabel inputLabelUnfocused" for="EmailSubjectWelcome" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Willkommen</label>
                         <input class="sso-text" id="EmailSubjectWelcome" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
 
                         <label class="inputLabel inputLabelUnfocused" for="EmailTemplateWelcome">Willkommens-E-Mail nach Setup (Variablen: {username}, {serverUrl}):</label>
                         <textarea class="sso-text" id="EmailTemplateWelcome" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+
+                        <div style="margin-top: 10px; display: flex; gap: 10px;">
+                            <button class="action-btn btn-blue test-template-btn" data-template-id="EmailTemplateWelcome" data-subject-id="EmailSubjectWelcome" type="button">Test-Mail senden</button>
+                            <button class="action-btn preview-template-btn" data-template-id="EmailTemplateWelcome" type="button">Vorschau</button>
+                        </div>
+                        <div class="template-preview-container" id="Preview_EmailTemplateWelcome" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 400px; border: 1px solid #ccc;"></div>
                     </div>
                 </div>
 
-                <div class="inputContainer" style="margin-bottom: 30px;">
+                <div class="inputContainer email-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
                     <div>
                         <label class="inputLabel inputLabelUnfocused" for="EmailSubjectPasswordReset" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Passwort zurücksetzen</label>
                         <input class="sso-text" id="EmailSubjectPasswordReset" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
 
                         <label class="inputLabel inputLabelUnfocused" for="EmailTemplatePasswordReset">Passwort-Reset E-Mail (Variable: {resetLink}, {username}):</label>
                         <textarea class="sso-text" id="EmailTemplatePasswordReset" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+
+                        <div style="margin-top: 10px; display: flex; gap: 10px;">
+                            <button class="action-btn btn-blue test-template-btn" data-template-id="EmailTemplatePasswordReset" data-subject-id="EmailSubjectPasswordReset" type="button">Test-Mail senden</button>
+                            <button class="action-btn preview-template-btn" data-template-id="EmailTemplatePasswordReset" type="button">Vorschau</button>
+                        </div>
+                        <div class="template-preview-container" id="Preview_EmailTemplatePasswordReset" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 400px; border: 1px solid #ccc;"></div>
                     </div>
                 </div>
 
-                <div class="inputContainer" style="margin-bottom: 30px;">
+                <div class="inputContainer email-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
                     <div>
                         <label class="inputLabel inputLabelUnfocused" for="EmailSubjectPasswordChanged" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Passwort geändert</label>
                         <input class="sso-text" id="EmailSubjectPasswordChanged" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
 
                         <label class="inputLabel inputLabelUnfocused" for="EmailTemplatePasswordChanged">Passwort Erfolgreich Geändert (Variable: {username}):</label>
                         <textarea class="sso-text" id="EmailTemplatePasswordChanged" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+
+                        <div style="margin-top: 10px; display: flex; gap: 10px;">
+                            <button class="action-btn btn-blue test-template-btn" data-template-id="EmailTemplatePasswordChanged" data-subject-id="EmailSubjectPasswordChanged" type="button">Test-Mail senden</button>
+                            <button class="action-btn preview-template-btn" data-template-id="EmailTemplatePasswordChanged" type="button">Vorschau</button>
+                        </div>
+                        <div class="template-preview-container" id="Preview_EmailTemplatePasswordChanged" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 400px; border: 1px solid #ccc;"></div>
                     </div>
                 </div>
 
-                <div class="inputContainer" style="margin-bottom: 30px;">
+                <div class="inputContainer email-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
                     <div>
                         <label class="inputLabel inputLabelUnfocused" for="EmailSubjectAccountEnabled" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Account aktiviert</label>
                         <input class="sso-text" id="EmailSubjectAccountEnabled" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
 
                         <label class="inputLabel inputLabelUnfocused" for="EmailTemplateAccountEnabled">Account Aktiviert (Variable: {username}):</label>
                         <textarea class="sso-text" id="EmailTemplateAccountEnabled" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+
+                        <div style="margin-top: 10px; display: flex; gap: 10px;">
+                            <button class="action-btn btn-blue test-template-btn" data-template-id="EmailTemplateAccountEnabled" data-subject-id="EmailSubjectAccountEnabled" type="button">Test-Mail senden</button>
+                            <button class="action-btn preview-template-btn" data-template-id="EmailTemplateAccountEnabled" type="button">Vorschau</button>
+                        </div>
+                        <div class="template-preview-container" id="Preview_EmailTemplateAccountEnabled" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 400px; border: 1px solid #ccc;"></div>
                     </div>
                 </div>
 
-                <div class="inputContainer" style="margin-bottom: 30px;">
+                <div class="inputContainer email-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
                     <div>
                         <label class="inputLabel inputLabelUnfocused" for="EmailSubjectAccountDisabled" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Account deaktiviert</label>
                         <input class="sso-text" id="EmailSubjectAccountDisabled" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
 
                         <label class="inputLabel inputLabelUnfocused" for="EmailTemplateAccountDisabled">Account Deaktiviert (Variable: {username}):</label>
                         <textarea class="sso-text" id="EmailTemplateAccountDisabled" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+
+                        <div style="margin-top: 10px; display: flex; gap: 10px;">
+                            <button class="action-btn btn-blue test-template-btn" data-template-id="EmailTemplateAccountDisabled" data-subject-id="EmailSubjectAccountDisabled" type="button">Test-Mail senden</button>
+                            <button class="action-btn preview-template-btn" data-template-id="EmailTemplateAccountDisabled" type="button">Vorschau</button>
+                        </div>
+                        <div class="template-preview-container" id="Preview_EmailTemplateAccountDisabled" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 400px; border: 1px solid #ccc;"></div>
                     </div>
                 </div>
 
-                <div class="inputContainer" style="margin-bottom: 30px;">
+                <div class="inputContainer email-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
                     <div>
                         <label class="inputLabel inputLabelUnfocused" for="EmailSubjectAccountDeleted" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Account gelöscht</label>
                         <input class="sso-text" id="EmailSubjectAccountDeleted" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
 
                         <label class="inputLabel inputLabelUnfocused" for="EmailTemplateAccountDeleted">Account Gelöscht (Variable: {username}):</label>
                         <textarea class="sso-text" id="EmailTemplateAccountDeleted" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+
+                        <div style="margin-top: 10px; display: flex; gap: 10px;">
+                            <button class="action-btn btn-blue test-template-btn" data-template-id="EmailTemplateAccountDeleted" data-subject-id="EmailSubjectAccountDeleted" type="button">Test-Mail senden</button>
+                            <button class="action-btn preview-template-btn" data-template-id="EmailTemplateAccountDeleted" type="button">Vorschau</button>
+                        </div>
+                        <div class="template-preview-container" id="Preview_EmailTemplateAccountDeleted" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 400px; border: 1px solid #ccc;"></div>
                     </div>
                 </div>
 
-                <div class="inputContainer" style="margin-bottom: 30px;">
+                <div class="inputContainer email-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
                     <div>
                         <label class="inputLabel inputLabelUnfocused" for="EmailSubjectNewsletterMovies" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Neue Filme</label>
                         <input class="sso-text" id="EmailSubjectNewsletterMovies" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
 
                         <label class="inputLabel inputLabelUnfocused" for="EmailTemplateNewsletterMovies">Newsletter Neue Filme (Variablen: {username}, {content}, {serverUrl}):</label>
                         <textarea class="sso-text" id="EmailTemplateNewsletterMovies" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+
+                        <div style="margin-top: 10px; display: flex; gap: 10px;">
+                            <button class="action-btn btn-blue test-template-btn" data-template-id="EmailTemplateNewsletterMovies" data-subject-id="EmailSubjectNewsletterMovies" type="button">Test-Mail senden</button>
+                            <button class="action-btn preview-template-btn" data-template-id="EmailTemplateNewsletterMovies" type="button">Vorschau</button>
+                        </div>
+                        <div class="template-preview-container" id="Preview_EmailTemplateNewsletterMovies" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 400px; border: 1px solid #ccc;"></div>
                     </div>
                 </div>
 
-                <div class="inputContainer" style="margin-bottom: 30px;">
+                <div class="inputContainer email-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
                     <div>
                         <label class="inputLabel inputLabelUnfocused" for="EmailSubjectNewsletterSeries" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Neue Serien</label>
                         <input class="sso-text" id="EmailSubjectNewsletterSeries" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
 
                         <label class="inputLabel inputLabelUnfocused" for="EmailTemplateNewsletterSeries">Newsletter Neue Serien (Variablen: {username}, {content}, {serverUrl}):</label>
                         <textarea class="sso-text" id="EmailTemplateNewsletterSeries" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+
+                        <div style="margin-top: 10px; display: flex; gap: 10px;">
+                            <button class="action-btn btn-blue test-template-btn" data-template-id="EmailTemplateNewsletterSeries" data-subject-id="EmailSubjectNewsletterSeries" type="button">Test-Mail senden</button>
+                            <button class="action-btn preview-template-btn" data-template-id="EmailTemplateNewsletterSeries" type="button">Vorschau</button>
+                        </div>
+                        <div class="template-preview-container" id="Preview_EmailTemplateNewsletterSeries" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 400px; border: 1px solid #ccc;"></div>
                     </div>
                 </div>
 
-                <div class="inputContainer" style="margin-bottom: 30px;">
+                <div class="inputContainer email-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
                     <div>
                         <label class="inputLabel inputLabelUnfocused" for="EmailSubjectAnnounce" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Ankündigung</label>
                         <input class="sso-text" id="EmailSubjectAnnounce" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
 
                         <label class="inputLabel inputLabelUnfocused" for="EmailTemplateAnnounce">Benutzerdefinierte Ankündigung (Variablen: {username}, {message}, {serverName}, {platformLink}):</label>
                         <textarea class="sso-text" id="EmailTemplateAnnounce" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+
+                        <div style="margin-top: 10px; display: flex; gap: 10px;">
+                            <button class="action-btn btn-blue test-template-btn" data-template-id="EmailTemplateAnnounce" data-subject-id="EmailSubjectAnnounce" type="button">Test-Mail senden</button>
+                            <button class="action-btn preview-template-btn" data-template-id="EmailTemplateAnnounce" type="button">Vorschau</button>
+                        </div>
+                        <div class="template-preview-container" id="Preview_EmailTemplateAnnounce" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 400px; border: 1px solid #ccc;"></div>
                     </div>
                 </div>
 
@@ -713,12 +815,84 @@
 
             </fieldset>
         </div>
+        <div id="tab-html-templates" class="rinnofin-tab">
+            <fieldset class="verticalSection">
+                <legend><h3>SSO HTML-Vorlagen</h3></legend>
+                <div class="rinnofin-info-banner">
+                    <h4>🌐 HTML-Vorlagen</h4>
+                    <p>Hier kannst du die Weboberflächen anpassen, die deinen Benutzern beim Login über Telegram, beim Registrieren über einen Einladungslink oder beim Zurücksetzen des Passworts angezeigt werden. Du kannst HTML, CSS und JavaScript frei bearbeiten. Falls etwas schiefgeht, kannst du jederzeit das Standard-Design wiederherstellen.</p>
+                </div>
+
+                <div class="inputContainer html-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
+                    <label class="inputLabel" for="HtmlTemplateLogin">Login-Seite HTML (login.html):</label>
+                    <textarea class="sso-text" id="HtmlTemplateLogin" rows="12" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+                    <div style="margin-top: 10px; display: flex; gap: 10px;">
+                        <button class="action-btn btn-blue preview-html-btn" data-template-id="HtmlTemplateLogin" type="button">Vorschau</button>
+                        <button class="action-btn btn-red restore-html-btn" data-template-id="HtmlTemplateLogin" data-type="loginHtml" type="button">Standard wiederherstellen</button>
+                    </div>
+                    <div class="template-preview-container" id="Preview_HtmlTemplateLogin" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 450px; border: 1px solid #ccc;"></div>
+                </div>
+
+                <div class="inputContainer html-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
+                    <label class="inputLabel" for="HtmlTemplateLoginCss">Login-Seite CSS (login.css):</label>
+                    <textarea class="sso-text" id="HtmlTemplateLoginCss" rows="12" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+                    <div style="margin-top: 10px; display: flex; gap: 10px;">
+                        <button class="action-btn btn-red restore-html-btn" data-template-id="HtmlTemplateLoginCss" data-type="loginCss" type="button">Standard wiederherstellen</button>
+                    </div>
+                </div>
+
+                <div class="inputContainer html-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
+                    <label class="inputLabel" for="HtmlTemplateLoginJs">Login-Seite JS (login.js):</label>
+                    <textarea class="sso-text" id="HtmlTemplateLoginJs" rows="12" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+                    <div style="margin-top: 10px; display: flex; gap: 10px;">
+                        <button class="action-btn btn-red restore-html-btn" data-template-id="HtmlTemplateLoginJs" data-type="loginJs" type="button">Standard wiederherstellen</button>
+                    </div>
+                </div>
+
+                <div class="inputContainer html-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
+                    <label class="inputLabel" for="HtmlTemplateInvite">Einladungs-Seite HTML (invite.html):</label>
+                    <textarea class="sso-text" id="HtmlTemplateInvite" rows="12" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+                    <div style="margin-top: 10px; display: flex; gap: 10px;">
+                        <button class="action-btn btn-blue preview-html-btn" data-template-id="HtmlTemplateInvite" type="button">Vorschau</button>
+                        <button class="action-btn btn-red restore-html-btn" data-template-id="HtmlTemplateInvite" data-type="inviteHtml" type="button">Standard wiederherstellen</button>
+                    </div>
+                    <div class="template-preview-container" id="Preview_HtmlTemplateInvite" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 450px; border: 1px solid #ccc;"></div>
+                </div>
+
+                <div class="inputContainer html-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
+                    <label class="inputLabel" for="HtmlTemplateForgot">Passwort-Vergessen HTML (forgot.html):</label>
+                    <textarea class="sso-text" id="HtmlTemplateForgot" rows="12" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+                    <div style="margin-top: 10px; display: flex; gap: 10px;">
+                        <button class="action-btn btn-blue preview-html-btn" data-template-id="HtmlTemplateForgot" type="button">Vorschau</button>
+                        <button class="action-btn btn-red restore-html-btn" data-template-id="HtmlTemplateForgot" data-type="forgotHtml" type="button">Standard wiederherstellen</button>
+                    </div>
+                    <div class="template-preview-container" id="Preview_HtmlTemplateForgot" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 450px; border: 1px solid #ccc;"></div>
+                </div>
+
+                <div class="inputContainer html-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
+                    <label class="inputLabel" for="HtmlTemplateReset">Passwort-Zurücksetzen HTML (reset.html):</label>
+                    <textarea class="sso-text" id="HtmlTemplateReset" rows="12" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+                    <div style="margin-top: 10px; display: flex; gap: 10px;">
+                        <button class="action-btn btn-blue preview-html-btn" data-template-id="HtmlTemplateReset" type="button">Vorschau</button>
+                        <button class="action-btn btn-red restore-html-btn" data-template-id="HtmlTemplateReset" data-type="resetHtml" type="button">Standard wiederherstellen</button>
+                    </div>
+                    <div class="template-preview-container" id="Preview_HtmlTemplateReset" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 450px; border: 1px solid #ccc;"></div>
+                </div>
+
+                <button class="raised button-submit block emby-button" id="SaveConfigHtml" is="emby-button" type="button" style="margin-top: 20px;">
+                    <span>HTML-Vorlagen speichern</span>
+                </button>
+            </fieldset>
+        </div>
         <div id="tab-messages" class="rinnofin-tab">
             <div class="block">
                     <form id="RequestManagementForm">
                         <fieldset class="verticalSection">
                             <legend><h3>Anfragenverwaltung</h3></legend>
-                            <p></p>
+                            <div class="rinnofin-info-banner">
+                                <h4>✉️ Verlauf &amp; Anfragen</h4>
+                                <p>In diesem Bereich verwaltest du Medienwünsche, die deine Benutzer über den Telegram-Bot eingereicht haben. Benutzer können im Chat z.B. mit dem Befehl <code>/request IMDb-ID</code> einen Film oder eine Serie anfordern. Du siehst hier alle offenen Anfragen und kannst diese mit einem Klick genehmigen oder ablehnen.</p>
+                            </div>
 
                             <div class="inputContainer">
                                 <div class="column-header">Aktive Medienwünsche verwalten</div>
@@ -758,7 +932,10 @@
         <div id="tab-logs" class="rinnofin-tab">
             <fieldset class="verticalSection">
                 <legend><h3>Protokoll (Logs)</h3></legend>
-                <p style="color: #9ca3af; margin-bottom: 15px;">Hier werden Fehler und Systemereignisse des Plugins protokolliert.</p>
+                <div class="rinnofin-info-banner">
+                    <h4>📋 Protokoll (Logs)</h4>
+                    <p>Hier siehst du ein Echtzeit-Protokoll der letzten Systemereignisse, wie z.B. Bot-Verbindungsaufbau, E-Mail-Versand, Benutzerregistrierungen oder Fehler. Diese Infos sind nützlich für die Fehlersuche.</p>
+                </div>
                 <div class="inputContainer">
                     <textarea class="sso-text" id="PluginLogsArea" readonly rows="15" style="width: 100%; padding: 10px; font-family: monospace; background: rgba(0,0,0,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; resize: vertical;"></textarea>
                 </div>

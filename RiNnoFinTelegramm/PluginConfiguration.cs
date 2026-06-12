@@ -220,6 +220,14 @@ public class PluginConfiguration : BasePluginConfiguration
 
     public List<PersistedInvite> PersistedInvites { get; set; } = [];
     public List<PersistedResetToken> PersistedResetTokens { get; set; } = [];
+
+    // HTML-Vorlagen
+    public string HtmlTemplateLogin { get; set; } = string.Empty;
+    public string HtmlTemplateInvite { get; set; } = string.Empty;
+    public string HtmlTemplateForgot { get; set; } = string.Empty;
+    public string HtmlTemplateReset { get; set; } = string.Empty;
+    public string HtmlTemplateLoginCss { get; set; } = string.Empty;
+    public string HtmlTemplateLoginJs { get; set; } = string.Empty;
 }
 
 public class PersistedInvite
