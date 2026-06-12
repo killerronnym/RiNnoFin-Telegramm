@@ -9,12 +9,12 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
-        "version": "1.0.4.52",
-        "changelog": "Hotfix: Behebung eines kritischen Syntax-Fehlers in der Javascript-Datei, der das Laden des Dashboards komplett verhindert hat.",
+        "version": "1.0.4.53",
+        "changelog": "Hotfix: Behebung eines Caching-Problems im Jellyfin-Webclient. Der Browser hat hartnäckig eine alte, fehlerhafte Version des Dashboards (v1.0.4.39) geladen, wodurch das UI eingefroren blieb. Der neue Cache-Buster erzwingt das Neuladen des korrekten Skripts.",
         "targetAbi": "10.9.0.0",
         "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
-        "checksum": "3441BDFB3E45616D7228C8D67A9715B4",
-        "timestamp": "2026-06-12 15:10:00"
+        "checksum": "4F9A2B66ECB1FCD22F3EC24401DC9F29",
+        "timestamp": "2026-06-12 15:35:00"
       },
       {
         "version": "1.0.4.47",
