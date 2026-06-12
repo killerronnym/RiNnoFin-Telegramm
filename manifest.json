@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.46",
+        "changelog": "UI-Update: Die vordefinierten Begründungen für das Deaktivieren und Löschen von Accounts wurden aus der E-Mail-Konfiguration ausgelagert und haben nun einen eigenen, dedizierten Tab 'Definierte Nachrichten' im Plugin-Dashboard erhalten. Dies sorgt für eine bessere Übersichtlichkeit in der Verwaltungsoberfläche.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.46.zip",
+        "checksum": "779507763C6FD20C9B81CDB739A244EC",
+        "timestamp": "2026-06-12 14:00:00"
+      },
+      {
         "version": "1.0.4.45",
         "changelog": "Neue Funktion: Vordefinierte Deaktivierungs- und Löschgründe. Administratoren können im Plugin-Dashboard jetzt eigene, vordefinierte Begründungen anlegen. Bei der Aktion 'Deaktivieren' oder 'Löschen' öffnet sich nun ein modernes Auswahlfenster, in dem man bequem einen der vorgefertigten Gründe auswählen oder weiterhin einen eigenen, individuellen Text schreiben kann.",
         "targetAbi": "10.9.0.0",

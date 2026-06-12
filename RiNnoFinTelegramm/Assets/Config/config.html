@@ -68,6 +68,7 @@
         <div class="rinnofin-menu-item" data-tab="tab-user-settings">⚙️ Benutzereinstellungen</div>
         <div class="rinnofin-menu-item" data-tab="tab-email">📧 E-Mail-Einstellungen</div>
         <div class="rinnofin-menu-item" data-tab="tab-html-templates">🌐 HTML-Vorlagen</div>
+        <div class="rinnofin-menu-item" data-tab="tab-predefined-messages">💬 Definierte Nachrichten</div>
         <div class="rinnofin-menu-item" data-tab="tab-messages">✉️ Verlauf & Anfragen</div>
         <div class="rinnofin-menu-item" data-tab="tab-logs">📋 Protokoll (Logs)</div>
     </div>
@@ -742,11 +743,6 @@
                             <button class="action-btn preview-template-btn" data-template-id="EmailTemplateAccountDisabled" type="button">Vorschau</button>
                         </div>
                         <div class="template-preview-container" id="Preview_EmailTemplateAccountDisabled" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 400px; border: 1px solid #ccc;"></div>
-                        <div style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed rgba(255,255,255,0.2);">
-                            <label class="inputLabel inputLabelUnfocused" for="PredefinedDeactivateReasons" style="font-weight: bold;">Vordefinierte Begründungen (Eine pro Zeile):</label>
-                            <p style="font-size: 12px; color: #9ca3af; margin-bottom: 5px;">Diese Optionen werden als Buttons angezeigt, wenn du einen Account deaktivierst.</p>
-                            <textarea class="sso-text" id="PredefinedDeactivateReasons" rows="4" style="width: 100%; padding: 10px; font-family: sans-serif;"></textarea>
-                        </div>
                     </div>
                 </div>
 
@@ -763,12 +759,6 @@
                             <button class="action-btn preview-template-btn" data-template-id="EmailTemplateAccountDeleted" type="button">Vorschau</button>
                         </div>
                         <div class="template-preview-container" id="Preview_EmailTemplateAccountDeleted" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 400px; border: 1px solid #ccc;"></div>
-
-                        <div style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed rgba(255,255,255,0.2);">
-                            <label class="inputLabel inputLabelUnfocused" for="PredefinedDeleteReasons" style="font-weight: bold;">Vordefinierte Begründungen (Eine pro Zeile):</label>
-                            <p style="font-size: 12px; color: #9ca3af; margin-bottom: 5px;">Diese Optionen werden als Buttons angezeigt, wenn du einen Account löschst.</p>
-                            <textarea class="sso-text" id="PredefinedDeleteReasons" rows="4" style="width: 100%; padding: 10px; font-family: sans-serif;"></textarea>
-                        </div>
                     </div>
                 </div>
 
@@ -892,6 +882,31 @@
 
                 <button class="raised button-submit block emby-button" id="SaveConfigHtml" is="emby-button" type="button" style="margin-top: 20px;">
                     <span>HTML-Vorlagen speichern</span>
+                </button>
+            </fieldset>
+        </div>
+        <div id="tab-predefined-messages" class="rinnofin-tab">
+            <fieldset class="verticalSection">
+                <legend><h3>Definierte Nachrichten</h3></legend>
+                <div class="rinnofin-info-banner">
+                    <h4>💬 Vordefinierte Begründungen</h4>
+                    <p>Lege hier Standard-Begründungen fest, die du schnell auswählen kannst, wenn du im Dashboard einen Benutzer <strong>deaktivierst</strong> oder <strong>löschst</strong>. Jede Zeile im Textfeld entspricht einem auswählbaren Grund im Popup-Fenster.</p>
+                </div>
+                
+                <div class="inputContainer email-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
+                    <label class="inputLabel inputLabelUnfocused" for="PredefinedDeactivateReasons" style="font-weight: bold; margin-bottom: 5px; display: block;">Gründe für DEAKTIVIERUNG (Eine pro Zeile):</label>
+                    <p style="font-size: 13px; color: #9ca3af; margin-bottom: 10px;">Diese Optionen werden als klickbare Buttons angezeigt, wenn du einen Account deaktivierst.</p>
+                    <textarea class="sso-text" id="PredefinedDeactivateReasons" rows="6" style="width: 100%; padding: 10px; font-family: sans-serif;"></textarea>
+                </div>
+
+                <div class="inputContainer email-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
+                    <label class="inputLabel inputLabelUnfocused" for="PredefinedDeleteReasons" style="font-weight: bold; margin-bottom: 5px; display: block;">Gründe für LÖSCHEN (Eine pro Zeile):</label>
+                    <p style="font-size: 13px; color: #9ca3af; margin-bottom: 10px;">Diese Optionen werden als klickbare Buttons angezeigt, wenn du einen Account endgültig löschst.</p>
+                    <textarea class="sso-text" id="PredefinedDeleteReasons" rows="6" style="width: 100%; padding: 10px; font-family: sans-serif;"></textarea>
+                </div>
+
+                <button class="raised button-submit block emby-button" id="SaveConfigMessages" is="emby-button" type="button" style="margin-top: 20px;">
+                    <span>Begründungen speichern</span>
                 </button>
             </fieldset>
         </div>

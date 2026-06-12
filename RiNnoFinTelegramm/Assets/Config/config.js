@@ -1519,6 +1519,11 @@ export default function (view) {
         await tgConfigPage.saveConfig(view);
     });
 
+    view.querySelector("#SaveConfigMessages")?.addEventListener("click", async (e) => {
+        e.preventDefault();
+        await tgConfigPage.saveConfig(view);
+    });
+
     view.querySelectorAll(".preview-template-btn").forEach(btn => {
         btn.addEventListener("click", (e) => {
             e.preventDefault();
