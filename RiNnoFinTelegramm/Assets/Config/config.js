@@ -1423,5 +1423,4 @@ Mit Telegram anmelden
     view.querySelector("#ExampleBrandingCode").innerHTML = brandingWidget.replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
 
     window.Dashboard.hideLoadingMsg();
-    });
 }

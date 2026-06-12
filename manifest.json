@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.39",
+        "changelog": "Hotfix: Behebt den massiven Fehler (SyntaxError in Javascript), der dazu führte, dass die Plugin-Einstellungen gar nicht geladen wurden (Anzeige: 'Bitte aktiviere JavaScript'). Das Bedienfeld und alle Tabs funktionieren nun wieder einwandfrei.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.39.zip",
+        "checksum": "A4FECC0A35B846EE1F4FC35623DB7CAD",
+        "timestamp": "2026-06-12 10:40:00"
+      },
+      {
         "version": "1.0.4.38",
         "changelog": "Hotfix: Behebt das Problem, dass die Tabs und Buttons im Bedienfeld (Benutzerverwaltung, Gruppenverwaltung, etc.) nicht mehr reagierten. Der Fehler wurde durch einen JavaScript-Referenzfehler auf den Jellyfin ApiClient verursacht, welcher durch das letzte Update fehlte.",
         "targetAbi": "10.9.0.0",
