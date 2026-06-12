@@ -7,7 +7,7 @@ const tgConfigPage = {
     currentGroup: null,
 
     loadConfiguration: (page) => {
-        ApiClient.getPluginConfiguration(tgConfigPage.pluginUniqueId).then(
+        window.ApiClient.getPluginConfiguration(tgConfigPage.pluginUniqueId).then(
             (config) => {
                 tgConfigPage.config = config;
                 tgConfigPage.populateConfiguration(page, config);
@@ -469,7 +469,7 @@ const tgConfigPage = {
             return;
         }
 
-        ApiClient.getPluginConfiguration(tgConfigPage.pluginUniqueId).then((config) => {
+        window.ApiClient.getPluginConfiguration(tgConfigPage.pluginUniqueId).then((config) => {
             if (!config.TelegramGroups) {
                 config.TelegramGroups = [];
             }
@@ -487,7 +487,7 @@ const tgConfigPage = {
                 UserNames: [],
             });
 
-            ApiClient.updatePluginConfiguration(
+            window.ApiClient.updatePluginConfiguration(
                 tgConfigPage.pluginUniqueId,
                 config
             ).then(function (result) {
@@ -581,7 +581,7 @@ const tgConfigPage = {
         let groupData = tgConfigPage.modifiedGroups.get(groupName);
 
         if (!groupData) {
-            ApiClient.getPluginConfiguration(tgConfigPage.pluginUniqueId).then((config) => {
+            window.ApiClient.getPluginConfiguration(tgConfigPage.pluginUniqueId).then((config) => {
                 groupData = config.TelegramGroups?.find(group => group.GroupName === groupName);
                 if (groupData) {
                     tgConfigPage.populateGroupData(page, groupData);
@@ -692,12 +692,12 @@ const tgConfigPage = {
         }
 
         return new Promise((resolve) => {
-            ApiClient.getPluginConfiguration(tgConfigPage.pluginUniqueId).then((config) => {
+            window.ApiClient.getPluginConfiguration(tgConfigPage.pluginUniqueId).then((config) => {
                 config.TelegramGroups = config.TelegramGroups?.filter(
                     group => group.GroupName !== tgConfigPage.currentGroup
                 ) || [];
 
-                ApiClient.updatePluginConfiguration(
+                window.ApiClient.updatePluginConfiguration(
                     tgConfigPage.pluginUniqueId,
                     config
                 ).then(function (result) {
@@ -722,7 +722,7 @@ const tgConfigPage = {
         tgConfigPage.updateGroupData(page);
 
         return new Promise((resolve) => {
-            ApiClient.getPluginConfiguration(tgConfigPage.pluginUniqueId).then((config) => {
+            window.ApiClient.getPluginConfiguration(tgConfigPage.pluginUniqueId).then((config) => {
                 if (!config.TelegramGroups) {
                     config.TelegramGroups = [];
                 }
@@ -744,7 +744,7 @@ const tgConfigPage = {
                     }
                 }
 
-                ApiClient.updatePluginConfiguration(
+                window.ApiClient.updatePluginConfiguration(
                     tgConfigPage.pluginUniqueId,
                     config
                 ).then(function (result) {
@@ -892,6 +892,7 @@ const tgTokenHelper = {
 export default function (view) {
     view.addEventListener('viewshow', function (e) {
         tgConfigPage.loadConfiguration(view);
+    });
 
     const tabItems = view.querySelectorAll('.rinnofin-menu-item');
     tabItems.forEach(item => {
@@ -1019,8 +1020,6 @@ export default function (view) {
             window.Dashboard.hideLoadingMsg();
             window.Dashboard.alert('Fehler: ' + (err.responseJSON?.message || err.message || ''));
         });
-    });
-
     });
 
     view.querySelector("#EnableQuiz")?.addEventListener("change", () => {
