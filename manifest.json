@@ -12,7 +12,7 @@
         "version": "1.0.4.38",
         "changelog": "Hotfix: Behebt das Problem, dass die Tabs und Buttons im Bedienfeld (Benutzerverwaltung, Gruppenverwaltung, etc.) nicht mehr reagierten. Der Fehler wurde durch einen JavaScript-Referenzfehler auf den Jellyfin ApiClient verursacht, welcher durch das letzte Update fehlte.",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.38.zip",
         "checksum": "D84E22192ACD6E7B97F8605CBC5F377A",
         "timestamp": "2026-06-12 10:30:00"
       },
