@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.48",
+        "changelog": "Bugfix: Die doppelte Versendung der E-Mail beim Erstellen einer Einladung wurde endgültig behoben. Zudem wird das Ablaufdatum in der Benutzerliste im Dashboard jetzt in einem benutzerfreundlichen Format ('Noch X Tage' oder 'Läuft heute ab' oder 'Abgelaufen') angezeigt.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "28192A5A5D07891A7852213E1FEE1D77",
+        "timestamp": "2026-06-12 14:45:00"
+      },
+      {
         "version": "1.0.4.47",
         "changelog": "Neue Funktion: Ablaufdatum für Accounts. Administratoren können nun beim Einladen neuer Benutzer ein Ablaufdatum (Gültigkeit in Tagen) festlegen. Alternativ kann das Ablaufdatum bei existierenden Benutzern über die Funktion 'Benutzer bearbeiten' angepasst werden. Das System kann so konfiguriert werden, dass abgelaufene Konten entweder deaktiviert (Empfohlen) oder komplett gelöscht werden. Zudem erhält der Nutzer 7 Tage vor Ablauf eine konfigurierbare E-Mail-Warnung und eine finale E-Mail, wenn der Account abläuft.",
         "targetAbi": "10.9.0.0",

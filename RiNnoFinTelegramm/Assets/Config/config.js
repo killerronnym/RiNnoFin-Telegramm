@@ -329,7 +329,21 @@ const tgConfigPage = {
 
             const expirationTd = document.createElement("td");
             expirationTd.style.padding = "10px";
-            expirationTd.textContent = expirationDate ? new Date(expirationDate).toLocaleString('de-DE') : 'Niemals';
+            if (expirationDate) {
+                const exp = new Date(expirationDate);
+                const now = new Date();
+                const diffTime = exp - now;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                if (diffDays < 0) {
+                    expirationTd.innerHTML = `<span style="color: #ef4444;">Abgelaufen</span><br><span style="font-size: 0.8em; color: #9ca3af;">(${exp.toLocaleDateString('de-DE')})</span>`;
+                } else if (diffDays === 0) {
+                    expirationTd.innerHTML = `<span style="color: #eab308;">Läuft heute ab</span>`;
+                } else {
+                    expirationTd.innerHTML = `<span style="color: #10b981;">Noch ${diffDays} Tage</span><br><span style="font-size: 0.8em; color: #9ca3af;">(${exp.toLocaleDateString('de-DE')})</span>`;
+                }
+            } else {
+                expirationTd.textContent = 'Niemals';
+            }
 
             const lastAccessTd = document.createElement("td");
             lastAccessTd.style.padding = "10px";
@@ -524,6 +538,9 @@ const tgConfigPage = {
     },
 
     createInvite: (page) => {
+        const btn = page.querySelector("#CreateInviteBtn");
+        if (btn && btn.disabled) return;
+
         const email = page.querySelector("#InviteEmail").value.trim();
         const profileId = page.querySelector("#InviteProfile").value;
         const username = page.querySelector("#InviteUsername").value.trim();
@@ -535,6 +552,9 @@ const tgConfigPage = {
             return;
         }
 
+        const btn = page.querySelector("#CreateInviteBtn");
+        if (btn) btn.disabled = true;
+
         window.Dashboard.showLoadingMsg();
         window.ApiClient.ajax({
             url: window.ApiClient.getUrl("/api/RiNnoFinConfig/AdminCreateInvite"),
@@ -542,12 +562,14 @@ const tgConfigPage = {
             data: JSON.stringify({ Email: email, ProfileUserId: profileId, Username: username, ExpirationDays: expirationDays }),
             contentType: "application/json"
         }).then((res) => {
+            if (btn) btn.disabled = false;
             window.Dashboard.hideLoadingMsg();
             window.Dashboard.alert("Einladung erfolgreich versendet!");
             page.querySelector("#InviteEmail").value = "";
             page.querySelector("#InviteUsername").value = "";
             page.querySelector("#InviteExpirationDays").value = "";
         }).catch(err => {
+            if (btn) btn.disabled = false;
             window.Dashboard.hideLoadingMsg();
             window.Dashboard.alert("Fehler: " + (err.responseJSON?.message || err.message || ""));
         });
