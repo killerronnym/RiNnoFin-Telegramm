@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.42",
+        "changelog": "Benutzererstellung & E-Mail Workflow: Wenn Administratoren im Dashboard Benutzer einladen und dabei einen Benutzernamen vorausfüllen, wird der Jellyfin-Account nun NICHT mehr sofort erstellt, sondern der Benutzername wird an den Einladungs-Link übergeben. Der Nutzer kann den Namen noch anpassen und der Account wird erst bei Passwortvergabe (im Registrierungs-Flow) generiert. Es wird ab sofort immer nur noch EINE einzelne Einladungs-E-Mail versendet, statt einer Kombination aus Kontoerstellungs- und Passwort-Reset-Mail.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.42.zip",
+        "checksum": "0E049CC9F24A8BC8543469A52CADC28C",
+        "timestamp": "2026-06-12 13:16:00"
+      },
+      {
         "version": "1.0.4.41",
         "changelog": "Fehlerbehebung & Robustheit in der Benutzerverwaltung: Behebt das Problem, dass die Benutzerliste nicht geladen wurde (automatisches Vorladen beim Aufrufen der Seite und verbesserte Case-Insensitivity für Jellyfin-Objekteigenschaften). SSO HTML-Vorlagen werden nun automatisch mit Standard-Designs befüllt, wenn sie in der Konfiguration leer sind.",
         "targetAbi": "10.9.0.0",
