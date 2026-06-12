@@ -50,6 +50,8 @@ const tgConfigPage = {
         page.querySelector("#EmailTemplateAccountEnabled").value = config.EmailTemplateAccountEnabled ?? '';
         page.querySelector("#EmailTemplateAccountDisabled").value = config.EmailTemplateAccountDisabled ?? '';
         page.querySelector("#EmailTemplateAccountDeleted").value = config.EmailTemplateAccountDeleted ?? '';
+        page.querySelector("#PredefinedDeactivateReasons").value = config.PredefinedDeactivateReasons ?? "Verstoß gegen die Nutzungsbedingungen\nAccount längere Zeit inaktiv\nAuf eigenen Wunsch deaktiviert\nZahlung ausstehend";
+        page.querySelector("#PredefinedDeleteReasons").value = config.PredefinedDeleteReasons ?? "Verstoß gegen die Nutzungsbedingungen\nAccount längere Zeit inaktiv\nAuf eigenen Wunsch gelöscht\nSicherheitsbedenken";
         page.querySelector("#EmailTemplateNewsletterMovies").value = config.EmailTemplateNewsletterMovies ?? '';
         page.querySelector("#EmailTemplateNewsletterSeries").value = config.EmailTemplateNewsletterSeries ?? '';
 
@@ -336,6 +338,118 @@ const tgConfigPage = {
         });
     },
 
+    showReasonPrompt: (actionName, predefinedReasonsString) => {
+        return new Promise((resolve) => {
+            const overlay = document.createElement("div");
+            overlay.style = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:99999;display:flex;align-items:center;justify-content:center;";
+            
+            const modal = document.createElement("div");
+            modal.style = "background:#1e1e1e;padding:25px;border-radius:10px;width:100%;max-width:500px;color:white;box-shadow:0 10px 30px rgba(0,0,0,0.5);";
+            
+            const title = document.createElement("h2");
+            title.innerText = actionName === "AdminDeleteUser" ? "Account Löschen - Begründung" : "Account Deaktivieren - Begründung";
+            title.style.marginBottom = "15px";
+            modal.appendChild(title);
+            
+            const p = document.createElement("p");
+            p.innerText = "Bitte wähle einen Grund aus oder schreibe eine eigene Nachricht (wird in der E-Mail angezeigt):";
+            p.style.marginBottom = "20px";
+            p.style.color = "#ccc";
+            modal.appendChild(p);
+
+            const predefinedReasons = (predefinedReasonsString || "").split('\n').map(s => s.trim()).filter(s => s);
+            
+            const form = document.createElement("form");
+            
+            let selectedValue = "";
+            
+            predefinedReasons.forEach((r, i) => {
+                const label = document.createElement("label");
+                label.style = "display:flex;align-items:center;margin-bottom:10px;cursor:pointer;";
+                
+                const radio = document.createElement("input");
+                radio.type = "radio";
+                radio.name = "reasonType";
+                radio.value = r;
+                radio.style.marginRight = "10px";
+                if(i === 0) radio.checked = true;
+                
+                label.appendChild(radio);
+                label.appendChild(document.createTextNode(r));
+                form.appendChild(label);
+            });
+            
+            const customLabel = document.createElement("label");
+            customLabel.style = "display:flex;align-items:flex-start;margin-top:20px;cursor:pointer;";
+            
+            const customRadio = document.createElement("input");
+            customRadio.type = "radio";
+            customRadio.name = "reasonType";
+            customRadio.value = "CUSTOM";
+            customRadio.style.marginRight = "10px";
+            customRadio.style.marginTop = "4px";
+            if(predefinedReasons.length === 0) customRadio.checked = true;
+            
+            const customContainer = document.createElement("div");
+            customContainer.style = "width:100%;";
+            customContainer.innerText = "Persönliche Nachricht / Zusatzbegründung:";
+            
+            const customInput = document.createElement("textarea");
+            customInput.style = "width:100%;margin-top:10px;padding:10px;background:#333;color:white;border:1px solid #555;border-radius:5px;";
+            customInput.rows = 4;
+            customContainer.appendChild(customInput);
+            
+            customLabel.appendChild(customRadio);
+            customLabel.appendChild(customContainer);
+            form.appendChild(customLabel);
+            
+            customInput.addEventListener('focus', () => {
+                customRadio.checked = true;
+            });
+            
+            const btnContainer = document.createElement("div");
+            btnContainer.style = "margin-top:25px;display:flex;justify-content:flex-end;gap:15px;";
+            
+            const cancelBtn = document.createElement("button");
+            cancelBtn.type = "button";
+            cancelBtn.innerText = "Abbrechen";
+            cancelBtn.className = "action-btn btn-black";
+            cancelBtn.style = "padding:10px 20px;";
+            cancelBtn.onclick = () => {
+                document.body.removeChild(overlay);
+                resolve(null);
+            };
+            
+            const submitBtn = document.createElement("button");
+            submitBtn.type = "submit";
+            submitBtn.innerText = actionName === "AdminDeleteUser" ? "Löschen ausführen" : "Deaktivieren";
+            submitBtn.className = actionName === "AdminDeleteUser" ? "action-btn btn-red" : "action-btn btn-orange";
+            submitBtn.style = "padding:10px 20px;";
+            
+            form.onsubmit = (e) => {
+                e.preventDefault();
+                const checkedRadio = form.querySelector('input[name="reasonType"]:checked');
+                if(!checkedRadio) return;
+                
+                let reason = checkedRadio.value;
+                if(reason === "CUSTOM") {
+                    reason = customInput.value.trim();
+                }
+                
+                document.body.removeChild(overlay);
+                resolve(reason);
+            };
+            
+            btnContainer.appendChild(cancelBtn);
+            btnContainer.appendChild(submitBtn);
+            form.appendChild(btnContainer);
+            
+            modal.appendChild(form);
+            overlay.appendChild(modal);
+            document.body.appendChild(overlay);
+        });
+    },
+
     adminActionUsers: (page, actionName, confirmMsg) => {
         const userIds = tgConfigPage.getSelectedUserIds(page);
         if (userIds.length === 0) {
@@ -349,27 +463,40 @@ const tgConfigPage = {
                 window.Dashboard.alert("Aktion abgebrochen: Jellyfin-Administratoren dürfen nicht gelöscht oder deaktiviert werden.");
                 return;
             }
+            
+            let predefined = "";
+            if (actionName === "AdminDisableUser") predefined = tgConfigPage.config?.PredefinedDeactivateReasons || "Verstoß gegen die Nutzungsbedingungen\nAccount längere Zeit inaktiv\nAuf eigenen Wunsch deaktiviert\nZahlung ausstehend";
+            if (actionName === "AdminDeleteUser") predefined = tgConfigPage.config?.PredefinedDeleteReasons || "Verstoß gegen die Nutzungsbedingungen\nAccount längere Zeit inaktiv\nAuf eigenen Wunsch gelöscht\nSicherheitsbedenken";
+            
+            tgConfigPage.showReasonPrompt(actionName, predefined).then(reason => {
+                if (reason === null) return;
+                
+                window.Dashboard.showLoadingMsg();
+                window.ApiClient.ajax({
+                    url: window.ApiClient.getUrl(`/api/RiNnoFinConfig/${actionName}`),
+                    type: "POST",
+                    data: JSON.stringify({ UserIds: userIds, Reason: reason }),
+                    contentType: "application/json"
+                }).then(() => {
+                    window.Dashboard.hideLoadingMsg();
+                    window.Dashboard.alert("Aktion erfolgreich ausgeführt!");
+                    tgConfigPage.loadUsers(page);
+                }).catch(err => {
+                    window.Dashboard.hideLoadingMsg();
+                    const msg = err?.responseJSON?.message || "Unbekannter Fehler";
+                    window.Dashboard.alert("Fehler bei der Aktion: " + msg);
+                });
+            });
+            return; // We handled the ajax here
         }
 
         if (confirmMsg && !confirm(confirmMsg)) return;
-
-        let reason = "";
-        let requestData = userIds;
-
-        if (actionName === "AdminDisableUser" || actionName === "AdminDeleteUser") {
-            reason = prompt("Bitte gib einen Grund für diese Aktion an (wird in der E-Mail an den Benutzer gesendet):", "");
-            if (reason === null) return; // User cancelled
-            requestData = {
-                UserIds: userIds,
-                Reason: reason
-            };
-        }
 
         window.Dashboard.showLoadingMsg();
         window.ApiClient.ajax({
             url: window.ApiClient.getUrl(`/api/RiNnoFinConfig/${actionName}`),
             type: "POST",
-            data: JSON.stringify(requestData),
+            data: JSON.stringify(userIds),
             contentType: "application/json"
         }).then((res) => {
             window.Dashboard.hideLoadingMsg();
@@ -471,6 +598,8 @@ const tgConfigPage = {
                 config.EmailTemplateAccountEnabled = (page.querySelector("#EmailTemplateAccountEnabled").value ?? "").trim() || undefined;
                 config.EmailTemplateAccountDisabled = (page.querySelector("#EmailTemplateAccountDisabled").value ?? "").trim() || undefined;
                 config.EmailTemplateAccountDeleted = (page.querySelector("#EmailTemplateAccountDeleted").value ?? "").trim() || undefined;
+                config.PredefinedDeactivateReasons = (page.querySelector("#PredefinedDeactivateReasons").value ?? "").trim() || undefined;
+                config.PredefinedDeleteReasons = (page.querySelector("#PredefinedDeleteReasons").value ?? "").trim() || undefined;
                 config.EmailTemplateNewsletterMovies = (page.querySelector("#EmailTemplateNewsletterMovies").value ?? "").trim() || undefined;
                 config.EmailTemplateNewsletterSeries = (page.querySelector("#EmailTemplateNewsletterSeries").value ?? "").trim() || undefined;
 

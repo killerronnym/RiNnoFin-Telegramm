@@ -742,6 +742,11 @@
                             <button class="action-btn preview-template-btn" data-template-id="EmailTemplateAccountDisabled" type="button">Vorschau</button>
                         </div>
                         <div class="template-preview-container" id="Preview_EmailTemplateAccountDisabled" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 400px; border: 1px solid #ccc;"></div>
+                        <div style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed rgba(255,255,255,0.2);">
+                            <label class="inputLabel inputLabelUnfocused" for="PredefinedDeactivateReasons" style="font-weight: bold;">Vordefinierte Begründungen (Eine pro Zeile):</label>
+                            <p style="font-size: 12px; color: #9ca3af; margin-bottom: 5px;">Diese Optionen werden als Buttons angezeigt, wenn du einen Account deaktivierst.</p>
+                            <textarea class="sso-text" id="PredefinedDeactivateReasons" rows="4" style="width: 100%; padding: 10px; font-family: sans-serif;"></textarea>
+                        </div>
                     </div>
                 </div>
 
@@ -750,7 +755,7 @@
                         <label class="inputLabel inputLabelUnfocused" for="EmailSubjectAccountDeleted" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Account gelöscht</label>
                         <input class="sso-text" id="EmailSubjectAccountDeleted" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
 
-                        <label class="inputLabel inputLabelUnfocused" for="EmailTemplateAccountDeleted">Account Gelöscht (Variable: {username}):</label>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailTemplateAccountDeleted">Account Gelöscht (Variablen: {username}, {reason}):</label>
                         <textarea class="sso-text" id="EmailTemplateAccountDeleted" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
 
                         <div style="margin-top: 10px; display: flex; gap: 10px;">
@@ -758,6 +763,12 @@
                             <button class="action-btn preview-template-btn" data-template-id="EmailTemplateAccountDeleted" type="button">Vorschau</button>
                         </div>
                         <div class="template-preview-container" id="Preview_EmailTemplateAccountDeleted" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 400px; border: 1px solid #ccc;"></div>
+
+                        <div style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed rgba(255,255,255,0.2);">
+                            <label class="inputLabel inputLabelUnfocused" for="PredefinedDeleteReasons" style="font-weight: bold;">Vordefinierte Begründungen (Eine pro Zeile):</label>
+                            <p style="font-size: 12px; color: #9ca3af; margin-bottom: 5px;">Diese Optionen werden als Buttons angezeigt, wenn du einen Account löschst.</p>
+                            <textarea class="sso-text" id="PredefinedDeleteReasons" rows="4" style="width: 100%; padding: 10px; font-family: sans-serif;"></textarea>
+                        </div>
                     </div>
                 </div>
 

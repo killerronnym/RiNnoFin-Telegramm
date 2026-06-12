@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.45",
+        "changelog": "Neue Funktion: Vordefinierte Deaktivierungs- und Löschgründe. Administratoren können im Plugin-Dashboard jetzt eigene, vordefinierte Begründungen anlegen. Bei der Aktion 'Deaktivieren' oder 'Löschen' öffnet sich nun ein modernes Auswahlfenster, in dem man bequem einen der vorgefertigten Gründe auswählen oder weiterhin einen eigenen, individuellen Text schreiben kann.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.45.zip",
+        "checksum": "9F90F686AA8A3B6F49A9ACBBFACD5F43",
+        "timestamp": "2026-06-12 13:55:00"
+      },
+      {
         "version": "1.0.4.44",
         "changelog": "UI-Update: Die Willkommens-E-Mail (Standard) enthält nun einen echten Login-Button. Administratoren können für ihre eigenen Vorlagen jetzt den neuen Platzhalter `{loginLink}` verwenden, welcher direkt zum Web-Interface leitet. Zusätzlich wurde das CSS für das Passwort-Reset-Formular angepasst, sodass alle Eingabefelder (auch Benutzername & E-Mail) nun wieder korrekt das dunkle Jellyfin-Theme übernehmen und nicht mehr weiß-auf-schwarz angezeigt werden.",
         "targetAbi": "10.9.0.0",

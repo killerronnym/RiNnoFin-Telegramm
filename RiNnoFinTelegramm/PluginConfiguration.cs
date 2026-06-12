@@ -8,6 +8,9 @@ namespace Jellyfin.Plugin.RiNnoFinTelegramm;
 
 public class PluginConfiguration : BasePluginConfiguration
 {
+    public string PredefinedDeactivateReasons { get; set; } = "Verstoß gegen die Nutzungsbedingungen\nAccount längere Zeit inaktiv\nAuf eigenen Wunsch deaktiviert\nZahlung ausstehend";
+    public string PredefinedDeleteReasons { get; set; } = "Verstoß gegen die Nutzungsbedingungen\nAccount längere Zeit inaktiv\nAuf eigenen Wunsch gelöscht\nSicherheitsbedenken";
+
     public string? LoginBaseUrl { get; set; }
 
     public string BotToken { get; set; } = Constants.DefaultBotToken;
