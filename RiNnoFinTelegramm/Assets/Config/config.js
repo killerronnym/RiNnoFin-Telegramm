@@ -12,6 +12,11 @@ const tgConfigPage = {
                 tgConfigPage.config = config;
                 tgConfigPage.populateConfiguration(page, config);
                 tgConfigPage.populateGroups(page, config);
+                
+                // Preload lists so all tabs are populated immediately
+                tgConfigPage.loadUsers(page);
+                tgConfigPage.loadRequests(page);
+                tgConfigPage.loadLogs(page);
             }
         );
     },
@@ -84,6 +89,24 @@ const tgConfigPage = {
         page.querySelector("#HtmlTemplateReset").value = config.HtmlTemplateReset ?? '';
         page.querySelector("#HtmlTemplateLoginCss").value = config.HtmlTemplateLoginCss ?? '';
         page.querySelector("#HtmlTemplateLoginJs").value = config.HtmlTemplateLoginJs ?? '';
+
+        // If any HTML template fields are empty, load defaults automatically
+        if (!config.HtmlTemplateLogin || !config.HtmlTemplateInvite || !config.HtmlTemplateForgot || !config.HtmlTemplateReset || !config.HtmlTemplateLoginCss || !config.HtmlTemplateLoginJs) {
+            window.ApiClient.ajax({
+                url: window.ApiClient.getUrl("/api/RiNnoFinConfig/GetDefaultHtmlTemplates"),
+                type: "GET",
+                dataType: "json"
+            }).then(defaults => {
+                if (!page.querySelector("#HtmlTemplateLogin").value && defaults.loginHtml) page.querySelector("#HtmlTemplateLogin").value = defaults.loginHtml;
+                if (!page.querySelector("#HtmlTemplateInvite").value && defaults.inviteHtml) page.querySelector("#HtmlTemplateInvite").value = defaults.inviteHtml;
+                if (!page.querySelector("#HtmlTemplateForgot").value && defaults.forgotHtml) page.querySelector("#HtmlTemplateForgot").value = defaults.forgotHtml;
+                if (!page.querySelector("#HtmlTemplateReset").value && defaults.resetHtml) page.querySelector("#HtmlTemplateReset").value = defaults.resetHtml;
+                if (!page.querySelector("#HtmlTemplateLoginCss").value && defaults.loginCss) page.querySelector("#HtmlTemplateLoginCss").value = defaults.loginCss;
+                if (!page.querySelector("#HtmlTemplateLoginJs").value && defaults.loginJs) page.querySelector("#HtmlTemplateLoginJs").value = defaults.loginJs;
+            }).catch(e => {
+                console.error("Failed to preload default HTML templates:", e);
+            });
+        }
     },
 
     populateGroups: (page, config) => {
@@ -126,6 +149,12 @@ const tgConfigPage = {
         }
 
         requests.forEach(req => {
+            const reqTitle = req.Title ?? req.title ?? "Unbekannt";
+            const reqYear = req.Year ?? req.year ?? "?";
+            const reqImdbId = req.ImdbId ?? req.imdbId ?? "";
+            const reqUserDisplayName = req.UserDisplayName ?? req.userDisplayName ?? "Unknown";
+            const reqRequestedAtUtc = req.RequestedAtUtc ?? req.requestedAtUtc ?? new Date();
+
             const item = document.createElement("div");
             item.className = "listItem listItem-border";
             item.style.display = "flex";
@@ -139,12 +168,12 @@ const tgConfigPage = {
 
             const title = document.createElement("div");
             title.style.fontWeight = "bold";
-            title.textContent = `${req.Title || "Unbekannt"} (${req.Year || "?"})`;
+            title.textContent = `${reqTitle} (${reqYear})`;
 
             const details = document.createElement("div");
             details.style.opacity = "0.7";
             details.style.fontSize = "0.9em";
-            details.textContent = `IMDb: ${req.ImdbId} | Von: ${req.UserDisplayName} | Datum: ${new Date(req.RequestedAtUtc).toLocaleDateString()}`;
+            details.textContent = `IMDb: ${reqImdbId} | Von: ${reqUserDisplayName} | Datum: ${new Date(reqRequestedAtUtc).toLocaleDateString()}`;
 
             info.appendChild(title);
             info.appendChild(details);
@@ -156,7 +185,7 @@ const tgConfigPage = {
             delBtn.className = "raised button-delete emby-button";
             delBtn.textContent = "Entfernen";
             delBtn.style.marginLeft = "1em";
-            delBtn.onclick = () => tgConfigPage.deleteRequest(page, req.ImdbId);
+            delBtn.onclick = () => tgConfigPage.deleteRequest(page, reqImdbId);
 
             item.appendChild(delBtn);
             listContainer.appendChild(item);
@@ -215,7 +244,7 @@ const tgConfigPage = {
         }
 
         if (!users || users.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="padding:10px;text-align:center;">Keine Benutzer gefunden.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" style="padding:10px;text-align:center;">Keine Benutzer gefunden.</td></tr>';
             return;
         }
 
@@ -224,10 +253,23 @@ const tgConfigPage = {
         }
 
         users.forEach(user => {
+            const uId = user.Id ?? user.id;
+            const username = user.Username ?? user.username ?? 'Unbekannt';
+            const email = user.Email ?? user.email ?? '';
+            const telegramUsername = user.TelegramUsername ?? user.telegramUsername ?? '';
+            const isDisabled = user.IsDisabled ?? user.isDisabled ?? false;
+            const isAdmin = user.IsAdmin ?? user.isAdmin ?? false;
+            const isBotAdmin = user.IsBotAdmin ?? user.isBotAdmin ?? false;
+            const isTelegramLinked = user.IsTelegramLinked ?? user.isTelegramLinked ?? false;
+            const subscribeEmailNewsletter = user.SubscribeEmailNewsletter ?? user.subscribeEmailNewsletter ?? false;
+            const subscribeTelegramNewsletter = user.SubscribeTelegramNewsletter ?? user.subscribeTelegramNewsletter ?? false;
+            const expirationDate = user.ExpirationDate ?? user.expirationDate;
+            const lastActivityDate = user.LastActivityDate ?? user.lastActivityDate;
+
             if(profileSelect) {
                 const opt = document.createElement("option");
-                opt.value = user.Id;
-                opt.textContent = user.Name || user.Username;
+                opt.value = uId;
+                opt.textContent = username;
                 profileSelect.appendChild(opt);
             }
 
@@ -236,31 +278,30 @@ const tgConfigPage = {
             
             const checkboxTd = document.createElement("td");
             checkboxTd.style.padding = "10px";
-            checkboxTd.innerHTML = `<input type="checkbox" class="user-checkbox" data-userid="${user.Id}" data-botadmin="${user.IsBotAdmin ? 'true' : 'false'}" data-isadmin="${user.IsAdmin ? 'true' : 'false'}" data-subemail="${user.SubscribeEmailNewsletter ? 'true' : 'false'}" data-subtg="${user.SubscribeTelegramNewsletter ? 'true' : 'false'}" style="width: 18px; height: 18px; cursor: pointer; accent-color: #3b82f6;"/>`;
+            checkboxTd.innerHTML = `<input type="checkbox" class="user-checkbox" data-userid="${uId}" data-botadmin="${isBotAdmin ? 'true' : 'false'}" data-isadmin="${isAdmin ? 'true' : 'false'}" data-subemail="${subscribeEmailNewsletter ? 'true' : 'false'}" data-subtg="${subscribeTelegramNewsletter ? 'true' : 'false'}" style="width: 18px; height: 18px; cursor: pointer; accent-color: #3b82f6;"/>`;
             
             const nameTd = document.createElement("td");
             nameTd.style.padding = "10px";
-            // Check if admin
-            if (user.IsAdmin) {
-                nameTd.innerHTML = `<strong>${user.Username || 'Unbekannt'}</strong> <span style="color: gold;" title="Administrator">👑</span>`;
+            if (isAdmin) {
+                nameTd.innerHTML = `<strong>${username}</strong> <span style="color: gold;" title="Administrator">👑</span>`;
             } else {
-                nameTd.textContent = user.Username || 'Unbekannt';
+                nameTd.textContent = username;
             }
 
             const statusTd = document.createElement("td");
             statusTd.style.padding = "10px";
-            statusTd.textContent = user.IsDisabled ? 'Deaktiviert' : 'Aktiv';
-            if(user.IsDisabled) statusTd.style.color = '#ef4444';
+            statusTd.textContent = isDisabled ? 'Deaktiviert' : 'Aktiv';
+            if(isDisabled) statusTd.style.color = '#ef4444';
 
             const emailTd = document.createElement("td");
             emailTd.style.padding = "10px";
-            emailTd.innerHTML = user.Email ? user.Email : '<span style="color: #9ca3af;">-</span>';
+            emailTd.innerHTML = email ? email : '<span style="color: #9ca3af;">-</span>';
 
             const telegramTd = document.createElement("td");
             telegramTd.style.padding = "10px";
-            if (user.IsTelegramLinked) {
-                telegramTd.innerHTML = user.TelegramUsername 
-                    ? `<span style="color: #10b981;">✔ Verknüpft</span> (@${user.TelegramUsername})` 
+            if (isTelegramLinked) {
+                telegramTd.innerHTML = telegramUsername 
+                    ? `<span style="color: #10b981;">✔ Verknüpft</span> (@${telegramUsername})` 
                     : `<span style="color: #10b981;">✔ Verknüpft</span>`;
             } else {
                 telegramTd.innerHTML = '<span style="color: #9ca3af;">-</span>';
@@ -269,18 +310,18 @@ const tgConfigPage = {
             const aboTd = document.createElement("td");
             aboTd.style.padding = "10px";
             let aboStr = "";
-            if (user.SubscribeEmailNewsletter) aboStr += '<span style="color: #3b82f6;">📧 E-Mail</span><br/>';
-            if (user.SubscribeTelegramNewsletter) aboStr += '<span style="color: #10b981;">💬 Telegram</span><br/>';
-            if (!user.SubscribeEmailNewsletter && !user.SubscribeTelegramNewsletter) aboStr = '<span style="color: #9ca3af;">Keine</span>';
+            if (subscribeEmailNewsletter) aboStr += '<span style="color: #3b82f6;">📧 E-Mail</span><br/>';
+            if (subscribeTelegramNewsletter) aboStr += '<span style="color: #10b981;">💬 Telegram</span><br/>';
+            if (!subscribeEmailNewsletter && !subscribeTelegramNewsletter) aboStr = '<span style="color: #9ca3af;">Keine</span>';
             aboTd.innerHTML = aboStr;
 
             const expirationTd = document.createElement("td");
             expirationTd.style.padding = "10px";
-            expirationTd.textContent = user.ExpirationDate ? new Date(user.ExpirationDate).toLocaleString('de-DE') : 'Niemals';
+            expirationTd.textContent = expirationDate ? new Date(expirationDate).toLocaleString('de-DE') : 'Niemals';
 
             const lastAccessTd = document.createElement("td");
             lastAccessTd.style.padding = "10px";
-            lastAccessTd.textContent = user.LastActivityDate ? new Date(user.LastActivityDate).toLocaleString('de-DE') : 'Niemals';
+            lastAccessTd.textContent = lastActivityDate ? new Date(lastActivityDate).toLocaleString('de-DE') : 'Niemals';
 
             tr.appendChild(checkboxTd);
             tr.appendChild(nameTd);
