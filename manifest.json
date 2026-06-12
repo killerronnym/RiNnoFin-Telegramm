@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.43",
+        "changelog": "Fehlerbehebung: Die doppelte Versendung der Einladungs-E-Mail durch wiederholte Event-Listener im Javascript wurde korrigiert. Der Passwort-Reset und die initiale Passworterstellung fragen nun visuell nach dem Benutzernamen und der E-Mail (wie es das Backend erfordert). Zudem wurde das Verhalten von `{reason}` bei der Deaktivierungs- und Lösch-E-Mail korrigiert: Es wird nun korrekt in der Vorlage platziert anstatt roh angehängt.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.43.zip",
+        "checksum": "421686675EE7D16807EB17CD3CF58428",
+        "timestamp": "2026-06-12 13:26:00"
+      },
+      {
         "version": "1.0.4.42",
         "changelog": "Benutzererstellung & E-Mail Workflow: Wenn Administratoren im Dashboard Benutzer einladen und dabei einen Benutzernamen vorausfüllen, wird der Jellyfin-Account nun NICHT mehr sofort erstellt, sondern der Benutzername wird an den Einladungs-Link übergeben. Der Nutzer kann den Namen noch anpassen und der Account wird erst bei Passwortvergabe (im Registrierungs-Flow) generiert. Es wird ab sofort immer nur noch EINE einzelne Einladungs-E-Mail versendet, statt einer Kombination aus Kontoerstellungs- und Passwort-Reset-Mail.",
         "targetAbi": "10.9.0.0",

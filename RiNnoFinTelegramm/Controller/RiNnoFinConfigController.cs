@@ -622,8 +622,18 @@ public class RiNnoFinConfigController : ControllerBase
                         if (userLink != null && !string.IsNullOrEmpty(userLink.EmailAddress))
                         {
                             string reasonHtml = string.IsNullOrWhiteSpace(request.Reason) ? "" : $"<p><strong>Grund:</strong> {request.Reason}</p>";
-                            string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplateAccountDisabled)
-                                ? config.EmailTemplateAccountDisabled.Replace("{username}", user.Username) + reasonHtml
+                            
+                            string customTemplate = config.EmailTemplateAccountDisabled?.Replace("{username}", user.Username) ?? "";
+                            if (!string.IsNullOrWhiteSpace(customTemplate))
+                            {
+                                if (customTemplate.Contains("{reason}"))
+                                    customTemplate = customTemplate.Replace("{reason}", string.IsNullOrWhiteSpace(request.Reason) ? "" : request.Reason);
+                                else if (!string.IsNullOrWhiteSpace(request.Reason))
+                                    customTemplate += $"<br/>{reasonHtml}";
+                            }
+
+                            string htmlBody = !string.IsNullOrWhiteSpace(customTemplate)
+                                ? customTemplate
                                 : $@"
                             <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
                                 <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
@@ -672,8 +682,18 @@ public class RiNnoFinConfigController : ControllerBase
                         if (userLink != null && !string.IsNullOrEmpty(userLink.EmailAddress))
                         {
                             string reasonHtml = string.IsNullOrWhiteSpace(request.Reason) ? "" : $"<p><strong>Grund:</strong> {request.Reason}</p>";
-                            string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplateAccountDeleted)
-                                ? config.EmailTemplateAccountDeleted.Replace("{username}", user.Username) + reasonHtml
+                            
+                            string customTemplate = config.EmailTemplateAccountDeleted?.Replace("{username}", user.Username) ?? "";
+                            if (!string.IsNullOrWhiteSpace(customTemplate))
+                            {
+                                if (customTemplate.Contains("{reason}"))
+                                    customTemplate = customTemplate.Replace("{reason}", string.IsNullOrWhiteSpace(request.Reason) ? "" : request.Reason);
+                                else if (!string.IsNullOrWhiteSpace(request.Reason))
+                                    customTemplate += $"<br/>{reasonHtml}";
+                            }
+
+                            string htmlBody = !string.IsNullOrWhiteSpace(customTemplate)
+                                ? customTemplate
                                 : $@"
                             <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
                                 <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>

@@ -978,34 +978,7 @@ export default function (view) {
         if(panel) panel.style.display = 'none';
     });
 
-    view.querySelector('#CreateInviteBtn')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        const email = view.querySelector('#InviteEmail').value;
-        const profileId = view.querySelector('#InviteProfile').value;
-        
-        if (!email) {
-            window.Dashboard.alert('Bitte eine E-Mail Adresse eingeben.');
-            return;
-        }
 
-        window.Dashboard.showLoadingMsg();
-        window.ApiClient.ajax({
-            url: window.ApiClient.getUrl('/api/RiNnoFinConfig/AdminCreateInvite'),
-            type: 'POST',
-            data: JSON.stringify({ Email: email, ProfileUserId: profileId }),
-            contentType: 'application/json'
-        }).then(() => {
-            window.Dashboard.hideLoadingMsg();
-            window.Dashboard.alert('Einladung erfolgreich gesendet!');
-            view.querySelector('#InviteUserPanel').style.display = 'none';
-            view.querySelector('#InviteEmail').value = '';
-            tgConfigPage.loadUsers(view);
-        }).catch(err => {
-            window.Dashboard.hideLoadingMsg();
-            const msg = err?.responseJSON?.message || 'Unbekannter Fehler';
-            window.Dashboard.alert('Fehler beim Senden der Einladung: ' + msg);
-        });
-    });
 
     view.querySelector('#ActionAnnounce')?.addEventListener('click', (e) => {
         e.preventDefault();

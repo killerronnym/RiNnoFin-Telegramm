@@ -215,6 +215,16 @@
 
     <form id="resetForm">
         <div class="input-group">
+            <label for="username">Benutzername</label>
+            <input type="text" id="username" placeholder="Dein Jellyfin-Benutzername" required autocomplete="username">
+        </div>
+
+        <div class="input-group">
+            <label for="email">E-Mail-Adresse</label>
+            <input type="email" id="email" placeholder="Deine registrierte E-Mail" required autocomplete="email">
+        </div>
+
+        <div class="input-group">
             <label for="password">Neues Passwort</label>
             <input type="password" id="password" placeholder="Mindestens 8 Zeichen" required autocomplete="new-password">
             <div class="pwd-strength-container" id="pwdContainer">
@@ -299,6 +309,8 @@
     document.getElementById('resetForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         
+        const usr = document.getElementById('username').value.trim();
+        const eml = document.getElementById('email').value.trim();
         const pwd = document.getElementById('password').value;
         const pwdConf = document.getElementById('password_confirm').value;
         const errorMsg = document.getElementById('errorMsg');
@@ -324,7 +336,7 @@
             const response = await fetch('/api/RiNnoFinPublic/ResetPassword', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ Token: token, NewPassword: pwd })
+                body: JSON.stringify({ Token: token, NewPassword: pwd, Username: usr, Email: eml })
             });
 
             if (response.ok) {
