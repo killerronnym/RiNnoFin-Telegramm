@@ -9,12 +9,12 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
-        "version": "1.0.4.51",
-        "changelog": "Hotfix: Notfall-Logs sind jetzt ohne Admin-Cookie über den direkten Link aufrufbar. Zuvor hat der Endpunkt 'Admin-Rechte erforderlich' zurückgegeben, weil der Browser beim direkten Aufruf kein Auth-Token mitsendet.",
+        "version": "1.0.4.52",
+        "changelog": "Hotfix: Behebung eines kritischen Syntax-Fehlers in der Javascript-Datei, der das Laden des Dashboards komplett verhindert hat.",
         "targetAbi": "10.9.0.0",
         "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
-        "checksum": "0B2D980DC337EA8AC1E4528698715B9F",
-        "timestamp": "2026-06-12 15:05:00"
+        "checksum": "3441BDFB3E45616D7228C8D67A9715B4",
+        "timestamp": "2026-06-12 15:10:00"
       },
       {
         "version": "1.0.4.47",

@@ -570,7 +570,6 @@ const tgConfigPage = {
             return;
         }
 
-        const btn = page.querySelector("#CreateInviteBtn");
         if (btn) btn.disabled = true;
 
         window.Dashboard.showLoadingMsg();
