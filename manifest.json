@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.47",
+        "changelog": "Neue Funktion: Ablaufdatum für Accounts. Administratoren können nun beim Einladen neuer Benutzer ein Ablaufdatum (Gültigkeit in Tagen) festlegen. Alternativ kann das Ablaufdatum bei existierenden Benutzern über die Funktion 'Benutzer bearbeiten' angepasst werden. Das System kann so konfiguriert werden, dass abgelaufene Konten entweder deaktiviert (Empfohlen) oder komplett gelöscht werden. Zudem erhält der Nutzer 7 Tage vor Ablauf eine konfigurierbare E-Mail-Warnung und eine finale E-Mail, wenn der Account abläuft.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "441E0892952E398E0DFA5863FA9F8E73",
+        "timestamp": "2026-06-12 14:35:00"
+      },
+      {
         "version": "1.0.4.46",
         "changelog": "UI-Update: Die vordefinierten Begründungen für das Deaktivieren und Löschen von Accounts wurden aus der E-Mail-Konfiguration ausgelagert und haben nun einen eigenen, dedizierten Tab 'Definierte Nachrichten' im Plugin-Dashboard erhalten. Dies sorgt für eine bessere Übersichtlichkeit in der Verwaltungsoberfläche.",
         "targetAbi": "10.9.0.0",

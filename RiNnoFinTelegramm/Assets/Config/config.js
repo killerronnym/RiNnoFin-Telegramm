@@ -50,10 +50,13 @@ const tgConfigPage = {
         page.querySelector("#EmailTemplateAccountEnabled").value = config.EmailTemplateAccountEnabled ?? '';
         page.querySelector("#EmailTemplateAccountDisabled").value = config.EmailTemplateAccountDisabled ?? '';
         page.querySelector("#EmailTemplateAccountDeleted").value = config.EmailTemplateAccountDeleted ?? '';
+        page.querySelector("#EmailTemplateExpirationWarning").value = config.EmailTemplateExpirationWarning ?? '';
+        page.querySelector("#EmailTemplateAccountExpired").value = config.EmailTemplateAccountExpired ?? '';
         page.querySelector("#PredefinedDeactivateReasons").value = config.PredefinedDeactivateReasons ?? "Verstoß gegen die Nutzungsbedingungen\nAccount längere Zeit inaktiv\nAuf eigenen Wunsch deaktiviert\nZahlung ausstehend";
         page.querySelector("#PredefinedDeleteReasons").value = config.PredefinedDeleteReasons ?? "Verstoß gegen die Nutzungsbedingungen\nAccount längere Zeit inaktiv\nAuf eigenen Wunsch gelöscht\nSicherheitsbedenken";
         page.querySelector("#EmailTemplateNewsletterMovies").value = config.EmailTemplateNewsletterMovies ?? '';
         page.querySelector("#EmailTemplateNewsletterSeries").value = config.EmailTemplateNewsletterSeries ?? '';
+        page.querySelector("#ExpirationAction").value = config.ExpirationAction ?? 'Disable';
 
         const subjectInvite = page.querySelector("#EmailSubjectInvite");
         if (subjectInvite) subjectInvite.value = config.EmailSubjectInvite ?? '';
@@ -78,6 +81,13 @@ const tgConfigPage = {
         
         const subjectAccountDeleted = page.querySelector("#EmailSubjectAccountDeleted");
         if (subjectAccountDeleted) subjectAccountDeleted.value = config.EmailSubjectAccountDeleted ?? '';
+
+        const subjectExpirationWarning = page.querySelector("#EmailSubjectExpirationWarning");
+        if (subjectExpirationWarning) subjectExpirationWarning.value = config.EmailSubjectExpirationWarning ?? '';
+
+        const subjectAccountExpired = page.querySelector("#EmailSubjectAccountExpired");
+        if (subjectAccountExpired) subjectAccountExpired.value = config.EmailSubjectAccountExpired ?? '';
+
         const subjectNewsletterMovies = page.querySelector("#EmailSubjectNewsletterMovies");
         if (subjectNewsletterMovies) subjectNewsletterMovies.value = config.EmailSubjectNewsletterMovies ?? '';
         const subjectNewsletterSeries = page.querySelector("#EmailSubjectNewsletterSeries");
@@ -517,6 +527,8 @@ const tgConfigPage = {
         const email = page.querySelector("#InviteEmail").value.trim();
         const profileId = page.querySelector("#InviteProfile").value;
         const username = page.querySelector("#InviteUsername").value.trim();
+        const expirationDaysStr = page.querySelector("#InviteExpirationDays").value.trim();
+        const expirationDays = expirationDaysStr ? parseInt(expirationDaysStr, 10) : null;
 
         if (!email) {
             window.Dashboard.alert("Bitte eine E-Mail-Adresse eingeben.");
@@ -527,13 +539,14 @@ const tgConfigPage = {
         window.ApiClient.ajax({
             url: window.ApiClient.getUrl("/api/RiNnoFinConfig/AdminCreateInvite"),
             type: "POST",
-            data: JSON.stringify({ Email: email, ProfileUserId: profileId, Username: username }),
+            data: JSON.stringify({ Email: email, ProfileUserId: profileId, Username: username, ExpirationDays: expirationDays }),
             contentType: "application/json"
         }).then((res) => {
             window.Dashboard.hideLoadingMsg();
             window.Dashboard.alert("Einladung erfolgreich versendet!");
             page.querySelector("#InviteEmail").value = "";
             page.querySelector("#InviteUsername").value = "";
+            page.querySelector("#InviteExpirationDays").value = "";
         }).catch(err => {
             window.Dashboard.hideLoadingMsg();
             window.Dashboard.alert("Fehler: " + (err.responseJSON?.message || err.message || ""));
@@ -598,10 +611,13 @@ const tgConfigPage = {
                 config.EmailTemplateAccountEnabled = (page.querySelector("#EmailTemplateAccountEnabled").value ?? "").trim() || undefined;
                 config.EmailTemplateAccountDisabled = (page.querySelector("#EmailTemplateAccountDisabled").value ?? "").trim() || undefined;
                 config.EmailTemplateAccountDeleted = (page.querySelector("#EmailTemplateAccountDeleted").value ?? "").trim() || undefined;
+                config.EmailTemplateExpirationWarning = (page.querySelector("#EmailTemplateExpirationWarning").value ?? "").trim() || undefined;
+                config.EmailTemplateAccountExpired = (page.querySelector("#EmailTemplateAccountExpired").value ?? "").trim() || undefined;
                 config.PredefinedDeactivateReasons = (page.querySelector("#PredefinedDeactivateReasons").value ?? "").trim() || undefined;
                 config.PredefinedDeleteReasons = (page.querySelector("#PredefinedDeleteReasons").value ?? "").trim() || undefined;
                 config.EmailTemplateNewsletterMovies = (page.querySelector("#EmailTemplateNewsletterMovies").value ?? "").trim() || undefined;
                 config.EmailTemplateNewsletterSeries = (page.querySelector("#EmailTemplateNewsletterSeries").value ?? "").trim() || undefined;
+                config.ExpirationAction = page.querySelector("#ExpirationAction").value || "Disable";
 
                 config.EmailSubjectInvite = (page.querySelector("#EmailSubjectInvite")?.value ?? "").trim() || undefined;
                 config.EmailSubjectWelcome = (page.querySelector("#EmailSubjectWelcome")?.value ?? "").trim() || undefined;
@@ -610,6 +626,8 @@ const tgConfigPage = {
                 config.EmailSubjectAccountEnabled = (page.querySelector("#EmailSubjectAccountEnabled")?.value ?? "").trim() || undefined;
                 config.EmailSubjectAccountDisabled = (page.querySelector("#EmailSubjectAccountDisabled")?.value ?? "").trim() || undefined;
                 config.EmailSubjectAccountDeleted = (page.querySelector("#EmailSubjectAccountDeleted")?.value ?? "").trim() || undefined;
+                config.EmailSubjectExpirationWarning = (page.querySelector("#EmailSubjectExpirationWarning")?.value ?? "").trim() || undefined;
+                config.EmailSubjectAccountExpired = (page.querySelector("#EmailSubjectAccountExpired")?.value ?? "").trim() || undefined;
                 config.EmailSubjectNewsletterMovies = (page.querySelector("#EmailSubjectNewsletterMovies")?.value ?? "").trim() || undefined;
                 config.EmailSubjectNewsletterSeries = (page.querySelector("#EmailSubjectNewsletterSeries")?.value ?? "").trim() || undefined;
                 config.EmailSubjectAnnounce = (page.querySelector("#EmailSubjectAnnounce")?.value ?? "").trim() || undefined;

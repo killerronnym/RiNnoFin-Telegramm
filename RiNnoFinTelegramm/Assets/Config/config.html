@@ -401,6 +401,14 @@
                         <h4>👥 Benutzerverwaltung</h4>
                         <p>Hier verwaltest du alle deine Jellyfin-Benutzer, die mit Telegram verknüpft sind oder eingeladen werden sollen. Du kannst neue Benutzer per E-Mail einladen, Ablaufdaten setzen, Berechtigungen klonen und Massenaktionen wie Aktivieren/Deaktivieren durchführen.</p>
                     </div>
+
+                    <div class="inputContainer" style="margin-bottom: 20px;">
+                        <label class="inputLabel" for="ExpirationAction">Aktion bei Ablauf des Accounts:</label>
+                        <select class="emby-select-withcolor emby-select" id="ExpirationAction" style="max-width: 300px;">
+                            <option value="Disable">Account deaktivieren (Empfohlen)</option>
+                            <option value="Delete">Account endgültig löschen</option>
+                        </select>
+                    </div>
                     
                     <div class="action-btn-bar">
                         <button class="action-btn" id="ActionLoadAll" type="button">Load All</button>
@@ -432,6 +440,10 @@
                                 <select class="emby-select-withcolor emby-select" id="InviteProfile">
                                     <option value="">Lade Profile...</option>
                                 </select>
+                            </div>
+                            <div style="flex: 1; min-width: 200px;">
+                                <label class="inputLabel" for="InviteExpirationDays">Gültigkeit in Tagen (optional):</label>
+                                <input class="sso-text" id="InviteExpirationDays" is="emby-input" type="number" min="1" placeholder="z.B. 30"/>
                             </div>
                         </div>
                         <button class="action-btn btn-green" id="CreateInviteBtn" type="button">Einladung Senden</button>
@@ -759,6 +771,38 @@
                             <button class="action-btn preview-template-btn" data-template-id="EmailTemplateAccountDeleted" type="button">Vorschau</button>
                         </div>
                         <div class="template-preview-container" id="Preview_EmailTemplateAccountDeleted" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 400px; border: 1px solid #ccc;"></div>
+                    </div>
+                </div>
+
+                <div class="inputContainer email-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailSubjectExpirationWarning" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Account läuft bald ab (Warnung)</label>
+                        <input class="sso-text" id="EmailSubjectExpirationWarning" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
+
+                        <label class="inputLabel inputLabelUnfocused" for="EmailTemplateExpirationWarning">Ablauf-Warnung (Variablen: {username}, {daysLeft}, {expirationDate}):</label>
+                        <textarea class="sso-text" id="EmailTemplateExpirationWarning" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+
+                        <div style="margin-top: 10px; display: flex; gap: 10px;">
+                            <button class="action-btn btn-blue test-template-btn" data-template-id="EmailTemplateExpirationWarning" data-subject-id="EmailSubjectExpirationWarning" type="button">Test-Mail senden</button>
+                            <button class="action-btn preview-template-btn" data-template-id="EmailTemplateExpirationWarning" type="button">Vorschau</button>
+                        </div>
+                        <div class="template-preview-container" id="Preview_EmailTemplateExpirationWarning" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 400px; border: 1px solid #ccc;"></div>
+                    </div>
+                </div>
+
+                <div class="inputContainer email-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailSubjectAccountExpired" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Account abgelaufen</label>
+                        <input class="sso-text" id="EmailSubjectAccountExpired" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
+
+                        <label class="inputLabel inputLabelUnfocused" for="EmailTemplateAccountExpired">Account Abgelaufen (Variablen: {username}, {expirationDate}):</label>
+                        <textarea class="sso-text" id="EmailTemplateAccountExpired" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+
+                        <div style="margin-top: 10px; display: flex; gap: 10px;">
+                            <button class="action-btn btn-blue test-template-btn" data-template-id="EmailTemplateAccountExpired" data-subject-id="EmailSubjectAccountExpired" type="button">Test-Mail senden</button>
+                            <button class="action-btn preview-template-btn" data-template-id="EmailTemplateAccountExpired" type="button">Vorschau</button>
+                        </div>
+                        <div class="template-preview-container" id="Preview_EmailTemplateAccountExpired" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 400px; border: 1px solid #ccc;"></div>
                     </div>
                 </div>
 

@@ -52,6 +52,8 @@ public class PluginConfiguration : BasePluginConfiguration
     public string EmailSubjectAccountEnabled { get; set; } = "Dein RiNnoFin Account wurde wieder aktiviert! 🎉";
     public string EmailSubjectAccountDisabled { get; set; } = "Dein RiNnoFin Account wurde deaktiviert ⚠️";
     public string EmailSubjectAccountDeleted { get; set; } = "Dein RiNnoFin Account wurde gelöscht 🗑️";
+    public string EmailSubjectExpirationWarning { get; set; } = "Dein Account läuft bald ab ⏳";
+    public string EmailSubjectAccountExpired { get; set; } = "Account abgelaufen ⚠️";
     public string EmailSubjectNewsletterMovies { get; set; } = "Neue Filme auf RiNnoFin! 🍿";
     public string EmailSubjectNewsletterSeries { get; set; } = "Neue Serien & Episoden! 📺";
     public string EmailSubjectRueckblick { get; set; } = "Dein wöchentlicher RiNnoFin Rückblick 📺";
@@ -153,6 +155,131 @@ public class PluginConfiguration : BasePluginConfiguration
     </div>
 </div>";
 
+    public string EmailTemplateExpirationWarning { get; set; } = @"
+<!DOCTYPE html>
+<html lang=""de"">
+<head>
+<meta charset=""UTF-8"">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+  body { font-family: 'Inter', Arial, sans-serif; background-color: #060b14; padding: 40px 20px; margin: 0; }
+  .wrapper { max-width: 520px; margin: 0 auto; }
+  .card { background: #0d1623; border-radius: 16px; overflow: hidden; border: 1px solid #1e3a5f; }
+  .header { background: linear-gradient(180deg, #070d1a 0%, #0d1623 100%); padding: 36px 36px 32px; text-align: center; }
+  .logo-wrap { margin-bottom: 28px; }
+  .logo-wrap img { height: 48px; width: auto; }
+  .icon-ring {
+    width: 72px; height: 72px; margin: 0 auto 20px; border-radius: 50%;
+    background: linear-gradient(135deg, rgba(234, 179, 8, 0.15), rgba(161, 98, 7, 0.1));
+    border: 1px solid rgba(234, 179, 8, 0.4);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .headline { font-size: 27px; font-weight: 800; color: #f8fafc; line-height: 1.25; margin-bottom: 10px; }
+  .headline span { color: #eab308; }
+  .body { padding: 32px 36px; }
+  .message-box { background: rgba(234, 179, 8, 0.05); border: 1px solid rgba(234, 179, 8, 0.2); border-radius: 12px; padding: 24px; margin-bottom: 32px; }
+  .message-box p { font-size: 14px; color: #cbd5e1; line-height: 1.75; margin-bottom: 15px; }
+  .message-box p:last-child { margin-bottom: 0; }
+  .message-box strong { color: #f8fafc; }
+  .footer-divider { height: 1px; background: #1e293b; margin-bottom: 20px; }
+  .footer { display: flex; align-items: center; justify-content: space-between; }
+  .footer img { height: 20px; width: auto; opacity: 0.4; }
+  .footer-text { font-size: 11px; color: #1e3a5f; text-align: right; }
+</style>
+</head>
+<body>
+<div class=""wrapper"">
+  <div class=""card"">
+    <div class=""header"">
+      <div class=""logo-wrap""><img src=""https://i.imgur.com/ArlRygr.png"" alt=""RiNnoFin Media"" /></div>
+      <div class=""icon-ring"">
+        <svg width=""36"" height=""36"" viewBox=""0 0 24 24"" fill=""none"" stroke=""#eab308"" stroke-width=""2"" stroke-linecap=""round"" stroke-linejoin=""round"">
+          <circle cx=""12"" cy=""12"" r=""10""></circle>
+          <polyline points=""12 6 12 12 16 14""></polyline>
+        </svg>
+      </div>
+      <h1 class=""headline"">Account läuft <span>bald ab</span></h1>
+    </div>
+    <div class=""body"">
+      <div class=""message-box"">
+        <p>Hallo <strong>{username}</strong>,</p>
+        <p>Dein Zugang zu RiNnoFin Media läuft in <strong>{daysLeft} Tag(en)</strong> ab (am {expirationDate}).</p>
+        <p>Bitte wende dich an einen Administrator, falls du weiterhin Zugriff benötigst.</p>
+      </div>
+      <div class=""footer-divider""></div>
+      <div class=""footer"">
+        <img src=""https://i.imgur.com/ArlRygr.png"" alt=""RiNnoFin Media"" />
+        <div class=""footer-text"">© 2026 RiNnoFin Media<br>Alle Rechte vorbehalten.</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>";
+
+    public string EmailTemplateAccountExpired { get; set; } = @"
+<!DOCTYPE html>
+<html lang=""de"">
+<head>
+<meta charset=""UTF-8"">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+  body { font-family: 'Inter', Arial, sans-serif; background-color: #060b14; padding: 40px 20px; margin: 0; }
+  .wrapper { max-width: 520px; margin: 0 auto; }
+  .card { background: #0d1623; border-radius: 16px; overflow: hidden; border: 1px solid #1e3a5f; }
+  .header { background: linear-gradient(180deg, #070d1a 0%, #0d1623 100%); padding: 36px 36px 32px; text-align: center; }
+  .logo-wrap { margin-bottom: 28px; }
+  .logo-wrap img { height: 48px; width: auto; }
+  .icon-ring {
+    width: 72px; height: 72px; margin: 0 auto 20px; border-radius: 50%;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(153, 27, 27, 0.1));
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .headline { font-size: 27px; font-weight: 800; color: #f8fafc; line-height: 1.25; margin-bottom: 10px; }
+  .headline span { color: #ef4444; }
+  .body { padding: 32px 36px; }
+  .message-box { background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 12px; padding: 24px; margin-bottom: 32px; }
+  .message-box p { font-size: 14px; color: #cbd5e1; line-height: 1.75; margin-bottom: 15px; }
+  .message-box p:last-child { margin-bottom: 0; }
+  .message-box strong { color: #f8fafc; }
+  .footer-divider { height: 1px; background: #1e293b; margin-bottom: 20px; }
+  .footer { display: flex; align-items: center; justify-content: space-between; }
+  .footer img { height: 20px; width: auto; opacity: 0.4; }
+  .footer-text { font-size: 11px; color: #1e3a5f; text-align: right; }
+</style>
+</head>
+<body>
+<div class=""wrapper"">
+  <div class=""card"">
+    <div class=""header"">
+      <div class=""logo-wrap""><img src=""https://i.imgur.com/ArlRygr.png"" alt=""RiNnoFin Media"" /></div>
+      <div class=""icon-ring"">
+        <svg width=""36"" height=""36"" viewBox=""0 0 24 24"" fill=""none"" stroke=""#ef4444"" stroke-width=""2"" stroke-linecap=""round"" stroke-linejoin=""round"">
+          <circle cx=""12"" cy=""12"" r=""10""></circle>
+          <line x1=""12"" y1=""8"" x2=""12"" y2=""12""></line>
+          <line x1=""12"" y1=""16"" x2=""12.01"" y2=""16""></line>
+        </svg>
+      </div>
+      <h1 class=""headline"">Account <span>abgelaufen</span></h1>
+    </div>
+    <div class=""body"">
+      <div class=""message-box"">
+        <p>Hallo <strong>{username}</strong>,</p>
+        <p>Dein Zugang zu RiNnoFin Media ist am {expirationDate} abgelaufen und der Account wurde deaktiviert.</p>
+        <p>Bitte kontaktiere einen Administrator, um deinen Zugang zu verlängern.</p>
+      </div>
+      <div class=""footer-divider""></div>
+      <div class=""footer"">
+        <img src=""https://i.imgur.com/ArlRygr.png"" alt=""RiNnoFin Media"" />
+        <div class=""footer-text"">© 2026 RiNnoFin Media<br>Alle Rechte vorbehalten.</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>";
+
     public string EmailTemplateNewsletterMovies { get; set; } = @"
 <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
     <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
@@ -231,6 +358,8 @@ public class PluginConfiguration : BasePluginConfiguration
     public string HtmlTemplateReset { get; set; } = string.Empty;
     public string HtmlTemplateLoginCss { get; set; } = string.Empty;
     public string HtmlTemplateLoginJs { get; set; } = string.Empty;
+
+    public string ExpirationAction { get; set; } = "Disable"; // "Disable" or "Delete"
 }
 
 public class PersistedInvite

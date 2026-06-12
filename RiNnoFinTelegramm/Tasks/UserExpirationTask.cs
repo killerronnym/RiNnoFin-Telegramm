@@ -63,47 +63,43 @@ namespace Jellyfin.Plugin.RiNnoFinTelegramm.Tasks
                         // Ist das Ablaufdatum erreicht?
                         if (DateTime.UtcNow >= link.ExpirationDate.Value)
                         {
-                            _logger.LogInformation($"Account {user.Username} abgelaufen. Wird deaktiviert.");
+                            _logger.LogInformation($"Account {user.Username} abgelaufen. Aktion: {config.ExpirationAction}");
                             
-                            dto.Policy.IsDisabled = true;
-                            await userManager.UpdatePolicyAsync(user.Id, dto.Policy).ConfigureAwait(false);
+                            if (config.ExpirationAction == "Delete")
+                            {
+                                await userManager.DeleteUserAsync(user.Id).ConfigureAwait(false);
+                            }
+                            else
+                            {
+                                dto.Policy.IsDisabled = true;
+                                await userManager.UpdatePolicyAsync(user.Id, dto.Policy).ConfigureAwait(false);
+                            }
 
                             if (!string.IsNullOrEmpty(link.EmailAddress))
                             {
-                                string htmlBody = $@"
-                                <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
-                                    <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
-                                        <h2 style='color: #ef4444;'>Account abgelaufen ⚠️</h2>
-                                        <p>Hallo <strong>{user.Username}</strong>,</p>
-                                        <p>Dein Zugang zu RiNnoFin Media ist am {link.ExpirationDate.Value:dd.MM.yyyy} abgelaufen und der Account wurde deaktiviert.</p>
-                                        <p>Bitte kontaktiere einen Administrator, um deinen Zugang zu verlängern.</p>
-                                    </div>
-                                </div>";
+                                string htmlBody = config.EmailTemplateAccountExpired
+                                    .Replace("{username}", user.Username)
+                                    .Replace("{expirationDate}", link.ExpirationDate.Value.ToString("dd.MM.yyyy"));
                                 
                                 try {
-                                    await emailService.SendEmailAsync(config, link.EmailAddress, "Account abgelaufen - RiNnoFin Media", htmlBody);
+                                    await emailService.SendEmailAsync(config, link.EmailAddress, config.EmailSubjectAccountExpired, htmlBody);
                                 } catch { /* Ignore */ }
                             }
                         }
-                        // Warnung X Tage vorher (z.B. 3 Tage)
-                        else if (!link.ExpirationNotified && (link.ExpirationDate.Value - DateTime.UtcNow).TotalDays <= 3)
+                        // Warnung X Tage vorher (z.B. 7 Tage)
+                        else if (!link.ExpirationNotified && (link.ExpirationDate.Value - DateTime.UtcNow).TotalDays <= 7)
                         {
                             _logger.LogInformation($"Sende Ablaufwarnung an {user.Username}.");
                             if (!string.IsNullOrEmpty(link.EmailAddress))
                             {
                                 int daysLeft = (int)Math.Ceiling((link.ExpirationDate.Value - DateTime.UtcNow).TotalDays);
-                                string htmlBody = $@"
-                                <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
-                                    <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
-                                        <h2 style='color: #eab308;'>Dein Account läuft bald ab ⏳</h2>
-                                        <p>Hallo <strong>{user.Username}</strong>,</p>
-                                        <p>Dein Zugang zu RiNnoFin Media läuft in {daysLeft} Tag(en) (am {link.ExpirationDate.Value:dd.MM.yyyy}) ab.</p>
-                                        <p>Bitte wende dich an einen Administrator, falls du weiterhin Zugriff benötigst.</p>
-                                    </div>
-                                </div>";
+                                string htmlBody = config.EmailTemplateExpirationWarning
+                                    .Replace("{username}", user.Username)
+                                    .Replace("{daysLeft}", daysLeft.ToString())
+                                    .Replace("{expirationDate}", link.ExpirationDate.Value.ToString("dd.MM.yyyy"));
                                 
                                 try {
-                                    await emailService.SendEmailAsync(config, link.EmailAddress, "Account läuft bald ab - RiNnoFin Media", htmlBody);
+                                    await emailService.SendEmailAsync(config, link.EmailAddress, config.EmailSubjectExpirationWarning, htmlBody);
                                     link.ExpirationNotified = true;
                                     RiNnoFinPlugin.Instance.UpdateConfiguration(config);
                                 } catch { /* Ignore */ }
