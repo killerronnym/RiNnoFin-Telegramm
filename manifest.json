@@ -9,12 +9,12 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
-        "version": "1.0.4.49",
-        "changelog": "Hotfix: Behebung eines Javascript-Fehlers, der dazu führte, dass die Benutzerliste nicht geladen wurde (Aufhängen der Tabelle), wenn Accounts mit bestimmten oder leeren Datumsformaten verarbeitet wurden.",
+        "version": "1.0.4.50",
+        "changelog": "Hotfix: Notfall-Logs hinzugefügt, falls das Dashboard komplett hängt. Fehler im Javascript-Frontend zeigen nun saubere Alerts an und lassen die UI nicht mehr einfrieren.",
         "targetAbi": "10.9.0.0",
         "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
-        "checksum": "B0964A7EECBEB3EB8D97B9CA9D856C38",
-        "timestamp": "2026-06-12 14:50:00"
+        "checksum": "D0A826FD59CED3328D82170BD2175D9D",
+        "timestamp": "2026-06-12 15:00:00"
       },
       {
         "version": "1.0.4.47",

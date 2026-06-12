@@ -482,6 +482,33 @@ public class RiNnoFinConfigController : ControllerBase
             return Ok(PluginLog.GetLogs());
         }
 
+        [HttpGet("ViewLogs")]
+        [Produces("text/html")]
+        public async Task<ActionResult> ViewLogs()
+        {
+            if (!await IsUserAdmin().ConfigureAwait(false)) return Content("<html><body>Admin-Rechte erforderlich.</body></html>", "text/html");
+
+            try
+            {
+                var logs = Jellyfin.Plugin.RiNnoFinTelegramm.Classes.PluginLog.GetLogs();
+                var sb = new System.Text.StringBuilder();
+                sb.AppendLine("<!DOCTYPE html><html lang='de'><head><meta charset='UTF-8'><title>RiNnoFin Logs</title>");
+                sb.AppendLine("<style>body { font-family: 'Courier New', Courier, monospace; background: #060b14; color: #10b981; padding: 20px; }</style>");
+                sb.AppendLine("</head><body><h2>RiNnoFin Plugin Notfall-Logs</h2><pre>");
+                foreach (var log in logs)
+                {
+                    sb.AppendLine(System.Net.WebUtility.HtmlEncode(log));
+                }
+                sb.AppendLine("</pre></body></html>");
+                return Content(sb.ToString(), "text/html");
+            }
+            catch (Exception ex)
+            {
+                return Content($"<html><head><meta charset='UTF-8'></head><body>Fehler beim Laden der Logs: {ex.Message}</body></html>", "text/html");
+            }
+        }
+
+
         [HttpGet("GetDefaultHtmlTemplates")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetDefaultHtmlTemplates()

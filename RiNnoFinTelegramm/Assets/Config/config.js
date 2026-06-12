@@ -249,6 +249,7 @@ const tgConfigPage = {
     populateUsers: (page, users) => {
         const tbody = page.querySelector("#UserListTbody");
         tbody.innerHTML = "";
+        try {
         
         const profileSelect = page.querySelector("#InviteProfile");
         if(profileSelect) {
@@ -373,6 +374,10 @@ const tgConfigPage = {
 
             tbody.appendChild(tr);
         });
+        } catch (err) {
+            window.Dashboard.alert("Fehler beim Rendern der Benutzerliste: " + err.message);
+            console.error(err);
+        }
     },
 
     showReasonPrompt: (actionName, predefinedReasonsString) => {
@@ -578,9 +583,14 @@ const tgConfigPage = {
             if (btn) btn.disabled = false;
             window.Dashboard.hideLoadingMsg();
             window.Dashboard.alert("Einladung erfolgreich versendet!");
-            page.querySelector("#InviteEmail").value = "";
-            page.querySelector("#InviteUsername").value = "";
-            page.querySelector("#InviteExpirationDays").value = "";
+            try {
+                page.querySelector("#InviteEmail").value = "";
+                page.querySelector("#InviteUsername").value = "";
+                const expInput = page.querySelector("#InviteExpirationDays");
+                if (expInput) expInput.value = "";
+            } catch (e) {
+                console.error(e);
+            }
         }).catch(err => {
             if (btn) btn.disabled = false;
             window.Dashboard.hideLoadingMsg();
