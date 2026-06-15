@@ -9,11 +9,11 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
-        "version": "1.0.4.54",
+        "version": "1.0.4.55",
         "changelog": "Self-Service Portal implementiert, Syntax-Fehler behoben und Dashboard UI Stabilitt optimiert.",
         "targetAbi": "10.9.0.0",
         "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
-        "checksum": "ef0681dfe3457fa669285d495a4d2f60",
+        "checksum": "88a4e34b08876720e55945b9dc91e5bf",
         "timestamp": "2026-06-15 15:56:25"
       },
       {
@@ -659,4 +659,5 @@
     ]
   }
 ]
+
 
