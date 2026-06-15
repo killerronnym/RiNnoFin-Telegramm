@@ -116,6 +116,11 @@ public class TelegramController : ControllerBase
             html = config.HtmlTemplateReset;
             loadedFromConfig = true;
         }
+        else if (lowerFilename == "portal" && !string.IsNullOrWhiteSpace(config.HtmlTemplatePortal))
+        {
+            html = config.HtmlTemplatePortal;
+            loadedFromConfig = true;
+        }
         else if (lowerFilename == "login.css" && !string.IsNullOrWhiteSpace(config.HtmlTemplateLoginCss))
         {
             html = config.HtmlTemplateLoginCss;

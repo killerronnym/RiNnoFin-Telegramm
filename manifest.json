@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "version": "1.0.4.54",
+        "changelog": "Self-Service Portal implementiert, Syntax-Fehler behoben und Dashboard UI Stabilitt optimiert.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "ef0681dfe3457fa669285d495a4d2f60",
+        "timestamp": "2026-06-15 15:56:25"
+      },
+      {
         "version": "1.0.4.53",
         "changelog": "Hotfix: Behebung eines Caching-Problems im Jellyfin-Webclient. Der Browser hat hartnäckig eine alte, fehlerhafte Version des Dashboards (v1.0.4.39) geladen, wodurch das UI eingefroren blieb. Der neue Cache-Buster erzwingt das Neuladen des korrekten Skripts.",
         "targetAbi": "10.9.0.0",
@@ -651,3 +659,4 @@
     ]
   }
 ]
+

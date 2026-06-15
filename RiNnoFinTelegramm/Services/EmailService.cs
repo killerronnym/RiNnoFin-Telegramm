@@ -28,6 +28,13 @@ public class EmailService
             return;
         }
 
+        var logEntry = new EmailLogEntry
+        {
+            RecipientEmail = toAddress,
+            Subject = subject,
+            Timestamp = DateTime.UtcNow
+        };
+
         try
         {
             using var client = new SmtpClient(config.SmtpServer, config.SmtpPort)
@@ -49,11 +56,34 @@ public class EmailService
             _logger.LogInformation("Sende E-Mail an {0} über {1}:{2}...", toAddress, config.SmtpServer, config.SmtpPort);
             await client.SendMailAsync(message).ConfigureAwait(false);
             _logger.LogInformation("E-Mail erfolgreich an {0} gesendet.", toAddress);
+
+            logEntry.Success = true;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Fehler beim Senden der E-Mail an {0}", toAddress);
+            logEntry.Success = false;
+            logEntry.ErrorMessage = ex.Message;
             throw;
+        }
+        finally
+        {
+            lock (config.EmailLogs)
+            {
+                config.EmailLogs.Insert(0, logEntry);
+                if (config.EmailLogs.Count > 200)
+                {
+                    config.EmailLogs = config.EmailLogs.GetRange(0, 200);
+                }
+            }
+            try
+            {
+                RiNnoFinPlugin.Instance?.UpdateConfiguration(config);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Fehler beim Speichern der E-Mail-Logs in der Konfiguration.");
+            }
         }
     }
 }

@@ -356,6 +356,80 @@ public class RiNnoFinPublicController : ControllerBase
             return BadRequest(new { message = "Interner Fehler beim Zur√ºcksetzen." });
         }
     }
-}
 
+    [HttpGet("PortalConfig")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetPortalConfig()
+    {
+        var authService = HttpContext.RequestServices.GetService(typeof(MediaBrowser.Controller.Net.IAuthService)) as MediaBrowser.Controller.Net.IAuthService;
+        if (authService == null) return StatusCode(500, "AuthService nicht verf¸gbar");
+        
+        var authInfo = await authService.Authenticate(Request).ConfigureAwait(false);
+        if (authInfo == null || authInfo.UserId == Guid.Empty) return Unauthorized(new { message = "Nicht autorisiert" });
+
+        var config = RiNnoFinPlugin.Instance?.Configuration;
+        if (config == null) return NotFound("Konfiguration nicht gefunden");
+
+        var userManager = RiNnoFinPlugin.UserManager;
+        var user = userManager?.GetUserById(authInfo.UserId);
+        if (user == null) return Unauthorized(new { message = "Benutzer nicht gefunden" });
+
+        var userLink = config.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == authInfo.UserId);
+        
+        return Ok(new {
+            EmailAddress = userLink?.EmailAddress ?? "",
+            SubscribeEmailNewsletter = userLink?.SubscribeEmailNewsletter ?? true,
+            SubscribeTelegramNewsletter = userLink?.SubscribeTelegramNewsletter ?? true,
+            TelegramUsername = userLink?.TelegramUsername ?? ""
+        });
+    }
+
+    public class PortalConfigUpdateRequest 
+    {
+        public string EmailAddress { get; set; } = string.Empty;
+        public bool SubscribeEmailNewsletter { get; set; } = true;
+        public bool SubscribeTelegramNewsletter { get; set; } = true;
+    }
+
+    [HttpPost("UpdatePortalConfig")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> UpdatePortalConfig([FromBody] PortalConfigUpdateRequest request)
+    {
+        var authService = HttpContext.RequestServices.GetService(typeof(MediaBrowser.Controller.Net.IAuthService)) as MediaBrowser.Controller.Net.IAuthService;
+        if (authService == null) return StatusCode(500, "AuthService nicht verf¸gbar");
+        
+        var authInfo = await authService.Authenticate(Request).ConfigureAwait(false);
+        if (authInfo == null || authInfo.UserId == Guid.Empty) return Unauthorized(new { message = "Nicht autorisiert" });
+
+        var config = RiNnoFinPlugin.Instance?.Configuration;
+        if (config == null) return NotFound("Konfiguration nicht gefunden");
+
+        var userManager = RiNnoFinPlugin.UserManager;
+        var user = userManager?.GetUserById(authInfo.UserId);
+        if (user == null) return Unauthorized(new { message = "Benutzer nicht gefunden" });
+
+        if (config.TelegramUserLinks == null) config.TelegramUserLinks = new();
+
+        var userLink = config.TelegramUserLinks.FirstOrDefault(l => l.JellyfinUserId == authInfo.UserId);
+        if (userLink == null)
+        {
+            userLink = new Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.TelegramUserLink 
+            {
+                JellyfinUserId = authInfo.UserId,
+                JellyfinUsername = user.Username ?? ""
+            };
+            config.TelegramUserLinks.Add(userLink);
+        }
+
+        userLink.EmailAddress = request.EmailAddress ?? "";
+        userLink.SubscribeEmailNewsletter = request.SubscribeEmailNewsletter;
+        userLink.SubscribeTelegramNewsletter = request.SubscribeTelegramNewsletter;
+        
+        RiNnoFinPlugin.Instance?.SaveConfiguration(config);
+        
+        return Ok(new { message = "Erfolgreich gespeichert" });
+    }
+}
 

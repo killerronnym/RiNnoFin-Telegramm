@@ -56,6 +56,8 @@ public class PluginConfiguration : BasePluginConfiguration
     public string EmailSubjectAccountExpired { get; set; } = "Account abgelaufen ⚠️";
     public string EmailSubjectNewsletterMovies { get; set; } = "Neue Filme auf RiNnoFin! 🍿";
     public string EmailSubjectNewsletterSeries { get; set; } = "Neue Serien & Episoden! 📺";
+    public string EmailSubjectNewsletterCombined { get; set; } = "Neue Filme & Serien auf RiNnoFin! 🍿📺";
+    public string NewsletterInterval { get; set; } = "Wöchentlich"; // Täglich, Wöchentlich, Monatlich
     public string EmailSubjectRueckblick { get; set; } = "Dein wöchentlicher RiNnoFin Rückblick 📺";
     public string EmailSubjectAnnounce { get; set; } = "Wichtige Ankündigung! 📢";
 
@@ -90,9 +92,44 @@ public class PluginConfiguration : BasePluginConfiguration
         </div>
         <p>Du kannst dich ab sofort auf all deinen Geräten einloggen (z.B. im Browser, auf dem Smart-TV oder in der mobilen App).</p>
         <br/>
-        <p style='color: #9ca3af; font-size: 12px; text-align: center;'>Viel Spaß beim Streamen! 🍿 Dein RiNnoFin-Team</p>
+        <p style='color: #9ca3af; font-size: 12px; text-align: center;'>Viel Spaß beim Weiterschauen! Dein RiNnoFin-Team</p>
     </div>
 </div>";
+
+    public string EmailTemplateNewsletterCombined { get; set; } = @"
+<!DOCTYPE html>
+<html lang=""de"">
+<head>
+<meta charset=""UTF-8"">
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #060b14; margin: 0; padding: 40px 20px; color: #f8fafc; }
+  .wrapper { max-width: 650px; margin: 0 auto; background: #0d1623; border-radius: 16px; overflow: hidden; border: 1px solid #1e3a5f; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+  .header { background: linear-gradient(180deg, #0f172a 0%, #0d1623 100%); padding: 40px; text-align: center; border-bottom: 1px solid #1e3a5f; }
+  .header h1 { font-size: 28px; font-weight: 800; color: #38bdf8; margin: 0 0 10px 0; letter-spacing: -0.5px; }
+  .header p { color: #94a3b8; font-size: 16px; margin: 0; }
+  .content { padding: 40px; }
+  .footer { text-align: center; padding: 30px; background: #0a1019; border-top: 1px solid #1e3a5f; color: #64748b; font-size: 12px; }
+  .btn { display: inline-block; background: #0ea5e9; color: #fff !important; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+</style>
+</head>
+<body>
+<div class=""wrapper"">
+  <div class=""header"">
+    <h1>🍿 Dein Media Digest</h1>
+    <p>Hallo <strong>{username}</strong>, hier sind die Neuheiten der Woche!</p>
+  </div>
+  <div class=""content"">
+    {content}
+    <div style=""text-align: center; margin-top: 40px;"">
+      <a href=""{serverUrl}"" class=""btn"">Jetzt Streamen</a>
+    </div>
+  </div>
+  <div class=""footer"">
+    Viel Spaß beim Binge-Watching!<br/>Dein RiNnoFin Media Team
+  </div>
+</div>
+</body>
+</html>";
 
     public string EmailTemplatePasswordReset { get; set; } = @"
 <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
@@ -350,12 +387,14 @@ public class PluginConfiguration : BasePluginConfiguration
 
     public List<PersistedInvite> PersistedInvites { get; set; } = [];
     public List<PersistedResetToken> PersistedResetTokens { get; set; } = [];
+    public List<EmailLogEntry> EmailLogs { get; set; } = [];
 
     // HTML-Vorlagen
     public string HtmlTemplateLogin { get; set; } = string.Empty;
     public string HtmlTemplateInvite { get; set; } = string.Empty;
     public string HtmlTemplateForgot { get; set; } = string.Empty;
     public string HtmlTemplateReset { get; set; } = string.Empty;
+    public string HtmlTemplatePortal { get; set; } = string.Empty;
     public string HtmlTemplateLoginCss { get; set; } = string.Empty;
     public string HtmlTemplateLoginJs { get; set; } = string.Empty;
 
@@ -375,4 +414,14 @@ public class PersistedResetToken
 {
     public string Token { get; set; } = string.Empty;
     public Guid JellyfinUserId { get; set; }
+}
+
+public class EmailLogEntry
+{
+    public string Id { get; set; } = Guid.NewGuid().ToString("N");
+    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    public string RecipientEmail { get; set; } = string.Empty;
+    public string Subject { get; set; } = string.Empty;
+    public bool Success { get; set; } = false;
+    public string? ErrorMessage { get; set; }
 }

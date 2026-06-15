@@ -53,7 +53,8 @@ public static class Constants
         new() { Name = DefaultUserImageExtraFile, EmbeddedResourcePath = "Jellyfin.Plugin.RiNnoFinTelegramm.Assets.Login.RiNnoFinLogo.png" },
         new() { Name = "invite", EmbeddedResourcePath = "Jellyfin.Plugin.RiNnoFinTelegramm.Assets.Invite.invite.html", NeedsReplacement = true },
         new() { Name = "forgot", EmbeddedResourcePath = "Jellyfin.Plugin.RiNnoFinTelegramm.Assets.Recovery.forgot.html", NeedsReplacement = true },
-        new() { Name = "reset", EmbeddedResourcePath = "Jellyfin.Plugin.RiNnoFinTelegramm.Assets.Recovery.reset.html", NeedsReplacement = true }
+        new() { Name = "reset", EmbeddedResourcePath = "Jellyfin.Plugin.RiNnoFinTelegramm.Assets.Recovery.reset.html", NeedsReplacement = true },
+        new() { Name = "portal", EmbeddedResourcePath = "Jellyfin.Plugin.RiNnoFinTelegramm.Assets.Portal.portal.html", NeedsReplacement = true }
     ];
 
     // Unique GUID for RiNnoFin Telegramm so it does not conflict with TeleJelly
@@ -69,3 +70,5 @@ public static class Constants
 
     public static string DefaultBotToken => "12345678:xxxxxxxxxxxxxxx";
 }
+
+

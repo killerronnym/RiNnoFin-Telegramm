@@ -70,6 +70,7 @@
         <div class="rinnofin-menu-item" data-tab="tab-html-templates">🌐 HTML-Vorlagen</div>
         <div class="rinnofin-menu-item" data-tab="tab-predefined-messages">💬 Definierte Nachrichten</div>
         <div class="rinnofin-menu-item" data-tab="tab-messages">✉️ Verlauf & Anfragen</div>
+        <div class="rinnofin-menu-item" data-tab="tab-email-logs">📨 E-Mail-Protokoll</div>
         <div class="rinnofin-menu-item" data-tab="tab-logs">📋 Protokoll (Logs)</div>
     </div>
     
@@ -417,6 +418,7 @@
                         <button class="action-btn" id="ActionSettings" type="button">Benutzer bearbeiten</button>
                         <button class="action-btn" id="ActionRecommendations" type="button" style="display:none;">Empfehlungen aktivieren</button>
                         <button class="action-btn" id="ActionExpiry" type="button" style="display:none;">Ablaufdatum</button>
+                        <button class="action-btn btn-blue" id="AdminResendInvite" type="button">Einladung erneut senden</button>
                         <button class="action-btn btn-yellow" id="AdminDisableUser" type="button">Deaktivieren</button>
                         <button class="action-btn btn-green" id="AdminEnableUser" type="button">Aktivieren</button>
                         <button class="action-btn btn-purple" id="AdminSendPasswordReset" type="button">Sende Passwortrücksetzung</button>
@@ -808,33 +810,17 @@
 
                 <div class="inputContainer email-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
                     <div>
-                        <label class="inputLabel inputLabelUnfocused" for="EmailSubjectNewsletterMovies" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Neue Filme</label>
-                        <input class="sso-text" id="EmailSubjectNewsletterMovies" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
+                        <label class="inputLabel inputLabelUnfocused" for="EmailSubjectNewsletterCombined" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Medien Newsletter (Filme & Serien)</label>
+                        <input class="sso-text" id="EmailSubjectNewsletterCombined" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
 
-                        <label class="inputLabel inputLabelUnfocused" for="EmailTemplateNewsletterMovies">Newsletter Neue Filme (Variablen: {username}, {content}, {serverUrl}):</label>
-                        <textarea class="sso-text" id="EmailTemplateNewsletterMovies" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
-
-                        <div style="margin-top: 10px; display: flex; gap: 10px;">
-                            <button class="action-btn btn-blue test-template-btn" data-template-id="EmailTemplateNewsletterMovies" data-subject-id="EmailSubjectNewsletterMovies" type="button">Test-Mail senden</button>
-                            <button class="action-btn preview-template-btn" data-template-id="EmailTemplateNewsletterMovies" type="button">Vorschau</button>
-                        </div>
-                        <div class="template-preview-container" id="Preview_EmailTemplateNewsletterMovies" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 400px; border: 1px solid #ccc;"></div>
-                    </div>
-                </div>
-
-                <div class="inputContainer email-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
-                    <div>
-                        <label class="inputLabel inputLabelUnfocused" for="EmailSubjectNewsletterSeries" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Neue Serien</label>
-                        <input class="sso-text" id="EmailSubjectNewsletterSeries" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
-
-                        <label class="inputLabel inputLabelUnfocused" for="EmailTemplateNewsletterSeries">Newsletter Neue Serien (Variablen: {username}, {content}, {serverUrl}):</label>
-                        <textarea class="sso-text" id="EmailTemplateNewsletterSeries" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailTemplateNewsletterCombined">Newsletter Medien (Variablen: {username}, {content}, {serverUrl}):</label>
+                        <textarea class="sso-text" id="EmailTemplateNewsletterCombined" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
 
                         <div style="margin-top: 10px; display: flex; gap: 10px;">
-                            <button class="action-btn btn-blue test-template-btn" data-template-id="EmailTemplateNewsletterSeries" data-subject-id="EmailSubjectNewsletterSeries" type="button">Test-Mail senden</button>
-                            <button class="action-btn preview-template-btn" data-template-id="EmailTemplateNewsletterSeries" type="button">Vorschau</button>
+                            <button class="action-btn btn-blue test-template-btn" data-template-id="EmailTemplateNewsletterCombined" data-subject-id="EmailSubjectNewsletterCombined" type="button">Test-Mail senden</button>
+                            <button class="action-btn preview-template-btn" data-template-id="EmailTemplateNewsletterCombined" type="button">Vorschau</button>
                         </div>
-                        <div class="template-preview-container" id="Preview_EmailTemplateNewsletterSeries" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 400px; border: 1px solid #ccc;"></div>
+                        <div class="template-preview-container" id="Preview_EmailTemplateNewsletterCombined" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 400px; border: 1px solid #ccc;"></div>
                     </div>
                 </div>
 
@@ -924,6 +910,17 @@
                     <div class="template-preview-container" id="Preview_HtmlTemplateReset" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 450px; border: 1px solid #ccc;"></div>
                 </div>
 
+                <div class="inputContainer html-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
+                    <label class="inputLabel" for="HtmlTemplatePortal">Self-Service Portal HTML (portal.html):</label>
+                    <textarea class="sso-text" id="HtmlTemplatePortal" rows="12" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+                    <div style="margin-top: 10px; display: flex; gap: 10px;">
+                        <button class="action-btn btn-blue preview-html-btn" data-template-id="HtmlTemplatePortal" type="button">Vorschau</button>
+                        <button class="action-btn btn-red restore-html-btn" data-template-id="HtmlTemplatePortal" data-type="portalHtml" type="button">Standard wiederherstellen</button>
+                    </div>
+                    <div class="template-preview-container" id="Preview_HtmlTemplatePortal" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 450px; border: 1px solid #ccc;"></div>
+                </div>der-radius:4px; background:white; color:black; overflow:auto; max-height: 450px; border: 1px solid #ccc;"></div>
+                </div>
+
                 <button class="raised button-submit block emby-button" id="SaveConfigHtml" is="emby-button" type="button" style="margin-top: 20px;">
                     <span>HTML-Vorlagen speichern</span>
                 </button>
@@ -999,6 +996,37 @@
                     </form>
                 </div>
         </div>
+        <div id="tab-email-logs" class="rinnofin-tab">
+            <fieldset class="verticalSection">
+                <legend><h3>E-Mail-Protokoll</h3></legend>
+                <div class="rinnofin-info-banner">
+                    <h4>📨 E-Mail-Zustellstatus</h4>
+                    <p>Hier siehst du, welche E-Mails verschickt wurden und ob sie erfolgreich beim Nutzer ankamen oder ob es beim SMTP-Server Fehler gab. So kannst du prüfen, ob Einladungen oder Newsletter zugestellt wurden.</p>
+                </div>
+                
+                <div class="action-btn-bar" style="justify-content: flex-end;">
+                    <button class="action-btn btn-blue" id="RefreshEmailLogsBtn" type="button">Aktualisieren</button>
+                    <button class="action-btn btn-red" id="ClearEmailLogsBtn" type="button">Protokoll leeren</button>
+                </div>
+
+                <div class="tableScrollSlider" style="overflow-x: auto;">
+                    <table class="tableDetail" style="width: 100%; text-align: left; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.2);">
+                                <th style="padding: 10px;">Datum / Uhrzeit</th>
+                                <th style="padding: 10px;">Empfänger</th>
+                                <th style="padding: 10px;">Betreff</th>
+                                <th style="padding: 10px;">Status</th>
+                                <th style="padding: 10px;">Fehler (falls vorhanden)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="EmailLogsTbody">
+                            <!-- Dynamic Content -->
+                        </tbody>
+                    </table>
+                </div>
+            </fieldset>
+        </div>
         <div id="tab-logs" class="rinnofin-tab">
             <fieldset class="verticalSection">
                 <legend><h3>Protokoll (Logs)</h3></legend>
@@ -1023,3 +1051,4 @@
 </div>
 </body>
 </html>
+

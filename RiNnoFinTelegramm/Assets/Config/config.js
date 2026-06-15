@@ -17,6 +17,7 @@ const tgConfigPage = {
                 tgConfigPage.loadUsers(page);
                 tgConfigPage.loadRequests(page);
                 tgConfigPage.loadLogs(page);
+                tgConfigPage.loadEmailLogs(page);
             }
         );
     },
@@ -54,8 +55,7 @@ const tgConfigPage = {
         page.querySelector("#EmailTemplateAccountExpired").value = config.EmailTemplateAccountExpired ?? '';
         page.querySelector("#PredefinedDeactivateReasons").value = config.PredefinedDeactivateReasons ?? "Verstoß gegen die Nutzungsbedingungen\nAccount längere Zeit inaktiv\nAuf eigenen Wunsch deaktiviert\nZahlung ausstehend";
         page.querySelector("#PredefinedDeleteReasons").value = config.PredefinedDeleteReasons ?? "Verstoß gegen die Nutzungsbedingungen\nAccount längere Zeit inaktiv\nAuf eigenen Wunsch gelöscht\nSicherheitsbedenken";
-        page.querySelector("#EmailTemplateNewsletterMovies").value = config.EmailTemplateNewsletterMovies ?? '';
-        page.querySelector("#EmailTemplateNewsletterSeries").value = config.EmailTemplateNewsletterSeries ?? '';
+        page.querySelector("#EmailTemplateNewsletterCombined").value = config.EmailTemplateNewsletterCombined ?? '';
         page.querySelector("#ExpirationAction").value = config.ExpirationAction ?? 'Disable';
 
         const subjectInvite = page.querySelector("#EmailSubjectInvite");
@@ -88,10 +88,8 @@ const tgConfigPage = {
         const subjectAccountExpired = page.querySelector("#EmailSubjectAccountExpired");
         if (subjectAccountExpired) subjectAccountExpired.value = config.EmailSubjectAccountExpired ?? '';
 
-        const subjectNewsletterMovies = page.querySelector("#EmailSubjectNewsletterMovies");
-        if (subjectNewsletterMovies) subjectNewsletterMovies.value = config.EmailSubjectNewsletterMovies ?? '';
-        const subjectNewsletterSeries = page.querySelector("#EmailSubjectNewsletterSeries");
-        if (subjectNewsletterSeries) subjectNewsletterSeries.value = config.EmailSubjectNewsletterSeries ?? '';
+        const subjectNewsletterCombined = page.querySelector("#EmailSubjectNewsletterCombined");
+        if (subjectNewsletterCombined) subjectNewsletterCombined.value = config.EmailSubjectNewsletterCombined ?? '';
 
         page.querySelector("#EmailTemplateAnnounce").value = config.EmailTemplateAnnounce ?? '';
 
@@ -99,11 +97,12 @@ const tgConfigPage = {
         page.querySelector("#HtmlTemplateInvite").value = config.HtmlTemplateInvite ?? '';
         page.querySelector("#HtmlTemplateForgot").value = config.HtmlTemplateForgot ?? '';
         page.querySelector("#HtmlTemplateReset").value = config.HtmlTemplateReset ?? '';
+        page.querySelector("#HtmlTemplatePortal").value = config.HtmlTemplatePortal ?? '';
         page.querySelector("#HtmlTemplateLoginCss").value = config.HtmlTemplateLoginCss ?? '';
         page.querySelector("#HtmlTemplateLoginJs").value = config.HtmlTemplateLoginJs ?? '';
 
         // If any HTML template fields are empty, load defaults automatically
-        if (!config.HtmlTemplateLogin || !config.HtmlTemplateInvite || !config.HtmlTemplateForgot || !config.HtmlTemplateReset || !config.HtmlTemplateLoginCss || !config.HtmlTemplateLoginJs) {
+        if (!config.HtmlTemplateLogin || !config.HtmlTemplateInvite || !config.HtmlTemplateForgot || !config.HtmlTemplateReset || !config.HtmlTemplatePortal || !config.HtmlTemplateLoginCss || !config.HtmlTemplateLoginJs) {
             window.ApiClient.ajax({
                 url: window.ApiClient.getUrl("/api/RiNnoFinConfig/GetDefaultHtmlTemplates"),
                 type: "GET",
@@ -113,6 +112,7 @@ const tgConfigPage = {
                 if (!page.querySelector("#HtmlTemplateInvite").value && defaults.inviteHtml) page.querySelector("#HtmlTemplateInvite").value = defaults.inviteHtml;
                 if (!page.querySelector("#HtmlTemplateForgot").value && defaults.forgotHtml) page.querySelector("#HtmlTemplateForgot").value = defaults.forgotHtml;
                 if (!page.querySelector("#HtmlTemplateReset").value && defaults.resetHtml) page.querySelector("#HtmlTemplateReset").value = defaults.resetHtml;
+                if (!page.querySelector("#HtmlTemplatePortal").value && defaults.portalHtml) page.querySelector("#HtmlTemplatePortal").value = defaults.portalHtml;
                 if (!page.querySelector("#HtmlTemplateLoginCss").value && defaults.loginCss) page.querySelector("#HtmlTemplateLoginCss").value = defaults.loginCss;
                 if (!page.querySelector("#HtmlTemplateLoginJs").value && defaults.loginJs) page.querySelector("#HtmlTemplateLoginJs").value = defaults.loginJs;
             }).catch(e => {
@@ -246,6 +246,62 @@ const tgConfigPage = {
         });
     },
 
+    loadEmailLogs: (page) => {
+        window.ApiClient.ajax({
+            url: window.ApiClient.getUrl("/api/RiNnoFinConfig/EmailLogs"),
+            type: "GET",
+            dataType: "json"
+        }).then((logs) => {
+            const tbody = page.querySelector("#EmailLogsTbody");
+            if (!tbody) return;
+            tbody.innerHTML = "";
+            if (!logs || logs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="padding:10px;text-align:center;">Keine E-Mail-Protokolle gefunden.</td></tr>';
+                return;
+            }
+            logs.forEach(log => {
+                const tr = document.createElement("tr");
+                tr.style.borderBottom = "1px solid rgba(255,255,255,0.1)";
+
+                const dateTd = document.createElement("td");
+                dateTd.style.padding = "10px";
+                const d = new Date(log.Timestamp);
+                dateTd.textContent = d.toLocaleString('de-DE');
+
+                const recTd = document.createElement("td");
+                recTd.style.padding = "10px";
+                recTd.textContent = log.RecipientEmail || '-';
+
+                const subTd = document.createElement("td");
+                subTd.style.padding = "10px";
+                subTd.textContent = log.Subject || '-';
+
+                const statusTd = document.createElement("td");
+                statusTd.style.padding = "10px";
+                if (log.Success) {
+                    statusTd.innerHTML = '<span style="color: #10b981; font-weight: bold;">Erfolgreich</span>';
+                } else {
+                    statusTd.innerHTML = '<span style="color: #ef4444; font-weight: bold;">Fehlgeschlagen</span>';
+                }
+
+                const errTd = document.createElement("td");
+                errTd.style.padding = "10px";
+                errTd.style.color = "#ef4444";
+                errTd.textContent = log.ErrorMessage || '';
+
+                tr.appendChild(dateTd);
+                tr.appendChild(recTd);
+                tr.appendChild(subTd);
+                tr.appendChild(statusTd);
+                tr.appendChild(errTd);
+                tbody.appendChild(tr);
+            });
+        }).catch(() => {
+            const tbody = page.querySelector("#EmailLogsTbody");
+            if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="padding:10px;text-align:center;color:#ef4444;">Fehler beim Laden des Protokolls.</td></tr>';
+        });
+    },
+
     populateUsers: (page, users) => {
         const tbody = page.querySelector("#UserListTbody");
         tbody.innerHTML = "";
@@ -266,7 +322,7 @@ const tgConfigPage = {
         }
 
         users.forEach(user => {
-            const uId = user.Id ?? user.id;
+            const uId = user.InviteToken ?? user.inviteToken ?? user.Id ?? user.id;
             const username = user.Username ?? user.username ?? 'Unbekannt';
             const email = user.Email ?? user.email ?? '';
             const telegramUsername = user.TelegramUsername ?? user.telegramUsername ?? '';
@@ -659,8 +715,7 @@ const tgConfigPage = {
                 config.EmailTemplateAccountExpired = (page.querySelector("#EmailTemplateAccountExpired").value ?? "").trim() || undefined;
                 config.PredefinedDeactivateReasons = (page.querySelector("#PredefinedDeactivateReasons").value ?? "").trim() || undefined;
                 config.PredefinedDeleteReasons = (page.querySelector("#PredefinedDeleteReasons").value ?? "").trim() || undefined;
-                config.EmailTemplateNewsletterMovies = (page.querySelector("#EmailTemplateNewsletterMovies").value ?? "").trim() || undefined;
-                config.EmailTemplateNewsletterSeries = (page.querySelector("#EmailTemplateNewsletterSeries").value ?? "").trim() || undefined;
+                config.EmailTemplateNewsletterCombined = (page.querySelector("#EmailTemplateNewsletterCombined").value ?? "").trim() || undefined;
                 config.ExpirationAction = page.querySelector("#ExpirationAction").value || "Disable";
 
                 config.EmailSubjectInvite = (page.querySelector("#EmailSubjectInvite")?.value ?? "").trim() || undefined;
@@ -672,8 +727,7 @@ const tgConfigPage = {
                 config.EmailSubjectAccountDeleted = (page.querySelector("#EmailSubjectAccountDeleted")?.value ?? "").trim() || undefined;
                 config.EmailSubjectExpirationWarning = (page.querySelector("#EmailSubjectExpirationWarning")?.value ?? "").trim() || undefined;
                 config.EmailSubjectAccountExpired = (page.querySelector("#EmailSubjectAccountExpired")?.value ?? "").trim() || undefined;
-                config.EmailSubjectNewsletterMovies = (page.querySelector("#EmailSubjectNewsletterMovies")?.value ?? "").trim() || undefined;
-                config.EmailSubjectNewsletterSeries = (page.querySelector("#EmailSubjectNewsletterSeries")?.value ?? "").trim() || undefined;
+                config.EmailSubjectNewsletterCombined = (page.querySelector("#EmailSubjectNewsletterCombined")?.value ?? "").trim() || undefined;
                 config.EmailSubjectAnnounce = (page.querySelector("#EmailSubjectAnnounce")?.value ?? "").trim() || undefined;
 
                 config.EmailTemplateAnnounce = (page.querySelector("#EmailTemplateAnnounce").value ?? "").trim() || undefined;
@@ -682,6 +736,7 @@ const tgConfigPage = {
                 config.HtmlTemplateInvite = (page.querySelector("#HtmlTemplateInvite").value ?? "").trim();
                 config.HtmlTemplateForgot = (page.querySelector("#HtmlTemplateForgot").value ?? "").trim();
                 config.HtmlTemplateReset = (page.querySelector("#HtmlTemplateReset").value ?? "").trim();
+                config.HtmlTemplatePortal = (page.querySelector("#HtmlTemplatePortal").value ?? "").trim();
                 config.HtmlTemplateLoginCss = (page.querySelector("#HtmlTemplateLoginCss").value ?? "").trim();
                 config.HtmlTemplateLoginJs = (page.querySelector("#HtmlTemplateLoginJs").value ?? "").trim();
 
@@ -1422,6 +1477,11 @@ export default function (view) {
         tgConfigPage.adminActionUsers(view, "AdminSendPasswordReset", "Möchtest du den ausgewählten Benutzern eine E-Mail zum Zurücksetzen des Passworts senden?");
     });
 
+    view.querySelector("#AdminResendInvite")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        tgConfigPage.adminActionUsers(view, "AdminResendInvite", "Möchtest du die Einladung an die ausgewählten Benutzer erneut senden?");
+    });
+
     view.querySelector("#RefreshUsersBtn")?.addEventListener("click", (e) => {
         e.preventDefault();
         tgConfigPage.loadUsers(view);
@@ -1512,6 +1572,25 @@ export default function (view) {
     view.querySelector("#RefreshLogsBtn")?.addEventListener("click", (e) => {
         e.preventDefault();
         tgConfigPage.loadLogs(view);
+    });
+
+    view.querySelector("#RefreshEmailLogsBtn")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        tgConfigPage.loadEmailLogs(view);
+    });
+
+    view.querySelector("#ClearEmailLogsBtn")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        if(!confirm("Möchtest du das gesamte E-Mail-Protokoll wirklich löschen?")) return;
+        window.ApiClient.ajax({
+            url: window.ApiClient.getUrl("/api/RiNnoFinConfig/ClearEmailLogs"),
+            type: "POST"
+        }).then(() => {
+            window.Dashboard.alert("E-Mail-Protokoll gelöscht.");
+            tgConfigPage.loadEmailLogs(view);
+        }).catch((err) => {
+            window.Dashboard.alert("Fehler beim Löschen des Protokolls.");
+        });
     });
 
     const inputElement = view.querySelector("#TgBotToken");
