@@ -9,12 +9,12 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
-        "changelog": "Self-healing UI & Frontend Fix: Inline-Tab-Befehle, ApiClient-Bypasses & Cache-Busting (v1.0.4.63).",
-        "version": "1.0.4.63",
-        "checksum": "65f30c10f5b5a076758056b9364f8273",
-        "timestamp": "2026-09-14 20:21:00",
+        "changelog": "AMD Module Controller Fix for Jellyfin RequireJS Loader (v1.0.4.64).",
+        "version": "1.0.4.64",
+        "checksum": "97690c15db09d2bb179efeef4d0da5f5",
+        "timestamp": "2026-09-14 20:28:00",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.63.zip"
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.64.zip"
       }
     ]
   }

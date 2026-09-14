@@ -1,8 +1,11 @@
-const LinkPrefix = "l:";
+define([], function () {
+    "use strict";
 
-function getApiClient() {
-    return window.ApiClient || (window.ServerConnections && window.ServerConnections.currentApiClient && window.ServerConnections.currentApiClient());
-}
+    const LinkPrefix = "l:";
+
+    function getApiClient() {
+        return window.ApiClient || (window.ServerConnections && window.ServerConnections.currentApiClient && window.ServerConnections.currentApiClient());
+    }
 
 const tgConfigPage = {
     pluginUniqueId: "9e1d84f2-901d-44a6-ba92-7fcf1a5598ba",
@@ -1226,8 +1229,8 @@ const tgTokenHelper = {
     }
 }
 
-export default function rinnofinController(view) {
-    if (!view) view = document.querySelector('#rinnofin-config-page') || document;
+    return function (view, params) {
+        if (!view) view = document.querySelector('#rinnofin-config-page') || document;
 
     tgConfigPage.loadConfiguration(view);
 
@@ -1492,7 +1495,7 @@ export default function rinnofinController(view) {
                     '<div style="font-weight:bold;color:#fbbf24;margin-bottom:4px;">⏰ ' + dateStr + ' Uhr &nbsp;|&nbsp; <span style="color:#94a3b8;font-size:12px;">' + channels + '</span></div>' +
                     '<div style="color:#e2e8f0;font-size:14px;white-space:pre-wrap;max-height:60px;overflow:hidden;">' + b.message.substring(0,150) + (b.message.length>150?'...':'') + '</div>' +
                     '</div>' +
-                    '<button onclick="deleteBroadcast('' + b.id + '')" style="background:rgba(239,68,68,0.2);color:#f87171;border:1px solid rgba(239,68,68,0.3);padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;">🗑 Löschen</button>' +
+                    '<button onclick="deleteBroadcast(\'' + b.id + '\')" style="background:rgba(239,68,68,0.2);color:#f87171;border:1px solid rgba(239,68,68,0.3);padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;">🗑 Löschen</button>' +
                     '</div>';
             }).join('');
         } catch(e) {
@@ -2096,4 +2099,5 @@ Mit Telegram anmelden
     view.querySelector("#ExampleBrandingCode").innerHTML = brandingWidget.replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
 
     window.Dashboard.hideLoadingMsg();
-}
+    };
+});
