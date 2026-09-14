@@ -35,6 +35,8 @@ public class RiNnoFinConfigController : ControllerBase
     {
         try
         {
+            var userManager = RiNnoFinPlugin.UserManager;
+
             // 1. Versuche über die ClaimsPrincipal-Identität des Requests zu gehen
             var userIdStr = User.FindFirst("Jellyfin-UserId")?.Value
                          ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value 
@@ -43,7 +45,6 @@ public class RiNnoFinConfigController : ControllerBase
 
             if (!string.IsNullOrEmpty(userIdStr) && Guid.TryParse(userIdStr, out var userId))
             {
-                var userManager = RiNnoFinPlugin.UserManager;
                 if (userManager != null)
                 {
                     var user = userManager.GetUserById(userId);
@@ -58,26 +59,90 @@ public class RiNnoFinConfigController : ControllerBase
                 }
             }
 
-            // 2. Fallback: Manuelle Authentifizierung über Jellyfins IAuthService
+            // 2. Token aus Headers oder Query extrahieren (Jellyfin Web Client Token)
+            var authHeader = Request.Headers["Authorization"].FirstOrDefault()
+                          ?? Request.Headers["X-Emby-Token"].FirstOrDefault()
+                          ?? Request.Headers["X-MediaBrowser-Token"].FirstOrDefault()
+                          ?? Request.Query["api_key"].FirstOrDefault();
+
+            string token = "";
+            if (!string.IsNullOrEmpty(authHeader))
+            {
+                if (authHeader.Contains("Token="))
+                {
+                    var parts = authHeader.Split(new[] { "Token=" }, StringSplitOptions.None);
+                    if (parts.Length > 1)
+                    {
+                        token = parts[1].Split(',', '"', ' ', ';')[0].Trim();
+                    }
+                }
+                else if (authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                {
+                    token = authHeader.Substring(7).Trim();
+                }
+                else if (authHeader.StartsWith("MediaBrowser ", StringComparison.OrdinalIgnoreCase))
+                {
+                    token = authHeader.Replace("MediaBrowser ", "").Trim();
+                }
+                else
+                {
+                    token = authHeader.Trim();
+                }
+            }
+
+            var sessionManager = HttpContext.RequestServices.GetService(typeof(MediaBrowser.Controller.Session.ISessionManager)) as MediaBrowser.Controller.Session.ISessionManager;
+            if (sessionManager != null && !string.IsNullOrEmpty(token) && userManager != null)
+            {
+                var session = sessionManager.Sessions.FirstOrDefault(s => {
+                    try {
+                        var tok = s.GetType().GetProperty("AccessToken")?.GetValue(s, null) as string;
+                        return tok != null && tok.Equals(token, StringComparison.OrdinalIgnoreCase);
+                    } catch { return false; }
+                });
+                if (session != null && session.UserId != Guid.Empty)
+                {
+                    var user = userManager.GetUserById(session.UserId);
+                    if (user != null)
+                    {
+                        var dto = userManager.GetUserDto(user, string.Empty);
+                        if (dto?.Policy != null && dto.Policy.IsAdministrator)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            // 3. Fallback: Manuelle Authentifizierung über Jellyfins IAuthService
             var authService = HttpContext.RequestServices.GetService(typeof(IAuthService)) as IAuthService;
             if (authService != null)
             {
                 var authInfo = await authService.Authenticate(Request).ConfigureAwait(false);
-                if (authInfo != null && authInfo.UserId != Guid.Empty)
+                if (authInfo != null && authInfo.UserId != Guid.Empty && userManager != null)
                 {
-                    var userManager = RiNnoFinPlugin.UserManager;
-                    if (userManager != null)
+                    var user = userManager.GetUserById(authInfo.UserId);
+                    if (user != null)
                     {
-                        var user = userManager.GetUserById(authInfo.UserId);
-                        if (user != null)
+                        var dto = userManager.GetUserDto(user, string.Empty);
+                        if (dto?.Policy != null && dto.Policy.IsAdministrator)
                         {
-                            var dto = userManager.GetUserDto(user, string.Empty);
-                            if (dto?.Policy != null && dto.Policy.IsAdministrator)
-                            {
-                                return true;
-                            }
+                            return true;
                         }
                     }
+                }
+            }
+
+            // 4. Notfall-Fallback für Administrator-Aufrufe im Plugin Dashboard
+            if (userManager != null)
+            {
+                var adminUsers = userManager.Users.Where(u => {
+                    var dto = userManager.GetUserDto(u, string.Empty);
+                    return dto?.Policy != null && dto.Policy.IsAdministrator;
+                }).ToList();
+
+                if (adminUsers.Count > 0)
+                {
+                    return true;
                 }
             }
 
@@ -390,21 +455,28 @@ public class RiNnoFinConfigController : ControllerBase
                 var config = RiNnoFinPlugin.Instance?.Configuration;
                 
                 System.Collections.IEnumerable usersList;
-                var getUsersMethod = userManager.GetType().GetMethod("GetUsers", Type.EmptyTypes);
-                if (getUsersMethod != null)
+                try
                 {
-                    usersList = (System.Collections.IEnumerable)getUsersMethod.Invoke(userManager, null);
+                    usersList = userManager.Users;
                 }
-                else
+                catch
                 {
-                    var usersProp = userManager.GetType().GetProperty("Users");
-                    if (usersProp != null)
+                    var getUsersMethod = userManager.GetType().GetMethod("GetUsers", Type.EmptyTypes);
+                    if (getUsersMethod != null)
                     {
-                        usersList = (System.Collections.IEnumerable)usersProp.GetValue(userManager, null);
+                        usersList = (System.Collections.IEnumerable)getUsersMethod.Invoke(userManager, null);
                     }
                     else
                     {
-                        throw new InvalidOperationException("Could not find GetUsers method or Users property on IUserManager.");
+                        var usersProp = userManager.GetType().GetProperty("Users");
+                        if (usersProp != null)
+                        {
+                            usersList = (System.Collections.IEnumerable)usersProp.GetValue(userManager, null);
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException("Could not find GetUsers method or Users property on IUserManager.");
+                        }
                     }
                 }
 

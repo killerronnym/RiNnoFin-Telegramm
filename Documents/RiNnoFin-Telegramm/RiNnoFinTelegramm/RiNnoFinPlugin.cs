@@ -71,7 +71,7 @@ public class RiNnoFinPlugin : BasePlugin<PluginConfiguration>, IPlugin, IHasWebP
                 EnableInMainMenu = true,
                 MenuIcon = "send"
             },
-            new PluginPageInfo { Name = "RiNnoFinTelegramm_v10460.js", EmbeddedResourcePath = $"{typeof(RiNnoFinPlugin).Namespace}.Assets.Config.config.js" },
+            new PluginPageInfo { Name = "RiNnoFinTelegramm_v10461.js", EmbeddedResourcePath = $"{typeof(RiNnoFinPlugin).Namespace}.Assets.Config.config.js" },
             new PluginPageInfo { Name = "RiNnoFinTelegramm.css", EmbeddedResourcePath = $"{typeof(RiNnoFinPlugin).Namespace}.Assets.Config.config.css" }
         ];
     }

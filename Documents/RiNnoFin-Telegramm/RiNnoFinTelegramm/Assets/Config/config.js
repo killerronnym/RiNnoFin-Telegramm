@@ -213,7 +213,10 @@ const tgConfigPage = {
         window.ApiClient.ajax({
             url: url,
             type: "GET",
-            dataType: "json"
+            dataType: "json",
+            headers: {
+                'Authorization': window.ApiClient.getAuthorizationHeader()
+            }
         })
         .then((users) => {
             tgConfigPage.populateUsers(page, users);
@@ -226,8 +229,8 @@ const tgConfigPage = {
             }
             const tbody = page.querySelector("#UserListTbody");
             if(tbody) {
-                const msg = err.message || JSON.stringify(err) || "Unbekannter Fehler";
-                tbody.innerHTML = `<tr><td colspan="6" style="padding:10px;text-align:center;color:#ef4444;word-break:break-all;">Fehler beim Laden: ${msg}</td></tr>`;
+                const msg = err?.responseJSON?.message || err?.responseText || err?.message || "Unbekannter Fehler";
+                tbody.innerHTML = `<tr><td colspan="8" style="padding:10px;text-align:center;color:#ef4444;word-break:break-all;">Fehler beim Laden der Benutzer: ${msg}</td></tr>`;
             }
         });
     },

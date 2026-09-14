@@ -8,6 +8,14 @@
     "imageUrl":  "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions":  [
                      {
+                         "changelog":  "Benutzerliste Fix: Authentifizierung & Admin-Check für GetUsers API gehärtet, Token-Header Übergabe verbessert (v1.0.4.61).",
+                         "version":  "1.0.4.61",
+                         "checksum":  "d3aae99d0679add3112b279e7fc62bde",
+                         "timestamp":  "2026-09-14 16:38:00",
+                         "targetAbi":  "10.9.0.0",
+                         "sourceUrl":  "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.61.zip"
+                     },
+                     {
                          "changelog":  "UI Fix & Mobil-Optimierung: Eingabefelder und Tippen repariert, Responsive Design für Handys und Tablets verbessert, Cache-Busting für JS Controller (v1.0.4.60).",
                          "version":  "1.0.4.60",
                          "checksum":  "c643d2fb519806d689ed9813f67064fc",
