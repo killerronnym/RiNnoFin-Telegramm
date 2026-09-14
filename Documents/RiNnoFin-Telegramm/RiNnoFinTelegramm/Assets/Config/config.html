@@ -6,7 +6,7 @@
 </head>
 <body>
 <div class="page type-interior pluginConfigurationPage rinnofin-page"
-     data-controller="__plugin/RiNnoFinTelegramm_v10462.js"
+     data-controller="__plugin/RiNnoFinTelegramm_v10463.js"
      data-require="emby-input,emby-button,emby-select,emby-checkbox,listViewStyle,paper-icon-button"
      data-role="page"
      id="rinnofin-config-page">
@@ -15,7 +15,7 @@
             <!-- Header Section -->
             <div class="sectionTitleContainer flex align-items-center" style="flex-wrap: wrap; gap: 10px;">
                 <h2 class="sectionTitle" style="margin: 0;">RiNnoFin Telegramm</h2>
-                <h3 style="margin: 0; opacity: 0.8; font-size: 1.1em;">Version: <b id="RiNnoFinVersion">1.0.4.62</b></h3>
+                <h3 style="margin: 0; opacity: 0.8; font-size: 1.1em;">Version: <b id="RiNnoFinVersion">1.0.4.63</b></h3>
             </div>
 
             
@@ -1232,5 +1232,39 @@
             </fieldset>
         </div>
         <!-- ========== ENDE BROADCAST TAB ========== -->
+
+<script>
+(function() {
+    function initInlineTabs() {
+        const root = document.querySelector('#rinnofin-config-page') || document;
+        const menuItems = root.querySelectorAll('.rinnofin-menu-item');
+        menuItems.forEach(function(item) {
+            if (item.getAttribute('data-rinnofin-inline') === 'true') return;
+            item.setAttribute('data-rinnofin-inline', 'true');
+            item.addEventListener('click', function(e) {
+                const tabId = item.getAttribute('data-tab');
+                if (!tabId) return;
+                root.querySelectorAll('.rinnofin-menu-item').forEach(function(el) { el.classList.remove('active'); });
+                root.querySelectorAll('.rinnofin-tab').forEach(function(el) { el.classList.remove('active'); });
+                item.classList.add('active');
+                const target = root.querySelector('#' + tabId);
+                if (target) {
+                    target.classList.add('active');
+                    target.style.display = 'block';
+                }
+            });
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initInlineTabs);
+    } else {
+        initInlineTabs();
+    }
+    setTimeout(initInlineTabs, 200);
+    setTimeout(initInlineTabs, 800);
+    setTimeout(initInlineTabs, 2000);
+})();
+</script>
 
 

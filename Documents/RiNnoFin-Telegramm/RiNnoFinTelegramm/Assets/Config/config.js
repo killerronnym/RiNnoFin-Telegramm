@@ -1,5 +1,9 @@
 const LinkPrefix = "l:";
 
+function getApiClient() {
+    return window.ApiClient || (window.ServerConnections && window.ServerConnections.currentApiClient && window.ServerConnections.currentApiClient());
+}
+
 const tgConfigPage = {
     pluginUniqueId: "9e1d84f2-901d-44a6-ba92-7fcf1a5598ba",
 
@@ -7,19 +11,21 @@ const tgConfigPage = {
     currentGroup: null,
 
     loadConfiguration: (page) => {
-        window.ApiClient.getPluginConfiguration(tgConfigPage.pluginUniqueId).then(
+        const apiClient = getApiClient();
+        if (!apiClient) return;
+        apiClient.getPluginConfiguration(tgConfigPage.pluginUniqueId).then(
             (config) => {
                 tgConfigPage.config = config;
                 tgConfigPage.populateConfiguration(page, config);
                 tgConfigPage.populateGroups(page, config);
-                
-                // Preload lists so all tabs are populated immediately
-                tgConfigPage.loadUsers(page);
-                tgConfigPage.loadRequests(page);
-                tgConfigPage.loadLogs(page);
-                tgConfigPage.loadEmailLogs(page);
             }
-        );
+        ).catch(err => console.error("getPluginConfiguration error:", err))
+        .finally(() => {
+            tgConfigPage.loadUsers(page);
+            tgConfigPage.loadRequests(page);
+            tgConfigPage.loadLogs(page);
+            tgConfigPage.loadEmailLogs(page);
+        });
     },
 
     populateConfiguration: (page, config) => {
@@ -208,31 +214,52 @@ const tgConfigPage = {
     },
 
     loadUsers: (page) => {
-        const url = window.ApiClient.getUrl("/api/RiNnoFinConfig/GetUsers");
+        const apiClient = getApiClient();
+        const url = (apiClient && apiClient.getUrl) 
+            ? apiClient.getUrl("/api/RiNnoFinConfig/GetUsers")
+            : "/api/RiNnoFinConfig/GetUsers";
         
-        window.ApiClient.ajax({
-            url: url,
-            type: "GET",
-            dataType: "json",
-            headers: {
-                'Authorization': window.ApiClient.getAuthorizationHeader()
-            }
-        })
-        .then((users) => {
-            tgConfigPage.populateUsers(page, users);
-        })
-        .catch((err) => {
-            console.error("RiNnoFin GetUsers Error:", err);
-            const profileSelect = page.querySelector("#InviteProfile");
-            if(profileSelect) {
-                profileSelect.innerHTML = '<option value="">Fehler beim Laden der Profile</option>';
-            }
-            const tbody = page.querySelector("#UserListTbody");
-            if(tbody) {
-                const msg = err?.responseJSON?.message || err?.responseText || err?.message || "Unbekannter Fehler";
-                tbody.innerHTML = `<tr><td colspan="8" style="padding:10px;text-align:center;color:#ef4444;word-break:break-all;">Fehler beim Laden der Benutzer: ${msg}</td></tr>`;
-            }
-        });
+        const headers = {};
+        if (apiClient) {
+            try {
+                if (typeof apiClient.getAuthorizationHeader === 'function') {
+                    headers['Authorization'] = apiClient.getAuthorizationHeader();
+                } else if (apiClient._authHeader) {
+                    headers['Authorization'] = apiClient._authHeader;
+                }
+            } catch(e) {}
+        }
+        
+        const doFetchFallback = () => {
+            fetch(url, { headers: { 'Accept': 'application/json' } })
+                .then(r => r.json())
+                .then(users => {
+                    if (Array.isArray(users)) tgConfigPage.populateUsers(page, users);
+                })
+                .catch(e => console.error("Fetch fallback error:", e));
+        };
+
+        if (apiClient && apiClient.ajax) {
+            apiClient.ajax({
+                url: url,
+                type: "GET",
+                dataType: "json",
+                headers: headers
+            })
+            .then((users) => {
+                if (Array.isArray(users)) {
+                    tgConfigPage.populateUsers(page, users);
+                } else {
+                    doFetchFallback();
+                }
+            })
+            .catch((err) => {
+                console.error("RiNnoFin GetUsers Error:", err);
+                doFetchFallback();
+            });
+        } else {
+            doFetchFallback();
+        }
     },
 
     loadLogs: (page) => {
@@ -1199,7 +1226,9 @@ const tgTokenHelper = {
     }
 }
 
-export default function (view) {
+export default function rinnofinController(view) {
+    if (!view) view = document.querySelector('#rinnofin-config-page') || document;
+
     tgConfigPage.loadConfiguration(view);
 
     view.addEventListener('viewshow', function (e) {
@@ -1209,12 +1238,17 @@ export default function (view) {
     const tabItems = view.querySelectorAll('.rinnofin-menu-item');
     tabItems.forEach(item => {
         item.addEventListener('click', (e) => {
+            e.preventDefault();
             const tabId = e.currentTarget.getAttribute('data-tab');
+            if (!tabId) return;
             view.querySelectorAll('.rinnofin-menu-item').forEach(el => el.classList.remove('active'));
             view.querySelectorAll('.rinnofin-tab').forEach(el => el.classList.remove('active'));
             e.currentTarget.classList.add('active');
             const targetTab = view.querySelector('#' + tabId);
-            if(targetTab) targetTab.classList.add('active');
+            if (targetTab) {
+                targetTab.classList.add('active');
+                targetTab.style.display = 'block';
+            }
         });
     });
 

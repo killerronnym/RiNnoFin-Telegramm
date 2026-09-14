@@ -9,12 +9,12 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
-        "changelog": "Kompatibilitäts-Fix für Jellyfin 12.0: Reflection-based Dynamic Dispatching für User-Entitäten, Plugin-Initialisierung vereinfacht, Scheduled Tasks DI-Fallbacks implementiert (v1.0.4.62).",
-        "version": "1.0.4.62",
-        "checksum": "011c28953df5bc6168b1d9eb165bcb6f",
-        "timestamp": "2026-09-14 20:12:00",
+        "changelog": "Self-healing UI & Frontend Fix: Inline-Tab-Befehle, ApiClient-Bypasses & Cache-Busting (v1.0.4.63).",
+        "version": "1.0.4.63",
+        "checksum": "65f30c10f5b5a076758056b9364f8273",
+        "timestamp": "2026-09-14 20:21:00",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.62.zip"
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.63.zip"
       }
     ]
   }
