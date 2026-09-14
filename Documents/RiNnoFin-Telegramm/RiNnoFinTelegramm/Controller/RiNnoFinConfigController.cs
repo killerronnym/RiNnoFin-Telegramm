@@ -752,11 +752,26 @@ public class RiNnoFinConfigController : ControllerBase
                         if (request.ViaTelegram && userLink.TelegramUserId != 0 && botWrapper?.Client != null)
                         {
                             try {
-                                await global::Telegram.Bot.TelegramBotClientExtensions.SendMessage(
-                                    botWrapper.Client,
-                                    chatId: userLink.TelegramUserId,
-                                    text: personalMessage,
-                                    parseMode: global::Telegram.Bot.Types.Enums.ParseMode.Markdown);
+                                if (!string.IsNullOrEmpty(request.ImageBase64))
+                                {
+                                    byte[] imageBytes = Convert.FromBase64String(request.ImageBase64.Contains(",") ? request.ImageBase64.Split(',').Last() : request.ImageBase64);
+                                    using var stream = new System.IO.MemoryStream(imageBytes);
+                                    await global::Telegram.Bot.TelegramBotClientExtensions.SendPhoto(
+                                        botWrapper.Client,
+                                        chatId: userLink.TelegramUserId,
+                                        photo: global::Telegram.Bot.Types.InputFile.FromStream(stream, "image.jpg"),
+                                        caption: personalMessage,
+                                        parseMode: global::Telegram.Bot.Types.Enums.ParseMode.Markdown,
+                                        hasSpoiler: request.IsSpoiler);
+                                }
+                                else
+                                {
+                                    await global::Telegram.Bot.TelegramBotClientExtensions.SendMessage(
+                                        botWrapper.Client,
+                                        chatId: userLink.TelegramUserId,
+                                        text: personalMessage,
+                                        parseMode: global::Telegram.Bot.Types.Enums.ParseMode.Markdown);
+                                }
                                 sentToUser = true;
                             } catch { /* Ignore */ }
                         }
@@ -785,11 +800,26 @@ public class RiNnoFinConfigController : ControllerBase
 
             try
             {
-                await botWrapper.Client.SendMessage(
-                    chatId: group.TelegramGroupChat.TelegramChatId,
-                    text: request.Message,
-                    parseMode: global::Telegram.Bot.Types.Enums.ParseMode.Markdown,
-                    messageThreadId: group.TelegramGroupChat.ContentTopicId);
+                if (!string.IsNullOrEmpty(request.ImageBase64))
+                {
+                    byte[] imageBytes = Convert.FromBase64String(request.ImageBase64.Contains(",") ? request.ImageBase64.Split(',').Last() : request.ImageBase64);
+                    using var stream = new System.IO.MemoryStream(imageBytes);
+                    await botWrapper.Client.SendPhoto(
+                        chatId: group.TelegramGroupChat.TelegramChatId,
+                        photo: global::Telegram.Bot.Types.InputFile.FromStream(stream, "image.jpg"),
+                        caption: request.Message,
+                        parseMode: global::Telegram.Bot.Types.Enums.ParseMode.Markdown,
+                        messageThreadId: group.TelegramGroupChat.ContentTopicId,
+                        hasSpoiler: request.IsSpoiler);
+                }
+                else
+                {
+                    await botWrapper.Client.SendMessage(
+                        chatId: group.TelegramGroupChat.TelegramChatId,
+                        text: request.Message,
+                        parseMode: global::Telegram.Bot.Types.Enums.ParseMode.Markdown,
+                        messageThreadId: group.TelegramGroupChat.ContentTopicId);
+                }
                 return Ok(new { message = "Ankündigung erfolgreich an Gruppe gesendet." });
             }
             catch (Exception ex)
@@ -1115,11 +1145,15 @@ public class SendAnnouncementRequest
     public string Message { get; set; } = string.Empty;
     public bool ViaEmail { get; set; } = true;
     public bool ViaTelegram { get; set; } = true;
+    public string ImageBase64 { get; set; } = string.Empty;
+    public bool IsSpoiler { get; set; } = false;
 }
 
 public class SendGroupAnnouncementRequest
 {
     public string Message { get; set; } = string.Empty;
+    public string ImageBase64 { get; set; } = string.Empty;
+    public bool IsSpoiler { get; set; } = false;
 }
 
 public class UpdateUserLinkRequest

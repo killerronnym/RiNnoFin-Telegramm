@@ -1294,7 +1294,7 @@ export default function rinnofinController(view, params) {
         if(panel) panel.style.display = 'none';
     });
 
-    view.querySelector('#SendAnnounceBtn')?.addEventListener('click', (e) => {
+    view.querySelector('#SendAnnounceBtn')?.addEventListener('click', async (e) => {
         e.preventDefault();
         const userIds = tgConfigPage.getSelectedUserIds(view);
         if (userIds.length === 0) {
@@ -1322,6 +1322,25 @@ export default function rinnofinController(view, params) {
             return;
         }
 
+        const imageInput = view.querySelector('#AnnounceImage');
+        const isSpoiler = view.querySelector('#AnnounceIsSpoiler').checked;
+        let imageBase64 = '';
+
+        if (imageInput && imageInput.files && imageInput.files[0]) {
+            const getBase64 = (file) => new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+            try {
+                imageBase64 = await getBase64(imageInput.files[0]);
+            } catch (err) {
+                window.Dashboard.alert('Fehler beim Lesen des Bildes.');
+                return;
+            }
+        }
+
         window.Dashboard.showLoadingMsg();
         window.ApiClient.ajax({
             url: window.ApiClient.getUrl('/api/RiNnoFinConfig/SendAnnouncement'),
@@ -1331,7 +1350,9 @@ export default function rinnofinController(view, params) {
                 Subject: subject, 
                 Message: message,
                 ViaEmail: viaEmail,
-                ViaTelegram: viaTelegram
+                ViaTelegram: viaTelegram,
+                ImageBase64: imageBase64,
+                IsSpoiler: isSpoiler
             }),
             contentType: 'application/json'
         }).then((res) => {
@@ -1340,6 +1361,7 @@ export default function rinnofinController(view, params) {
             view.querySelector('#AnnouncePanel').style.display = 'none';
             view.querySelector('#AnnounceSubject').value = '';
             view.querySelector('#AnnounceMessage').value = '';
+            if (imageInput) imageInput.value = '';
         }).catch(err => {
             window.Dashboard.hideLoadingMsg();
             window.Dashboard.alert('Fehler: ' + (err.responseJSON?.message || err.message || ''));
@@ -1619,6 +1641,24 @@ view.querySelector("#SaveConfigEmail")?.addEventListener("click", async (e) => {
             return;
         }
 
+        const imageInput = view.querySelector('#GroupAnnounceImage');
+        const isSpoiler = view.querySelector('#GroupAnnounceIsSpoiler').checked;
+        let imageBase64 = '';
+        if (imageInput && imageInput.files && imageInput.files[0]) {
+            const getBase64 = (file) => new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+            try {
+                imageBase64 = await getBase64(imageInput.files[0]);
+            } catch (err) {
+                window.Dashboard.alert('Fehler beim Lesen des Bildes.');
+                return;
+            }
+        }
+
         view.querySelector("#SendGroupAnnounceBtn").disabled = true;
 
         try {
@@ -1626,11 +1666,17 @@ view.querySelector("#SaveConfigEmail")?.addEventListener("click", async (e) => {
             window.ApiClient.ajax({
                 url: url,
                 type: 'POST',
-                data: JSON.stringify({ Message: message }),
+                data: JSON.stringify({ 
+                    Message: message,
+                    ImageBase64: imageBase64,
+                    IsSpoiler: isSpoiler
+                }),
                 contentType: 'application/json'
             }).then(() => {
                 window.Dashboard.alert('Gruppen-Ankündigung erfolgreich gesendet.');
                 view.querySelector("#GroupAnnouncePanel").style.display = "none";
+                view.querySelector("#GroupAnnounceMessage").value = "";
+                if (imageInput) imageInput.value = '';
             }).catch(err => {
                 const msg = err?.responseJSON?.message || err?.responseText || err?.message || "Unbekannter Fehler";
                 window.Dashboard.alert('Fehler: ' + msg);

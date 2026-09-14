@@ -15,7 +15,7 @@
             <!-- Header Section -->
             <div class="sectionTitleContainer flex align-items-center" style="flex-wrap: wrap; gap: 10px;">
                 <h2 class="sectionTitle" style="margin: 0;">RiNnoFin Telegramm</h2>
-                <h3 style="margin: 0; opacity: 0.8; font-size: 1.1em;">Version: <b id="RiNnoFinVersion">1.0.4.71</b></h3>
+                <h3 style="margin: 0; opacity: 0.8; font-size: 1.1em;">Version: <b id="RiNnoFinVersion">1.0.4.72</b></h3>
             </div>
 
             
@@ -493,6 +493,16 @@
                                         <label class="inputLabel" for="GroupAnnounceMessage">Nachricht (Markdown):</label>
                                         <textarea id="GroupAnnounceMessage" class="emby-input" rows="5" style="width: 100%; border-radius: 6px; padding: 10px; background: rgba(0,0,0,0.2); color: #fff;" placeholder="Hey Leute, ..."></textarea>
                                     </div>
+                                    <div style="margin-bottom: 10px;">
+                                        <label class="inputLabel" for="GroupAnnounceImage">Optionales Bild anhängen:</label>
+                                        <input type="file" id="GroupAnnounceImage" accept="image/*" class="emby-input" style="padding: 10px;" />
+                                    </div>
+                                    <div style="margin-bottom: 15px;">
+                                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                            <input type="checkbox" id="GroupAnnounceIsSpoiler" style="width: 16px; height: 16px; accent-color: #3b82f6;" />
+                                            <span>Bild als Spoiler senden (verschwommen)</span>
+                                        </label>
+                                    </div>
                                     
                                     <button class="action-btn btn-blue" id="SendGroupAnnounceBtn" type="button">Nachricht Senden</button>
                                     <button class="action-btn" id="CancelGroupAnnounceBtn" type="button">Abbrechen</button>
@@ -637,6 +647,16 @@
                         <div style="margin-bottom: 10px;">
                             <label class="inputLabel" for="AnnounceMessage">Nachricht (HTML für E-Mail, Markdown für Telegram):</label>
                             <textarea id="AnnounceMessage" class="emby-input" rows="5" style="width: 100%; border-radius: 6px; padding: 10px; background: rgba(0,0,0,0.2); color: #fff;" placeholder="Hallo {username}, ..."></textarea>
+                        </div>
+                        <div style="margin-bottom: 10px;">
+                            <label class="inputLabel" for="AnnounceImage">Optionales Bild anhängen:</label>
+                            <input type="file" id="AnnounceImage" accept="image/*" class="emby-input" style="padding: 10px;" />
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="AnnounceIsSpoiler" style="width: 16px; height: 16px; accent-color: #3b82f6;" />
+                                <span>Bild als Spoiler senden (verschwommen)</span>
+                            </label>
                         </div>
                         
                         <button class="action-btn btn-blue" id="SendAnnounceBtn" type="button">Nachricht Senden</button>
