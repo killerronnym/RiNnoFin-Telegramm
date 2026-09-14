@@ -9,12 +9,12 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
-        "changelog": "AMD Module Controller Fix for Jellyfin RequireJS Loader (v1.0.4.64).",
-        "version": "1.0.4.64",
-        "checksum": "97690c15db09d2bb179efeef4d0da5f5",
-        "timestamp": "2026-09-14 20:28:00",
+        "changelog": "UMD Universal Module Controller Fix for Jellyfin Web Client (v1.0.4.65).",
+        "version": "1.0.4.65",
+        "checksum": "0ccdca726590c2f9df58dc56502d3144",
+        "timestamp": "2026-09-14 20:31:00",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.64.zip"
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.65.zip"
       }
     ]
   }

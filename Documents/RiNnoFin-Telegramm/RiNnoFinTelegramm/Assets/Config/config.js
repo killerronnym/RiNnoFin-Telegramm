@@ -1,4 +1,12 @@
-define([], function () {
+(function (global, factory) {
+    if (typeof define === 'function' && define.amd) {
+        define([], factory);
+    } else if (typeof module === 'object' && module.exports) {
+        module.exports = factory();
+    } else {
+        global.RiNnoFinController = factory();
+    }
+}(typeof self !== 'undefined' ? self : this, function () {
     "use strict";
 
     const LinkPrefix = "l:";
@@ -1229,7 +1237,7 @@ const tgTokenHelper = {
     }
 }
 
-    return function (view, params) {
+    return function rinnofinController(view, params) {
         if (!view) view = document.querySelector('#rinnofin-config-page') || document;
 
     tgConfigPage.loadConfiguration(view);
@@ -2100,4 +2108,4 @@ Mit Telegram anmelden
 
     window.Dashboard.hideLoadingMsg();
     };
-});
+}));
