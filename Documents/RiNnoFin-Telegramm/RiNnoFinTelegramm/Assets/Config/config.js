@@ -1431,59 +1431,7 @@ export default function rinnofinController(view, params) {
 
 
 
-    view.querySelector('#ActionAnnounce')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        const userIds = tgConfigPage.getSelectedUserIds(view);
-        if (userIds.length === 0) {
-            window.Dashboard.alert('Bitte wähle mindestens einen Benutzer für die Ankündigung aus.');
-            return;
-        }
-        
-        const panel = view.querySelector('#AnnouncePanel');
-        if(panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-    });
 
-    view.querySelector('#CancelAnnounceBtn')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        const panel = view.querySelector('#AnnouncePanel');
-        if(panel) panel.style.display = 'none';
-    });
-
-    
-            try {
-                imageBase64 = await getBase64(imageInput.files[0]);
-            } catch (err) {
-                window.Dashboard.alert('Fehler beim Lesen des Bildes.');
-                return;
-            }
-        }
-
-        window.Dashboard.showLoadingMsg();
-        window.ApiClient.ajax({
-            url: window.ApiClient.getUrl('/api/RiNnoFinConfig/SendAnnouncement'),
-            type: 'POST',
-            data: JSON.stringify({ 
-                UserIds: userIds, 
-                Subject: subject, 
-                Message: message,
-                ViaEmail: viaEmail,
-                ViaTelegram: viaTelegram,
-                ImageBase64: imageBase64,
-                IsSpoiler: isSpoiler
-            }),
-            contentType: 'application/json'
-        }).then((res) => {
-            window.Dashboard.hideLoadingMsg();
-            window.Dashboard.alert(res.message || 'Ankündigung erfolgreich gesendet!');
-            view.querySelector('#AnnouncePanel').style.display = 'none';
-            view.querySelector('#AnnounceSubject').value = '';
-            view.querySelector('#AnnounceMessage').value = '';
-            if (imageInput) imageInput.value = '';
-        }).catch(err => {
-            window.Dashboard.hideLoadingMsg();
-            window.Dashboard.alert('Fehler: ' + (err.responseJSON?.message || err.message || ''));
-        });
-    });
 
     view.querySelector("#EnableQuiz")?.addEventListener("change", () => {
         tgConfigPage.updateGroupData(view);
@@ -1733,58 +1681,7 @@ view.querySelector("#SaveConfigEmail")?.addEventListener("click", async (e) => {
         tgConfigPage.deleteGroup(view);
     });
 
-    view.querySelector("#TriggerGroupAnnounce")?.addEventListener("click", (e) => {
-        e.preventDefault();
-        if (!tgConfigPage.currentGroup) {
-            window.Dashboard.alert('Bitte wähle zuerst eine Gruppe aus.');
-            return;
-        }
-        view.querySelector("#GroupAnnounceMessage").value = "";
-        view.querySelector("#GroupAnnouncePanel").style.display = "block";
-    });
 
-    view.querySelector("#CancelGroupAnnounceBtn")?.addEventListener("click", (e) => {
-        e.preventDefault();
-        view.querySelector("#GroupAnnouncePanel").style.display = "none";
-    });
-
-    
-            try {
-                imageBase64 = await getBase64(imageInput.files[0]);
-            } catch (err) {
-                window.Dashboard.alert('Fehler beim Lesen des Bildes.');
-                return;
-            }
-        }
-
-        view.querySelector("#SendGroupAnnounceBtn").disabled = true;
-
-        try {
-            const url = window.ApiClient.getUrl('/api/RiNnoFinConfig/SendGroupAnnouncement?groupName=' + encodeURIComponent(tgConfigPage.currentGroup));
-            window.ApiClient.ajax({
-                url: url,
-                type: 'POST',
-                data: JSON.stringify({ 
-                    Message: message,
-                    ImageBase64: imageBase64,
-                    IsSpoiler: isSpoiler
-                }),
-                contentType: 'application/json'
-            }).then(() => {
-                window.Dashboard.alert('Gruppen-Ankündigung erfolgreich gesendet.');
-                view.querySelector("#GroupAnnouncePanel").style.display = "none";
-                view.querySelector("#GroupAnnounceMessage").value = "";
-                if (imageInput) imageInput.value = '';
-            }).catch(err => {
-                const msg = err?.responseJSON?.message || err?.responseText || err?.message || "Unbekannter Fehler";
-                window.Dashboard.alert('Fehler: ' + msg);
-            });
-        } catch (err) {
-            window.Dashboard.alert('Netzwerkfehler: ' + err.message);
-        } finally {
-            view.querySelector("#SendGroupAnnounceBtn").disabled = false;
-        }
-    });
 
     view.querySelector("#RefreshRequests")?.addEventListener("click", (e) => {
         e.preventDefault();
