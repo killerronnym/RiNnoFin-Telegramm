@@ -1253,7 +1253,6 @@ export default function rinnofinController(view, params) {
             const targetTab = view.querySelector('#' + tabId);
             if (targetTab) {
                 targetTab.classList.add('active');
-                targetTab.style.display = 'block';
             }
         });
     });
