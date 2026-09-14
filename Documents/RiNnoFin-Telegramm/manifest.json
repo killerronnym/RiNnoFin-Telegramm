@@ -8,6 +8,14 @@
     "imageUrl":  "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions":  [
                      {
+                         "changelog":  "Bugfix: Passwort-Reset schlug fehl, wenn sich die interne Jellyfin-Nutzer-ID geändert hatte. Das System gleicht die ID nun dynamisch ab.",
+                         "version":  "1.0.4.58",
+                         "checksum":  "f9d215c0f35f3cdec141c853b879d3b9",
+                         "timestamp":  "2026-09-14 09:39:54",
+                         "targetAbi":  "10.9.0.0",
+                         "sourceUrl":  "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.58.zip"
+                     },
+                     {
                          "changelog":  "Sicherheitslücke geschlossen: E-Mail und Benutzername werden nun streng abgeglichen und bei Fehlern wird der Nutzer an den Administrator verwiesen.",
                          "version":  "1.0.4.57",
                          "checksum":  "baf0882c17b227374360885c58ccafcd",

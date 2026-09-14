@@ -301,21 +301,21 @@ public class RiNnoFinPublicController : ControllerBase
 
         try
         {
-            var user = userManager.GetUserById(userId);
-            if (user == null)
-            {
-                PluginLog.Warn($"[PublicAPI] ResetPassword fehlgeschlagen: Benutzer nicht gefunden. ID: {userId}");
-                return BadRequest(new { message = "Benutzer nicht gefunden." });
-            }
+            var user = userManager.GetUserByName(request.Username);
+              if (user == null)
+              {
+                  PluginLog.Warn($"[PublicAPI] ResetPassword fehlgeschlagen: Benutzername '{request.Username}' nicht gefunden.");
+                  return BadRequest(new { message = "Benutzer nicht gefunden." });
+              }
 
-            if (!string.Equals(user.Username, request.Username, StringComparison.OrdinalIgnoreCase))
-            {
-                PluginLog.Warn($"[PublicAPI] ResetPassword fehlgeschlagen: Benutzername stimmt nicht überein. Eingabe: {request.Username}, Erwartet: {user.Username}");
-                return BadRequest(new { message = "Der eingegebene Benutzername stimmt nicht mit dem Account überein." });
-            }
+              if (user.Id != userId)
+              {
+                  PluginLog.Warn($"[PublicAPI] ResetPassword fehlgeschlagen: Token gehört nicht zu diesem Benutzer. Token-ID: {userId}, User-ID: {user.Id}");
+                  return BadRequest(new { message = "Dieser Reset-Link ist ungültig für den angegebenen Benutzernamen." });
+              }
 
-            var config = RiNnoFinPlugin.Instance?.Configuration;
-            var userLink = config?.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == userId);
+              var config = RiNnoFinPlugin.Instance?.Configuration;
+            var userLink = config?.TelegramUserLinks?.FirstOrDefault(l => string.Equals(l.JellyfinUsername, user.Username, StringComparison.OrdinalIgnoreCase));
             if (userLink == null || !string.Equals(userLink.EmailAddress, request.Email, StringComparison.OrdinalIgnoreCase))
             {
                 PluginLog.Warn($"[PublicAPI] ResetPassword fehlgeschlagen: E-Mail-Adresse stimmt nicht überein. Eingabe: {request.Email}");
