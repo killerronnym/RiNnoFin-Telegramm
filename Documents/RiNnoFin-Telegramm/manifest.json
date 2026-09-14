@@ -9,12 +9,12 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
-        "changelog": "UMD Universal Module Controller Fix for Jellyfin Web Client (v1.0.4.67).",
-        "version": "1.0.4.67",
-        "checksum": "a679b0f6a22520d6fc3635cd3fe6e7f7",
-        "timestamp": "2026-09-14 21:03:00",
+        "changelog": "UMD Universal Module Controller Fix for Jellyfin Web Client (v1.0.4.68).",
+        "version": "1.0.4.68",
+        "checksum": "5d7836efee4a75aa9a69c28f298a99e9",
+        "timestamp": "2026-09-14 21:14:00",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.67.zip"
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.68.zip"
       }
     ]
   }
