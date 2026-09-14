@@ -46,6 +46,10 @@ public class RiNnoFinPlugin : BasePlugin<PluginConfiguration>, IPlugin, IHasWebP
     public static RiNnoFinPlugin? Instance { get; private set; }
 
     public ILibraryManager LibraryManager => _libraryManager;
+    
+    private Jellyfin.Plugin.RiNnoFinTelegramm.Services.TelegramBotClientWrapper? _botWrapper;
+    public Jellyfin.Plugin.RiNnoFinTelegramm.Services.TelegramBotClientWrapper? GetBotClientWrapper() => _botWrapper;
+    public void SetBotClientWrapper(Jellyfin.Plugin.RiNnoFinTelegramm.Services.TelegramBotClientWrapper wrapper) => _botWrapper = wrapper;
 
     public new IApplicationPaths ApplicationPaths { get; }
 

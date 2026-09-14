@@ -32,6 +32,8 @@ const tgConfigPage = {
         page.querySelector("#TgBotToken").value = config.BotToken || tgTokenHelper.currentToken;
         page.querySelector("#TgBotUsername").innerHTML = botUserName;
         page.querySelector("#LoginBaseUrl").value = config.LoginBaseUrl ?? '';
+        const intervalSel = page.querySelector('#NewsletterInterval');
+        if (intervalSel) intervalSel.value = config.NewsletterInterval || 'Deaktiviert';
         page.querySelector("#TgAdministrators").value = config.AdminUserNames?.join("\r\n") || "";
         page.querySelector("#ForcedUrlScheme").value = config.ForcedUrlScheme || "none";
         page.querySelector("#RegistrationTheme").value = config.RegistrationTheme || "jellyfin";
@@ -687,6 +689,8 @@ const tgConfigPage = {
                 tgConfigPage.pluginUniqueId
             ).then((config) => {
                 const baseUrlValue = (page.querySelector("#LoginBaseUrl").value ?? "").trim();
+                const newsletterIntervalEl = page.querySelector('#NewsletterInterval');
+                if (newsletterIntervalEl) config.NewsletterInterval = newsletterIntervalEl.value;
                 const finalBaseUrl = baseUrlValue.length ? baseUrlValue : undefined;
 
                 config.BotToken = tgTokenHelper.currentToken;
@@ -1352,9 +1356,166 @@ export default function (view) {
         await tgConfigPage.saveConfig(view);
     });
 
-    view.querySelector("#SaveConfigEmail")?.addEventListener("click", async (e) => {
+    
+
+    // ═══ BROADCAST / PINNWAND ════════════════════════════════════════
+    function showBroadcastStatus(elId, msg, ok) {
+        const el = view.querySelector('#' + elId);
+        if (!el) return;
+        el.style.display = 'inline-block';
+        el.style.background = ok ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)';
+        el.style.color = ok ? '#34d399' : '#f87171';
+        el.style.border = '1px solid ' + (ok ? 'rgba(16,185,129,0.4)' : 'rgba(239,68,68,0.4)');
+        el.textContent = msg;
+    }
+
+    // Sofort senden
+    view.querySelector('#BroadcastSendNowBtn')?.addEventListener('click', async () => {
+        const btn = view.querySelector('#BroadcastSendNowBtn');
+        const msg = view.querySelector('#BroadcastMessage')?.value?.trim();
+        if (!msg) { showBroadcastStatus('BroadcastSendStatus', '❌ Bitte eine Nachricht eingeben!', false); return; }
+        btn.disabled = true; btn.textContent = '⏳ Sende...';
+        try {
+            const res = await window.ApiClient.ajax({
+                type: 'POST',
+                url: window.ApiClient.getUrl('api/RiNnoFinConfig/BroadcastToAll'),
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    message: msg,
+                    subject: view.querySelector('#BroadcastSubject')?.value || 'Nachricht von RiNnoFin',
+                    viaTelegram: view.querySelector('#BroadcastViaTelegram')?.checked ?? true,
+                    viaEmail: view.querySelector('#BroadcastViaEmail')?.checked ?? false
+                }),
+                dataType: 'json'
+            });
+            showBroadcastStatus('BroadcastSendStatus', '✅ ' + (res.message || 'Gesendet!'), true);
+        } catch(e) {
+            showBroadcastStatus('BroadcastSendStatus', '❌ Fehler beim Senden!', false);
+        } finally {
+            btn.disabled = false; btn.textContent = '📨 Jetzt an alle senden';
+        }
+    });
+
+    // Zeitgeplant
+    view.querySelector('#BroadcastScheduleBtn')?.addEventListener('click', async () => {
+        const btn = view.querySelector('#BroadcastScheduleBtn');
+        const msg = view.querySelector('#BroadcastMessage')?.value?.trim();
+        const dateVal = view.querySelector('#BroadcastScheduleDate')?.value;
+        const timeVal = view.querySelector('#BroadcastScheduleTime')?.value || '06:00';
+        if (!msg) { showBroadcastStatus('BroadcastScheduleStatus', '❌ Bitte eine Nachricht eingeben!', false); return; }
+        if (!dateVal) { showBroadcastStatus('BroadcastScheduleStatus', '❌ Bitte ein Datum wählen!', false); return; }
+        const scheduledAt = new Date(dateVal + 'T' + timeVal + ':00');
+        if (scheduledAt < new Date()) { showBroadcastStatus('BroadcastScheduleStatus', '❌ Datum muss in der Zukunft liegen!', false); return; }
+        btn.disabled = true; btn.textContent = '⏳ Plane...';
+        try {
+            const res = await window.ApiClient.ajax({
+                type: 'POST',
+                url: window.ApiClient.getUrl('api/RiNnoFinConfig/ScheduleBroadcast'),
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    message: msg,
+                    subject: view.querySelector('#BroadcastSubject')?.value || 'Nachricht von RiNnoFin',
+                    scheduledAtUtc: scheduledAt.toISOString(),
+                    viaTelegram: view.querySelector('#BroadcastViaTelegram')?.checked ?? true,
+                    viaEmail: view.querySelector('#BroadcastViaEmail')?.checked ?? false
+                }),
+                dataType: 'json'
+            });
+            showBroadcastStatus('BroadcastScheduleStatus', '✅ ' + (res.message || 'Geplant!'), true);
+            loadScheduledBroadcasts();
+        } catch(e) {
+            showBroadcastStatus('BroadcastScheduleStatus', '❌ Fehler beim Planen!', false);
+        } finally {
+            btn.disabled = false; btn.textContent = '⏰ Planen';
+        }
+    });
+
+    // Lade geplante Broadcasts
+    async function loadScheduledBroadcasts() {
+        const container = view.querySelector('#ScheduledBroadcastsList');
+        if (!container) return;
+        try {
+            const list = await window.ApiClient.ajax({
+                type: 'GET',
+                url: window.ApiClient.getUrl('api/RiNnoFinConfig/GetScheduledBroadcasts'),
+                dataType: 'json'
+            });
+            if (!list || list.length === 0) {
+                container.innerHTML = '<p style="color:#64748b;text-align:center;margin:20px 0;">Keine geplanten Nachrichten</p>';
+                return;
+            }
+            container.innerHTML = list.map(b => {
+                const dt = new Date(b.scheduledAtUtc);
+                const dateStr = dt.toLocaleString('de-DE');
+                const channels = [b.viaTelegram ? '📱 Telegram' : '', b.viaEmail ? '📧 E-Mail' : ''].filter(x=>x).join(', ');
+                return '<div style="background:rgba(255,255,255,0.05);border-radius:8px;padding:14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">' +
+                    '<div style="flex:1;">' +
+                    '<div style="font-weight:bold;color:#fbbf24;margin-bottom:4px;">⏰ ' + dateStr + ' Uhr &nbsp;|&nbsp; <span style="color:#94a3b8;font-size:12px;">' + channels + '</span></div>' +
+                    '<div style="color:#e2e8f0;font-size:14px;white-space:pre-wrap;max-height:60px;overflow:hidden;">' + b.message.substring(0,150) + (b.message.length>150?'...':'') + '</div>' +
+                    '</div>' +
+                    '<button onclick="deleteBroadcast('' + b.id + '')" style="background:rgba(239,68,68,0.2);color:#f87171;border:1px solid rgba(239,68,68,0.3);padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;">🗑 Löschen</button>' +
+                    '</div>';
+            }).join('');
+        } catch(e) {
+            container.innerHTML = '<p style="color:#f87171;">Fehler beim Laden.</p>';
+        }
+    }
+
+    window.deleteBroadcast = async function(id) {
+        try {
+            await window.ApiClient.ajax({
+                type: 'POST',
+                url: window.ApiClient.getUrl('api/RiNnoFinConfig/DeleteScheduledBroadcast'),
+                contentType: 'application/json',
+                data: JSON.stringify(id),
+                dataType: 'json'
+            });
+            loadScheduledBroadcasts();
+        } catch(e) { alert('Fehler beim Löschen!'); }
+    };
+
+    view.querySelector('#RefreshScheduledBtn')?.addEventListener('click', loadScheduledBroadcasts);
+
+    // Set default date to today
+    const dateEl = view.querySelector('#BroadcastScheduleDate');
+    if (dateEl && !dateEl.value) {
+        const today = new Date().toISOString().split('T')[0];
+        dateEl.value = today;
+    }
+    // ═══ ENDE BROADCAST ══════════════════════════════════════════════
+
+view.querySelector("#SaveConfigEmail")?.addEventListener("click", async (e) => {
         e.preventDefault();
         await tgConfigPage.saveConfig(view);
+    });
+
+    view.querySelector("#SendNewsletterNowBtn")?.addEventListener("click", async (e) => {
+        const btn = view.querySelector("#SendNewsletterNowBtn");
+        const status = view.querySelector("#SendNewsletterStatus");
+        btn.disabled = true;
+        btn.textContent = "⏳ Wird gesendet...";
+        status.style.display = "none";
+        try {
+            const response = await window.ApiClient.ajax({
+                type: "POST",
+                url: window.ApiClient.getUrl("api/RiNnoFinConfig/SendNewsletterNow"),
+                dataType: "json"
+            });
+            status.style.display = "inline-block";
+            status.style.background = "rgba(16,185,129,0.2)";
+            status.style.color = "#34d399";
+            status.style.border = "1px solid rgba(16,185,129,0.4)";
+            status.textContent = "✅ " + (response.message || "Newsletter erfolgreich gesendet!");
+        } catch(err) {
+            status.style.display = "inline-block";
+            status.style.background = "rgba(239,68,68,0.2)";
+            status.style.color = "#f87171";
+            status.style.border = "1px solid rgba(239,68,68,0.4)";
+            status.textContent = "❌ Fehler beim Senden!";
+        } finally {
+            btn.disabled = false;
+            btn.textContent = "📨 Newsletter jetzt senden";
+        }
     });
 
     view.querySelector("#SaveConfigUsers")?.addEventListener("click", async (e) => {

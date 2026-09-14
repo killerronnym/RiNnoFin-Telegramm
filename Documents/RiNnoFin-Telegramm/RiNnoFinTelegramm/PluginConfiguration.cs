@@ -29,6 +29,9 @@ public class PluginConfiguration : BasePluginConfiguration
 
     public string RegistrationTheme { get; set; } = "jellyfin";
     public DateTime LastEmailNewsletterSent { get; set; } = DateTime.UtcNow;
+    
+    // ── Geplante Broadcast-Nachrichten ────────────────────────────────────────
+    public List<ScheduledBroadcast> ScheduledBroadcasts { get; set; } = new();
 
     public string TmdbApiKey { get; set; } = string.Empty;
 
@@ -421,6 +424,18 @@ public class PersistedResetToken
     public string Token { get; set; } = string.Empty;
     public Guid JellyfinUserId { get; set; }
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
+}
+
+public class ScheduledBroadcast
+{
+    public string Id { get; set; } = Guid.NewGuid().ToString("N");
+    public string Message { get; set; } = string.Empty;
+    public string Subject { get; set; } = string.Empty;
+    public DateTime ScheduledAtUtc { get; set; }
+    public bool ViaTelegram { get; set; } = true;
+    public bool ViaEmail { get; set; } = false;
+    public bool SendToAll { get; set; } = true;
+    public bool Sent { get; set; } = false;
 }
 
 public class EmailLogEntry

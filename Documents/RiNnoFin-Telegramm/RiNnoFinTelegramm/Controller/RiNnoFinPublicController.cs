@@ -158,24 +158,35 @@ public class RiNnoFinPublicController : ControllerBase
                 var baseUrl = config.LoginBaseUrl?.TrimEnd('/') ?? "http://localhost:8096";
                 string loginLink = $"{baseUrl}/web/index.html";
                 string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplateWelcome)
-                    ? config.EmailTemplateWelcome.Replace("{username}", user.Username).Replace("{serverUrl}", baseUrl).Replace("{loginLink}", loginLink)
-                    : $@"
-                    <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
-                        <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
-                            <h2 style='color: #2563eb;'>Willkommen an Bord! 🍿</h2>
-                            <p>Hallo <strong>{user.Username}</strong>,</p>
-                            <p>Dein Account bei <strong>RiNnoFin Media</strong> wurde erfolgreich erstellt.</p>
-                            <div style='background-color: #f8fafc; padding: 15px; border-radius: 6px; margin: 20px 0; border: 1px solid #e2e8f0;'>
-                                <p style='margin: 0;'><strong>Benutzername:</strong> {user.Username}</p>
-                                <p style='margin: 5px 0 0 0;'><strong>E-Mail:</strong> {email}</p>
-                            </div>
-                            <p>Du kannst dich ab sofort mit deinem <strong>Benutzernamen</strong> ODER deiner <strong>E-Mail-Adresse</strong> und deinem gewählten Passwort einloggen.</p>
-                            <div style='text-align: center; margin: 30px 0;'>
-                                <a href='{loginLink}' style='background-color: #2563eb; color: #ffffff !important; padding: 14px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;'>Jetzt Einloggen</a>
-                            </div>
-                            <p style='color: #9ca3af; font-size: 12px; text-align: center;'>Viel Spaß beim Streamen! 🍿 Dein RiNnoFin-Team</p>
-                        </div>
-                    </div>";
+                        ? config.EmailTemplateWelcome.Replace("{username}", user.Username).Replace("{loginLink}", loginLink)
+                        : $@"
+<div style='font-family: Arial, sans-serif; background-color: #060b14; padding: 40px 20px; color: #f8fafc;'>
+    <div style='max-width: 520px; margin: 0 auto; background-color: #0d1623; border-radius: 16px; overflow: hidden; border: 1px solid #1e3a5f;'>
+        <div style='background: #071020; padding: 36px 36px 32px; text-align: center; border-bottom: 1px solid #1e3a5f;'>
+            <img src='https://i.imgur.com/ArlRygr.png' alt='RiNnoFin Media' style='height: 48px; width: auto; margin-bottom: 20px;' />
+            <h1 style='font-size: 24px; font-weight: 800; color: #f8fafc; margin: 0;'>Willkommen bei <span style='color: #2563eb;'>RiNnoFin</span></h1>
+        </div>
+        <div style='padding: 32px 36px;'>
+            <p style='font-size: 15px; color: #94a3b8; line-height: 1.6; margin-top: 0;'>Hallo <strong style='color: #e2e8f0;'>{user.Username}</strong>,</p>
+            <p style='font-size: 15px; color: #94a3b8; line-height: 1.6;'>Dein Account wurde erfolgreich eingerichtet und ist ab sofort startklar. Wir freuen uns, dich an Bord zu haben!</p>
+            
+            <div style='text-align: center; margin: 35px 0;'>
+                <a href='{loginLink}' style='display: inline-block; background-color: #2563eb; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: bold; font-size: 16px;'>Jetzt Einloggen &rarr;</a>
+            </div>
+            
+            <a href='https://t.me/+KZM7g40d8NkxNDIy' style='display: flex; align-items: center; background-color: rgba(0, 136, 204, 0.1); border: 1px solid rgba(0, 136, 204, 0.3); padding: 15px; border-radius: 8px; text-decoration: none; margin-bottom: 25px;'>
+                <img src='https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Telegram_logo.svg/240px-Telegram_logo.svg.png' alt='Telegram' style='width: 40px; height: 40px; margin-right: 15px;' />
+                <div>
+                    <p style='margin: 0; color: #e2e8f0; font-weight: bold; font-size: 14px;'>Telegram Community beitreten</p>
+                    <p style='margin: 5px 0 0; color: #94a3b8; font-size: 12px;'>News, Updates & Community</p>
+                </div>
+            </a>
+            
+            <hr style='border: none; border-top: 1px solid #1e293b; margin: 25px 0;' />
+            <p style='font-size: 12px; color: #64748b; text-align: center; margin: 0;'>&copy; 2025 RiNnoFin Media. Alle Rechte vorbehalten.</p>
+        </div>
+    </div>
+</div>";
 
                 try 
                 {
@@ -240,7 +251,14 @@ public class RiNnoFinPublicController : ControllerBase
         try
         {
             var token = Guid.NewGuid().ToString("N");
-            ResetTokenManager.AddResetToken(token, userLink.JellyfinUserId);
+            var activeUser = RiNnoFinPlugin.UserManager.GetUserByName(userLink.JellyfinUsername.Trim());
+            PluginLog.Info($"[PublicAPI] RequestPasswordReset: GetUserByName('{userLink.JellyfinUsername.Trim()}') returned {(activeUser != null ? activeUser.Id.ToString() : "null")}");
+            if (activeUser == null)
+            {
+                PluginLog.Warn($"[PublicAPI] RequestPasswordReset: Benutzer '{userLink.JellyfinUsername}' existiert in Jellyfin nicht mehr.");
+                return BadRequest(new { message = "Benutzer existiert nicht mehr." });
+            }
+            ResetTokenManager.AddResetToken(token, activeUser.Id);
 
             var baseUrl = config.LoginBaseUrl?.TrimEnd('/') ?? "http://localhost:8096";
             var resetLink = $"{baseUrl}/sso/Telegram/reset?token={token}";
@@ -248,20 +266,37 @@ public class RiNnoFinPublicController : ControllerBase
             string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplatePasswordReset)
                 ? config.EmailTemplatePasswordReset.Replace("{resetLink}", resetLink).Replace("{username}", userLink.JellyfinUsername ?? "")
                 : $@"
-                <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
-                    <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
-                        <h2 style='color: #2563eb;'>Passwort zurücksetzen 🔑</h2>
-                        <p>Hallo <strong>{userLink.JellyfinUsername}</strong>,</p>
-                        <p>Jemand (vermutlich du) hat das Zurücksetzen des Passworts für deinen RiNnoFin-Account angefordert.</p>
-                        <p>Klicke auf den untenstehenden Button, um ein neues Passwort festzulegen:</p>
-                        <div style='text-align: center; margin: 30px 0;'>
-                            <a href='{resetLink}' style='background-color: #2563eb; color: #fff; padding: 14px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;'>Passwort zurücksetzen</a>
-                        </div>
-                        <p style='color: #6b7280; font-size: 13px;'>Wenn du das nicht warst, kannst du diese E-Mail einfach ignorieren.</p>
-                        <hr style='border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;' />
-                        <p style='color: #9ca3af; font-size: 12px; text-align: center;'>Dein RiNnoFin-Team</p>
-                    </div>
-                </div>";
+<div style='font-family: Arial, sans-serif; background-color: #060b14; padding: 40px 20px; color: #f8fafc;'>
+    <div style='max-width: 520px; margin: 0 auto; background-color: #0d1623; border-radius: 16px; overflow: hidden; border: 1px solid #1e3a5f;'>
+        <div style='background: #071020; padding: 36px 36px 32px; text-align: center; border-bottom: 1px solid #1e3a5f;'>
+            <img src='https://i.imgur.com/ArlRygr.png' alt='RiNnoFin Media' style='height: 48px; width: auto; margin-bottom: 20px;' />
+            <h1 style='font-size: 24px; font-weight: 800; color: #f8fafc; margin: 0;'>Passwort <span style='color: #f59e0b;'>zurücksetzen</span></h1>
+        </div>
+        <div style='padding: 32px 36px;'>
+            <p style='font-size: 15px; color: #94a3b8; line-height: 1.6; margin-top: 0;'>Hallo <strong style='color: #e2e8f0;'>{userLink.JellyfinUsername}</strong>,</p>
+            <p style='font-size: 15px; color: #94a3b8; line-height: 1.6;'>Jemand (vermutlich du) hat das Zurücksetzen des Passworts für deinen <strong>RiNnoFin Media</strong>-Account angefordert.</p>
+            
+            <div style='text-align: center; margin: 35px 0;'>
+                <a href='{resetLink}' style='display: inline-block; background-color: #f59e0b; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: bold; font-size: 16px;'>Neues Passwort festlegen &rarr;</a>
+            </div>
+            
+            <div style='background-color: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); padding: 15px; border-radius: 8px; margin-bottom: 25px;'>
+                <p style='margin: 0; color: #fca5a5; font-size: 13px; line-height: 1.5;'>Falls du diese Anfrage <strong>nicht</strong> gestellt hast, ignoriere diese E-Mail einfach. Dein Passwort bleibt sicher.</p>
+            </div>
+            
+            <a href='https://t.me/+KZM7g40d8NkxNDIy' style='display: flex; align-items: center; background-color: rgba(0, 136, 204, 0.1); border: 1px solid rgba(0, 136, 204, 0.3); padding: 15px; border-radius: 8px; text-decoration: none; margin-bottom: 25px;'>
+                <img src='https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Telegram_logo.svg/240px-Telegram_logo.svg.png' alt='Telegram' style='width: 40px; height: 40px; margin-right: 15px;' />
+                <div>
+                    <p style='margin: 0; color: #e2e8f0; font-weight: bold; font-size: 14px;'>Telegram Community beitreten</p>
+                    <p style='margin: 5px 0 0; color: #94a3b8; font-size: 12px;'>News, Updates & Community</p>
+                </div>
+            </a>
+            
+            <hr style='border: none; border-top: 1px solid #1e293b; margin: 25px 0;' />
+            <p style='font-size: 12px; color: #64748b; text-align: center; margin: 0;'>&copy; 2025 RiNnoFin Media. Alle Rechte vorbehalten.</p>
+        </div>
+    </div>
+</div>";
 
             var subject = !string.IsNullOrWhiteSpace(config.EmailSubjectPasswordReset) ? config.EmailSubjectPasswordReset : "Passwort zurücksetzen - RiNnoFin Media";
             await emailService.SendEmailAsync(config, userLink.EmailAddress, subject, htmlBody);
@@ -301,7 +336,11 @@ public class RiNnoFinPublicController : ControllerBase
 
         try
         {
-            var user = userManager.GetUserByName(request.Username);
+            PluginLog.Info($"[PublicAPI] ResetPassword TryGetUserByName('{request.Username}')");
+              var user = userManager.GetUserByName(request.Username);
+              if (user != null) {
+                  PluginLog.Info($"[PublicAPI] GetUserByName('{request.Username}') returned ID: {user.Id}");
+              }
               if (user == null)
               {
                   PluginLog.Warn($"[PublicAPI] ResetPassword fehlgeschlagen: Benutzername '{request.Username}' nicht gefunden.");
@@ -315,10 +354,10 @@ public class RiNnoFinPublicController : ControllerBase
               }
 
               var config = RiNnoFinPlugin.Instance?.Configuration;
-            var userLink = config?.TelegramUserLinks?.FirstOrDefault(l => string.Equals(l.JellyfinUsername, user.Username, StringComparison.OrdinalIgnoreCase));
+            var userLink = config?.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == user.Id);
             if (userLink == null || !string.Equals(userLink.EmailAddress, request.Email, StringComparison.OrdinalIgnoreCase))
             {
-                PluginLog.Warn($"[PublicAPI] ResetPassword fehlgeschlagen: E-Mail-Adresse stimmt nicht überein. Eingabe: {request.Email}");
+                PluginLog.Warn($"[PublicAPI] ResetPassword fehlgeschlagen: E-Mail-Adresse stimmt nicht überein. Eingabe: '{request.Email}', Erwartet: '{userLink?.EmailAddress}'");
                 return BadRequest(new { message = "Die eingegebene E-Mail-Adresse stimmt nicht mit dem Account überein." });
             }
 
@@ -335,14 +374,34 @@ public class RiNnoFinPublicController : ControllerBase
                     string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplatePasswordChanged)
                         ? config.EmailTemplatePasswordChanged.Replace("{username}", user.Username)
                         : $@"
-                        <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
-                            <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
-                                <h2 style='color: #22c55e;'>Passwort geändert ✅</h2>
-                                <p>Hallo <strong>{user.Username}</strong>,</p>
-                                <p>Dein Passwort wurde erfolgreich geändert.</p>
-                                <p>Falls du dies nicht selbst getan hast, kontaktiere bitte umgehend deinen Administrator!</p>
-                            </div>
-                        </div>";
+<div style='font-family: Arial, sans-serif; background-color: #060b14; padding: 40px 20px; color: #f8fafc;'>
+    <div style='max-width: 520px; margin: 0 auto; background-color: #0d1623; border-radius: 16px; overflow: hidden; border: 1px solid #1e3a5f;'>
+        <div style='background: #071020; padding: 36px 36px 32px; text-align: center; border-bottom: 1px solid #1e3a5f;'>
+            <img src='https://i.imgur.com/ArlRygr.png' alt='RiNnoFin Media' style='height: 48px; width: auto; margin-bottom: 20px;' />
+            <div style='margin-bottom: 15px;'><span style='font-size: 50px; color: #10b981;'>&#10003;</span></div>
+            <h1 style='font-size: 24px; font-weight: 800; color: #f8fafc; margin: 0;'>Passwort <span style='color: #10b981;'>geändert</span></h1>
+        </div>
+        <div style='padding: 32px 36px;'>
+            <p style='font-size: 15px; color: #94a3b8; line-height: 1.6; margin-top: 0;'>Hallo <strong style='color: #e2e8f0;'>{user.Username}</strong>,</p>
+            <p style='font-size: 15px; color: #94a3b8; line-height: 1.6;'>Dein Passwort wurde erfolgreich geändert. Du kannst dich ab sofort mit deinen neuen Zugangsdaten anmelden.</p>
+            
+            <div style='background-color: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); padding: 15px; border-radius: 8px; margin: 30px 0;'>
+                <p style='margin: 0; color: #fca5a5; font-size: 13px; line-height: 1.5;'>Falls du diese Änderung <strong>nicht</strong> selbst vorgenommen hast, kontaktiere bitte umgehend deinen Administrator!</p>
+            </div>
+            
+            <a href='https://t.me/+KZM7g40d8NkxNDIy' style='display: flex; align-items: center; background-color: rgba(0, 136, 204, 0.1); border: 1px solid rgba(0, 136, 204, 0.3); padding: 15px; border-radius: 8px; text-decoration: none; margin-bottom: 25px;'>
+                <img src='https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Telegram_logo.svg/240px-Telegram_logo.svg.png' alt='Telegram' style='width: 40px; height: 40px; margin-right: 15px;' />
+                <div>
+                    <p style='margin: 0; color: #e2e8f0; font-weight: bold; font-size: 14px;'>Telegram Community beitreten</p>
+                    <p style='margin: 5px 0 0; color: #94a3b8; font-size: 12px;'>News, Updates & Community</p>
+                </div>
+            </a>
+            
+            <hr style='border: none; border-top: 1px solid #1e293b; margin: 25px 0;' />
+            <p style='font-size: 12px; color: #64748b; text-align: center; margin: 0;'>&copy; 2025 RiNnoFin Media. Alle Rechte vorbehalten.</p>
+        </div>
+    </div>
+</div>";
                     var subject = !string.IsNullOrWhiteSpace(config.EmailSubjectPasswordChanged) ? config.EmailSubjectPasswordChanged : "Passwort erfolgreich geändert";
                     await emailService.SendEmailAsync(config, userLink.EmailAddress, subject, htmlBody);
                 }

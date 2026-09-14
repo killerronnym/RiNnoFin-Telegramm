@@ -1,4 +1,4 @@
-﻿[{
+[{
     "category":  "Integration",
     "guid":  "9e1d84f2-901d-44a6-ba92-7fcf1a5598ba",
     "name":  "RiNnoFin Telegramm",
@@ -7,6 +7,14 @@
     "overview":  "RiNnoFin Telegramm verbindet Jellyfin mit Telegram. Ermöglicht Benutzern die Anmeldung via Telegram SSO, Passwortänderungen im Chat, das Abonnieren von Medien-Newslettern für neue Filme, Serien & Musik, sowie das Einrichten von Gruppenordnern und das Einreichen von Medien-Anfragen.",
     "imageUrl":  "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions":  [
+                     {
+                         "changelog":  "Neues Release: Telegram-Broadcasts, geplante Aufgaben und Benachrichtigungs-System aktualisiert, verbesserte SSO- und Dashboard-Integration.",
+                         "version":  "1.0.4.59",
+                         "checksum":  "d5abfc70f4963a2991bf4d99eabda830",
+                         "timestamp":  "2026-09-14 16:20:40",
+                         "targetAbi":  "10.9.0.0",
+                         "sourceUrl":  "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.59.zip"
+                     },
                      {
                          "changelog":  "Bugfix: Passwort-Reset schlug fehl, wenn sich die interne Jellyfin-Nutzer-ID geändert hatte. Das System gleicht die ID nun dynamisch ab.",
                          "version":  "1.0.4.58",

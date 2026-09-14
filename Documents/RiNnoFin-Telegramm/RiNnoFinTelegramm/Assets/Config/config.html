@@ -862,7 +862,35 @@
                     </div>
                 </div>
 
-                <div class="inputContainer email-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
+                
+                  <!-- ===== NEWSLETTER STEUERZENTRALE ===== -->
+                  <div style="background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(5,150,105,0.05)); border: 1px solid rgba(16,185,129,0.3); border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+                      <h3 style="margin: 0 0 16px 0; color: #34d399; font-size: 18px; display: flex; align-items: center; gap: 8px;">
+                          📧 Newsletter Steuerzentrale
+                      </h3>
+                      <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; align-items: flex-end;">
+                          <div style="flex: 1; min-width: 200px;">
+                              <label class="inputLabel inputLabelUnfocused" for="NewsletterInterval" style="font-weight: bold; margin-bottom: 6px; display: block;">📅 Automatischer Versand-Intervall</label>
+                              <select id="NewsletterInterval" class="sso-text" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.3); color: #f8fafc; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px;">
+                                  <option value="Deaktiviert">❌ Deaktiviert (nur manuell)</option>
+                                  <option value="Täglich">📆 Täglich</option>
+                                  <option value="Wöchentlich">📅 Wöchentlich</option>
+                                  <option value="Monatlich">🗓️ Monatlich</option>
+                              </select>
+                              <small style="color: #64748b; margin-top: 4px; display: block;">Automatischer Newsletter läuft täglich um 08:00 Uhr und prüft ob das Intervall abgelaufen ist.</small>
+                          </div>
+                      </div>
+                      <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; align-items: center;">
+                          <button id="SendNewsletterNowBtn" type="button" style="display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer;">
+                              📨 Newsletter jetzt senden
+                          </button>
+                          <span id="SendNewsletterStatus" style="display: none; padding: 10px 16px; border-radius: 8px; font-weight: bold;"></span>
+                      </div>
+                      <p style="margin: 12px 0 0 0; color: #94a3b8; font-size: 13px;">ℹ️ Der Newsletter enthält alle neuen Filme, Serien und Episoden. Benutzer müssen im Benutzer-Tab "E-Mail Newsletter" abonniert haben.</p>
+                  </div>
+                  <!-- ===== ENDE NEWSLETTER STEUERZENTRALE ===== -->
+
+<div class="inputContainer email-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
                     <div>
                         <label class="inputLabel inputLabelUnfocused" for="EmailSubjectAnnounce" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Ankündigung</label>
                         <input class="sso-text" id="EmailSubjectAnnounce" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
@@ -1089,5 +1117,86 @@
 </body>
 </html>
 
+
+
+        <!-- ========== BROADCAST / PINNWAND TAB ========== -->
+        <div class="rinnofin-tab" id="tab-broadcast">
+            <fieldset>
+                <legend><h3>📢 Pinnwand &amp; Broadcast</h3></legend>
+                <div class="rinnofin-info-banner">
+                    <h4>📢 Nachrichten an alle senden</h4>
+                    <p>Schreibe eine Nachricht und sende sie sofort oder geplant an alle Benutzer per Telegram und/oder E-Mail.</p>
+                </div>
+
+                <!-- SOFORTIGE NACHRICHT -->
+                <div style="background: linear-gradient(135deg, rgba(37,99,235,0.1), rgba(29,78,216,0.05)); border: 1px solid rgba(37,99,235,0.3); border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+                    <h3 style="margin: 0 0 16px 0; color: #60a5fa; font-size: 18px;">📨 Sofort senden</h3>
+
+                    <div style="margin-bottom: 14px;">
+                        <label class="inputLabel inputLabelUnfocused" for="BroadcastSubject" style="font-weight:bold;display:block;margin-bottom:6px;">Betreff (nur für E-Mail)</label>
+                        <input type="text" id="BroadcastSubject" class="sso-text" style="width:100%;" placeholder="z.B. Wichtige Info von RiNnoFin" />
+                    </div>
+
+                    <div style="margin-bottom: 14px;">
+                        <label class="inputLabel inputLabelUnfocused" for="BroadcastMessage" style="font-weight:bold;display:block;margin-bottom:6px;">Nachricht (Markdown für Telegram)</label>
+                        <textarea id="BroadcastMessage" class="sso-text" rows="6" style="width:100%;padding:12px;font-family:monospace;resize:vertical;" placeholder="Hallo Community! 🎉&#10;&#10;Heute gibt es *wichtige Neuigkeiten*..."></textarea>
+                    </div>
+
+                    <div style="display:flex;gap:20px;margin-bottom:18px;flex-wrap:wrap;">
+                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                            <input type="checkbox" id="BroadcastViaTelegram" checked style="width:16px;height:16px;accent-color:#3b82f6;" />
+                            <span>📱 Per Telegram</span>
+                        </label>
+                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                            <input type="checkbox" id="BroadcastViaEmail" style="width:16px;height:16px;accent-color:#3b82f6;" />
+                            <span>📧 Per E-Mail</span>
+                        </label>
+                    </div>
+
+                    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+                        <button id="BroadcastSendNowBtn" type="button" style="background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border:none;padding:12px 24px;border-radius:8px;font-size:15px;font-weight:bold;cursor:pointer;">
+                            📨 Jetzt an alle senden
+                        </button>
+                        <span id="BroadcastSendStatus" style="display:none;padding:10px 16px;border-radius:8px;font-weight:bold;"></span>
+                    </div>
+                </div>
+
+                <!-- GEPLANTE NACHRICHT -->
+                <div style="background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(217,119,6,0.05)); border: 1px solid rgba(245,158,11,0.3); border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+                    <h3 style="margin: 0 0 16px 0; color: #fbbf24; font-size: 18px;">⏰ Zeitgeplant senden</h3>
+                    <p style="color:#94a3b8;font-size:13px;margin-bottom:16px;">Die Nachricht wird automatisch zum gewählten Zeitpunkt verschickt (wird alle 15 Minuten geprüft).</p>
+
+                    <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:16px;align-items:flex-end;">
+                        <div style="flex:1;min-width:180px;">
+                            <label class="inputLabel inputLabelUnfocused" for="BroadcastScheduleDate" style="font-weight:bold;display:block;margin-bottom:6px;">📅 Datum</label>
+                            <input type="date" id="BroadcastScheduleDate" class="sso-text" style="width:100%;" />
+                        </div>
+                        <div style="flex:1;min-width:140px;">
+                            <label class="inputLabel inputLabelUnfocused" for="BroadcastScheduleTime" style="font-weight:bold;display:block;margin-bottom:6px;">🕐 Uhrzeit</label>
+                            <input type="time" id="BroadcastScheduleTime" class="sso-text" style="width:100%;" value="06:00" />
+                        </div>
+                    </div>
+
+                    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+                        <button id="BroadcastScheduleBtn" type="button" style="background:linear-gradient(135deg,#d97706,#b45309);color:#fff;border:none;padding:12px 24px;border-radius:8px;font-size:15px;font-weight:bold;cursor:pointer;">
+                            ⏰ Planen
+                        </button>
+                        <span id="BroadcastScheduleStatus" style="display:none;padding:10px 16px;border-radius:8px;font-weight:bold;"></span>
+                    </div>
+                </div>
+
+                <!-- GEPLANTE NACHRICHTEN LISTE -->
+                <div style="background:rgba(0,0,0,0.2);border-radius:12px;padding:20px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                        <h3 style="margin:0;color:#f8fafc;font-size:16px;">📋 Geplante Nachrichten</h3>
+                        <button id="RefreshScheduledBtn" type="button" style="background:rgba(255,255,255,0.1);color:#f8fafc;border:1px solid rgba(255,255,255,0.2);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;">🔄 Aktualisieren</button>
+                    </div>
+                    <div id="ScheduledBroadcastsList" style="min-height:60px;">
+                        <p style="color:#64748b;text-align:center;margin:20px 0;">Keine geplanten Nachrichten</p>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+        <!-- ========== ENDE BROADCAST TAB ========== -->
 
 

@@ -966,6 +966,127 @@ public class RiNnoFinConfigController : ControllerBase
             RiNnoFinPlugin.Instance?.SaveConfiguration(config);
             return Ok(new { message = "Benutzer erfolgreich aktualisiert." });
         }
+
+    [HttpPost("BroadcastToAll")]
+    public async Task<IActionResult> BroadcastToAll([FromBody] BroadcastRequest request)
+    {
+        if (!await IsUserAdmin().ConfigureAwait(false)) return StatusCode(StatusCodes.Status403Forbidden, new { message = "Admin-Rechte erforderlich." });
+        var config = RiNnoFinPlugin.Instance?.Configuration;
+        if (config == null) return BadRequest(new { message = "Konfiguration nicht verfügbar." });
+
+        var botWrapper = HttpContext.RequestServices.GetService(typeof(TelegramBotClientWrapper)) as TelegramBotClientWrapper;
+        var emailService = new EmailService(_logger);
+        int sentCount = 0;
+
+        var recipients = config.TelegramUserLinks ?? new();
+
+        foreach (var user in recipients)
+        {
+            // Telegram
+            if (request.ViaTelegram && user.TelegramUserId != 0 && botWrapper?.Client != null)
+            {
+                try {
+                    await botWrapper.Client.SendMessage(user.TelegramUserId, request.Message, parseMode: global::Telegram.Bot.Types.Enums.ParseMode.Markdown);
+                    sentCount++;
+                } catch { }
+            }
+            // E-Mail
+            if (request.ViaEmail && !string.IsNullOrWhiteSpace(user.EmailAddress) && config.EnableEmail)
+            {
+                try {
+                    var body = $"<div style='font-family:Arial,sans-serif;padding:20px;background:#060b14;color:#f8fafc;'><div style='max-width:520px;margin:0 auto;background:#0d1623;border-radius:12px;padding:30px;border:1px solid #1e3a5f;'><img src='https://i.imgur.com/ArlRygr.png' style='height:40px;margin-bottom:20px;' /><p style='font-size:15px;line-height:1.6;white-space:pre-wrap;'>{System.Net.WebUtility.HtmlEncode(request.Message)}</p></div></div>";
+                    await emailService.SendEmailAsync(config, user.EmailAddress, request.Subject ?? "Nachricht von RiNnoFin", body);
+                    sentCount++;
+                } catch { }
+            }
+        }
+        return Ok(new { message = $"Nachricht an {sentCount} Empfänger gesendet!" });
+    }
+
+    [HttpPost("ScheduleBroadcast")]
+    public async Task<IActionResult> ScheduleBroadcast([FromBody] ScheduleBroadcastRequest request)
+    {
+        if (!await IsUserAdmin().ConfigureAwait(false)) return StatusCode(StatusCodes.Status403Forbidden, new { message = "Admin-Rechte erforderlich." });
+        var config = RiNnoFinPlugin.Instance?.Configuration;
+        if (config == null) return BadRequest(new { message = "Konfiguration nicht verfügbar." });
+
+        if (config.ScheduledBroadcasts == null) config.ScheduledBroadcasts = new();
+
+        var broadcast = new ScheduledBroadcast
+        {
+            Message = request.Message,
+            Subject = request.Subject ?? "Nachricht von RiNnoFin",
+            ScheduledAtUtc = request.ScheduledAtUtc,
+            ViaTelegram = request.ViaTelegram,
+            ViaEmail = request.ViaEmail,
+            SendToAll = true,
+            Sent = false
+        };
+        config.ScheduledBroadcasts.Add(broadcast);
+        RiNnoFinPlugin.Instance!.UpdateConfiguration(config);
+        return Ok(new { message = $"Broadcast geplant für {request.ScheduledAtUtc.ToLocalTime():dd.MM.yyyy HH:mm} Uhr.", id = broadcast.Id });
+    }
+
+    [HttpGet("GetScheduledBroadcasts")]
+    public async Task<IActionResult> GetScheduledBroadcasts()
+    {
+        if (!await IsUserAdmin().ConfigureAwait(false)) return StatusCode(StatusCodes.Status403Forbidden);
+        var config = RiNnoFinPlugin.Instance?.Configuration;
+        var broadcasts = config?.ScheduledBroadcasts?.Where(b => !b.Sent).OrderBy(b => b.ScheduledAtUtc).ToList() ?? new();
+        return Ok(broadcasts);
+    }
+
+    [HttpPost("DeleteScheduledBroadcast")]
+    public async Task<IActionResult> DeleteScheduledBroadcast([FromBody] string id)
+    {
+        if (!await IsUserAdmin().ConfigureAwait(false)) return StatusCode(StatusCodes.Status403Forbidden);
+        var config = RiNnoFinPlugin.Instance?.Configuration;
+        if (config?.ScheduledBroadcasts == null) return Ok();
+        config.ScheduledBroadcasts.RemoveAll(b => b.Id == id);
+        RiNnoFinPlugin.Instance!.UpdateConfiguration(config);
+        return Ok(new { message = "Geplanter Broadcast gelöscht." });
+    }
+
+
+    [HttpPost("SendNewsletterNow")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> SendNewsletterNow()
+    {
+        if (!await IsUserAdmin().ConfigureAwait(false)) return StatusCode(StatusCodes.Status403Forbidden, new { message = "Admin-Rechte erforderlich." });
+
+        var config = RiNnoFinPlugin.Instance?.Configuration;
+        if (config == null || !config.EnableEmail)
+            return BadRequest(new { message = "E-Mail-Versand ist nicht aktiviert." });
+
+        var libraryManager = RiNnoFinPlugin.Instance?.LibraryManager;
+        if (libraryManager == null)
+            return StatusCode(500, new { message = "LibraryManager nicht verfügbar." });
+
+        try
+        {
+            var task = new Jellyfin.Plugin.RiNnoFinTelegramm.Tasks.EmailNewsletterTask(
+                _logger as Microsoft.Extensions.Logging.ILogger<Jellyfin.Plugin.RiNnoFinTelegramm.Tasks.EmailNewsletterTask> 
+                    ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<Jellyfin.Plugin.RiNnoFinTelegramm.Tasks.EmailNewsletterTask>.Instance,
+                libraryManager);
+
+            // Override: reset LastEmailNewsletterSent so all recent content is sent
+            var originalDate = config.LastEmailNewsletterSent;
+            config.LastEmailNewsletterSent = DateTime.UtcNow.AddDays(-400); // force all content
+            RiNnoFinPlugin.Instance!.UpdateConfiguration(config);
+
+            var progress = new Progress<double>();
+            await task.ExecuteAsync(progress, CancellationToken.None);
+
+            return Ok(new { message = "Newsletter erfolgreich versendet!" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Fehler beim manuellen Newsletter-Versand.");
+            return StatusCode(500, new { message = $"Fehler: {ex.Message}" });
+        }
+    }
+
     [HttpPost("UploadLogo")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -1189,4 +1310,19 @@ public static class ResetTokenManager
     }
 }
 
+public class BroadcastRequest
+{
+    public string Message { get; set; } = string.Empty;
+    public string? Subject { get; set; }
+    public bool ViaTelegram { get; set; } = true;
+    public bool ViaEmail { get; set; } = false;
+}
 
+public class ScheduleBroadcastRequest
+{
+    public string Message { get; set; } = string.Empty;
+    public string? Subject { get; set; }
+    public DateTime ScheduledAtUtc { get; set; }
+    public bool ViaTelegram { get; set; } = true;
+    public bool ViaEmail { get; set; } = false;
+}
