@@ -15,7 +15,7 @@
             <!-- Header Section -->
             <div class="sectionTitleContainer flex align-items-center" style="flex-wrap: wrap; gap: 10px;">
                 <h2 class="sectionTitle" style="margin: 0;">RiNnoFin Telegramm</h2>
-                <h3 style="margin: 0; opacity: 0.8; font-size: 1.1em;">Version: <b id="RiNnoFinVersion">1.0.4.70</b></h3>
+                <h3 style="margin: 0; opacity: 0.8; font-size: 1.1em;">Version: <b id="RiNnoFinVersion">1.0.4.71</b></h3>
             </div>
 
             
@@ -123,6 +123,56 @@
         text-align: center !important;
         padding: 10px !important;
     }
+
+    /* Mobile Table Fix for Benutzerverwaltung */
+    .tableDetail, .tableDetail thead, .tableDetail tbody, .tableDetail th, .tableDetail td, .tableDetail tr {
+        display: block !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    .tableDetail thead tr {
+        display: none !important;
+    }
+    .tableDetail tr {
+        border: 1px solid rgba(255,255,255,0.2) !important;
+        margin-bottom: 15px !important;
+        border-radius: 8px !important;
+        background: rgba(0,0,0,0.2) !important;
+        padding: 10px !important;
+    }
+    .tableDetail td {
+        border: none !important;
+        border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+        position: relative !important;
+        padding: 10px 10px 10px 45% !important;
+        text-align: left !important;
+        white-space: normal !important;
+        word-break: break-all !important;
+    }
+    .tableDetail td:last-child {
+        border-bottom: none !important;
+    }
+    .tableDetail td:before {
+        position: absolute !important;
+        top: 10px !important;
+        left: 10px !important;
+        width: 40% !important;
+        padding-right: 10px !important;
+        white-space: nowrap !important;
+        font-weight: bold !important;
+        color: #00a4dc !important;
+        text-align: left !important;
+        font-size: 13px !important;
+    }
+    .tableDetail td:nth-of-type(1) { padding-left: 10px !important; text-align: right !important; }
+    .tableDetail td:nth-of-type(1):before { content: "Auswahl"; }
+    .tableDetail td:nth-of-type(2):before { content: "Benutzername"; }
+    .tableDetail td:nth-of-type(3):before { content: "Status"; }
+    .tableDetail td:nth-of-type(4):before { content: "E-Mail"; }
+    .tableDetail td:nth-of-type(5):before { content: "Telegram"; }
+    .tableDetail td:nth-of-type(6):before { content: "Newsletter"; }
+    .tableDetail td:nth-of-type(7):before { content: "Ablaufdatum"; }
+    .tableDetail td:nth-of-type(8):before { content: "Letzter Zugriff"; }
   }
 </style>
 
