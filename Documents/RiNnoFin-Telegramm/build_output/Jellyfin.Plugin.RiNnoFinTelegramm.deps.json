@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v9.0": {
-      "Jellyfin.Plugin.RiNnoFinTelegramm/1.0.4.72": {
+      "Jellyfin.Plugin.RiNnoFinTelegramm/1.0.4.75": {
         "dependencies": {
           "ILRepack.Lib.MSBuild.Task": "2.0.44.1",
           "Jellyfin.Controller": "10.10.6",
@@ -219,7 +219,7 @@
     }
   },
   "libraries": {
-    "Jellyfin.Plugin.RiNnoFinTelegramm/1.0.4.72": {
+    "Jellyfin.Plugin.RiNnoFinTelegramm/1.0.4.75": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

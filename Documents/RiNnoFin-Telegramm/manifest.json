@@ -9,12 +9,12 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
-        "changelog": "Fix SyntaxError bug (v1.0.4.74)",
-        "version": "1.0.4.74",
-        "checksum": "8d01150a965afa3c6d8bac751564cdc0",
-        "timestamp": "2026-09-14 22:05:00",
+        "changelog": "Fix missing HTML tags caused by UI rework (v1.0.4.75)",
+        "version": "1.0.4.75",
+        "checksum": "b87c97c8408fa458fb188599644d7f00",
+        "timestamp": "2026-09-14 22:15:00",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.74.zip"
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.75.zip"
       }
     ]
   }
