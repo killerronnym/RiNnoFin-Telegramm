@@ -399,6 +399,12 @@ public class PluginConfiguration : BasePluginConfiguration
     public string HtmlTemplateLoginJs { get; set; } = string.Empty;
 
     public string ExpirationAction { get; set; } = "Disable"; // "Disable" or "Delete"
+
+    /// <summary>
+    /// Wie viele Stunden ein per E-Mail verschickter Passwort-Reset-Link gültig bleibt,
+    /// bevor er automatisch abläuft. Über die Weboberfläche (Tab "Benutzerverwaltung") einstellbar.
+    /// </summary>
+    public int PasswordResetLinkExpirationHours { get; set; } = 1;
 }
 
 public class PersistedInvite
@@ -414,6 +420,7 @@ public class PersistedResetToken
 {
     public string Token { get; set; } = string.Empty;
     public Guid JellyfinUserId { get; set; }
+    public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 }
 
 public class EmailLogEntry

@@ -60,7 +60,7 @@ public static class TelegramBotServiceExtensions
 
         await botClient.SendMessage(
             chatId,
-            "âŒ Dein Telegram-Konto ist nicht mit einem Jellyfin-Konto verknüpft.\n\n" +
+            "❌ Dein Telegram-Konto ist nicht mit einem Jellyfin-Konto verknüpft.\n\n" +
             "Bitte klicke auf den Button unten, um dich einmalig über die Jellyfin-Anmeldeseite mit Telegram SSO anzumelden und dein Konto zu verknüpfen.\n\n" +
             "*(Falls kein Button erscheint, hinterlege zuerst deine Server-Domain in den Jellyfin Plugin-Einstellungen)*",
             replyMarkup: replyMarkup,

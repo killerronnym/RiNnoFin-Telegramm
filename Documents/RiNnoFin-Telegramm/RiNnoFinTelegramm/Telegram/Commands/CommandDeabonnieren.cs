@@ -23,7 +23,7 @@ internal class CommandDeabonnieren : ICommandBase
         {
             await botClient.SendMessage(
                 message.Chat.Id,
-                "âŒ Dieser Befehl ist nur in privaten Chats verfügbar.",
+                "❌ Dieser Befehl ist nur in privaten Chats verfügbar.",
                 cancellationToken: cancellationToken);
             return;
         }

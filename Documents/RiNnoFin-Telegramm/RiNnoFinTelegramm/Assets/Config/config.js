@@ -57,6 +57,7 @@ const tgConfigPage = {
         page.querySelector("#PredefinedDeleteReasons").value = config.PredefinedDeleteReasons ?? "Verstoß gegen die Nutzungsbedingungen\nAccount längere Zeit inaktiv\nAuf eigenen Wunsch gelöscht\nSicherheitsbedenken";
         page.querySelector("#EmailTemplateNewsletterCombined").value = config.EmailTemplateNewsletterCombined ?? '';
         page.querySelector("#ExpirationAction").value = config.ExpirationAction ?? 'Disable';
+        page.querySelector("#PasswordResetLinkExpirationHours").value = config.PasswordResetLinkExpirationHours ?? 1;
 
         const subjectInvite = page.querySelector("#EmailSubjectInvite");
         if (subjectInvite) subjectInvite.value = config.EmailSubjectInvite ?? '';
@@ -717,6 +718,7 @@ const tgConfigPage = {
                 config.PredefinedDeleteReasons = (page.querySelector("#PredefinedDeleteReasons").value ?? "").trim() || undefined;
                 config.EmailTemplateNewsletterCombined = (page.querySelector("#EmailTemplateNewsletterCombined").value ?? "").trim() || undefined;
                 config.ExpirationAction = page.querySelector("#ExpirationAction").value || "Disable";
+                config.PasswordResetLinkExpirationHours = parseInt(page.querySelector("#PasswordResetLinkExpirationHours").value) || 1;
 
                 config.EmailSubjectInvite = (page.querySelector("#EmailSubjectInvite")?.value ?? "").trim() || undefined;
                 config.EmailSubjectWelcome = (page.querySelector("#EmailSubjectWelcome")?.value ?? "").trim() || undefined;

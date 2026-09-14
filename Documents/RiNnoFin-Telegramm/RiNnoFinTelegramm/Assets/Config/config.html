@@ -442,7 +442,13 @@
                             <option value="Delete">Account endgültig löschen</option>
                         </select>
                     </div>
-                    
+
+                    <div class="inputContainer" style="margin-bottom: 20px;">
+                        <label class="inputLabel" for="PasswordResetLinkExpirationHours">Gültigkeit von Passwort-Reset-Links (Stunden):</label>
+                        <input class="sso-text" id="PasswordResetLinkExpirationHours" is="emby-input" type="number" min="1" max="720" style="max-width: 300px;" placeholder="z.B. 1"/>
+                        <div class="fieldDescription">Nach Ablauf dieser Zeit wird ein per E-Mail verschickter "Passwort vergessen"-Link automatisch ungültig. Empfehlung: 1-24 Stunden.</div>
+                    </div>
+
                     <div class="action-btn-bar">
                         <button class="action-btn" id="ActionLoadAll" type="button">Load All</button>
                         <button class="action-btn btn-green" id="ActionAddUser" type="button">Benutzer hinzufügen</button>

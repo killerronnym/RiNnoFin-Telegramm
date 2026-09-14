@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -234,7 +234,7 @@ public class RiNnoFinPublicController : ControllerBase
 
         if (userLink == null || userLink.JellyfinUserId == Guid.Empty)
         {
-            return Ok(); // Aus SicherheitsgrÃ¼nden immer OK, um User-Enumeration zu verhindern
+            return BadRequest(new { message = "Die E-Mail-Adresse stimmt nicht mit dem Benutzernamen Ã¼berein oder es ist keine E-Mail hinterlegt. Bitte wenden Sie sich an einen Administrator." });
         }
 
         try
@@ -363,7 +363,7 @@ public class RiNnoFinPublicController : ControllerBase
     public async Task<IActionResult> GetPortalConfig()
     {
         var authService = HttpContext.RequestServices.GetService(typeof(MediaBrowser.Controller.Net.IAuthService)) as MediaBrowser.Controller.Net.IAuthService;
-        if (authService == null) return StatusCode(500, "AuthService nicht verfügbar");
+        if (authService == null) return StatusCode(500, "AuthService nicht verfï¿½gbar");
         
         var authInfo = await authService.Authenticate(Request).ConfigureAwait(false);
         if (authInfo == null || authInfo.UserId == Guid.Empty) return Unauthorized(new { message = "Nicht autorisiert" });
@@ -398,7 +398,7 @@ public class RiNnoFinPublicController : ControllerBase
     public async Task<IActionResult> UpdatePortalConfig([FromBody] PortalConfigUpdateRequest request)
     {
         var authService = HttpContext.RequestServices.GetService(typeof(MediaBrowser.Controller.Net.IAuthService)) as MediaBrowser.Controller.Net.IAuthService;
-        if (authService == null) return StatusCode(500, "AuthService nicht verfügbar");
+        if (authService == null) return StatusCode(500, "AuthService nicht verfï¿½gbar");
         
         var authInfo = await authService.Authenticate(Request).ConfigureAwait(false);
         if (authInfo == null || authInfo.UserId == Guid.Empty) return Unauthorized(new { message = "Nicht autorisiert" });

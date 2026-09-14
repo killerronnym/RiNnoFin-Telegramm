@@ -30,7 +30,7 @@ internal class CommandPasswort : ICommandBase
         {
             await botClient.SendMessage(
                 message.Chat.Id,
-                "âŒ Aus Sicherheitsgründen kann dieser Befehl nur in einem privaten Chat mit dem Bot verwendet werden.",
+                "❌ Aus Sicherheitsgründen kann dieser Befehl nur in einem privaten Chat mit dem Bot verwendet werden.",
                 cancellationToken: cancellationToken);
             return;
         }
@@ -84,7 +84,7 @@ internal class CommandPasswort : ICommandBase
             {
                 await botClient.SendMessage(
                     message.Chat.Id,
-                    $"âŒ Der verknüpfte Jellyfin-Benutzer '{link.JellyfinUsername}' wurde nicht gefunden.",
+                    $"❌ Der verknüpfte Jellyfin-Benutzer '{link.JellyfinUsername}' wurde nicht gefunden.",
                     cancellationToken: cancellationToken);
                 return;
             }
@@ -132,7 +132,7 @@ internal class CommandPasswort : ICommandBase
             telegramBotService.Logger.LogError(ex, "Fehler beim Ändern des Passworts für {Username}", link.JellyfinUsername);
             await botClient.SendMessage(
                 message.Chat.Id,
-                "âŒ Bei der Passwortänderung ist ein interner Fehler aufgetreten.",
+                "❌ Bei der Passwortänderung ist ein interner Fehler aufgetreten.",
                 cancellationToken: cancellationToken);
         }
     }

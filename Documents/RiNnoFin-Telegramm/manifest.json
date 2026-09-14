@@ -14,6 +14,14 @@
         "targetAbi": "10.9.0.0",
         "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.56.zip",
         "checksum": "d48c68956216d7be005ef97d934f33e6",
+        "timestamp": "2026-09-14 08:46:28"
+      },
+      {
+        "version": "1.0.4.56",
+        "changelog": "Bugfixes: Telegram-Bot Endlosschleife behoben (Inaktivitaetsschwelle auf 1 Woche erhoeht, sauberes Zuruecksetzen, weniger Log-Spam).",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.56.zip",
+        "checksum": "d48c68956216d7be005ef97d934f33e6",
         "timestamp": "2026-09-14 07:12:46"
       },
       {

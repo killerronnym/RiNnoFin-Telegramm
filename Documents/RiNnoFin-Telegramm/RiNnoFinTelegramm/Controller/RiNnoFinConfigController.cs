@@ -1129,7 +1129,8 @@ public static class ResetTokenManager
             config.PersistedResetTokens.Add(new PersistedResetToken
             {
                 Token = token,
-                JellyfinUserId = jellyfinUserId
+                JellyfinUserId = jellyfinUserId,
+                CreatedAtUtc = DateTime.UtcNow
             });
             RiNnoFinPlugin.Instance?.SaveConfiguration(config);
             PluginLog.Info($"[ResetTokenManager] Passwort-Reset-Token für User ID '{jellyfinUserId}' hinzugefügt und persistiert.");
@@ -1141,6 +1142,20 @@ public static class ResetTokenManager
         jellyfinUserId = Guid.Empty;
         var config = RiNnoFinPlugin.Instance?.Configuration;
         if (config == null || config.PersistedResetTokens == null) return false;
+
+        // Abgelaufene Tokens bei der Gelegenheit gleich mit aufräumen, damit die Liste nicht unbegrenzt wächst.
+        var expirationHours = config.PasswordResetLinkExpirationHours > 0 ? config.PasswordResetLinkExpirationHours : 1;
+        var cutoff = DateTime.UtcNow.AddHours(-expirationHours);
+        var expiredTokens = config.PersistedResetTokens.Where(t => t.CreatedAtUtc < cutoff).ToList();
+        if (expiredTokens.Count > 0)
+        {
+            foreach (var expired in expiredTokens)
+            {
+                config.PersistedResetTokens.Remove(expired);
+            }
+            RiNnoFinPlugin.Instance?.SaveConfiguration(config);
+            PluginLog.Info($"[ResetTokenManager] {expiredTokens.Count} abgelaufene(s) Passwort-Reset-Token(s) entfernt.");
+        }
 
         var resetToken = config.PersistedResetTokens.FirstOrDefault(t => t.Token == token);
         if (resetToken == null) return false;
