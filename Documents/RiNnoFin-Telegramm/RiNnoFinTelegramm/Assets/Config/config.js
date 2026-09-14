@@ -4,11 +4,6 @@ function getApiClient() {
     return window.ApiClient || (window.ServerConnections && window.ServerConnections.currentApiClient && window.ServerConnections.currentApiClient());
 }
 
-const tgTokenHelper = {
-    currentUserName: "Lade...",
-    currentToken: ""
-};
-
 const tgConfigPage = {
     pluginUniqueId: "9e1d84f2-901d-44a6-ba92-7fcf1a5598ba",
 
