@@ -6,7 +6,7 @@
 </head>
 <body>
 <div class="page type-interior pluginConfigurationPage rinnofin-page"
-     data-controller="__plugin/RiNnoFinTelegramm_v10465.js"
+     data-controller="__plugin/RiNnoFinTelegramm_v10466.js"
      data-require="emby-input,emby-button,emby-select,emby-checkbox,listViewStyle,paper-icon-button"
      data-role="page"
      id="rinnofin-config-page">
@@ -15,7 +15,7 @@
             <!-- Header Section -->
             <div class="sectionTitleContainer flex align-items-center" style="flex-wrap: wrap; gap: 10px;">
                 <h2 class="sectionTitle" style="margin: 0;">RiNnoFin Telegramm</h2>
-                <h3 style="margin: 0; opacity: 0.8; font-size: 1.1em;">Version: <b id="RiNnoFinVersion">1.0.4.65</b></h3>
+                <h3 style="margin: 0; opacity: 0.8; font-size: 1.1em;">Version: <b id="RiNnoFinVersion">1.0.4.66</b></h3>
             </div>
 
             
@@ -1232,10 +1232,15 @@
             </fieldset>
         </div>
         <!-- ========== ENDE BROADCAST TAB ========== -->
+    </div> <!-- rinnofin-content -->
+</div> <!-- rinnofin-layout -->
+</div> <!-- verticalSection -->
+</div> <!-- content-primary -->
+</div> <!-- page -->
 
 <script>
 (function() {
-    function initInlineTabs() {
+    function initTabsAndData() {
         const root = document.querySelector('#rinnofin-config-page') || document;
         const menuItems = root.querySelectorAll('.rinnofin-menu-item');
         menuItems.forEach(function(item) {
@@ -1254,16 +1259,23 @@
                 }
             });
         });
+
+        // Trigger configuration & user loading
+        if (window.tgConfigPage && typeof window.tgConfigPage.loadConfiguration === 'function') {
+            window.tgConfigPage.loadConfiguration(root);
+        } else if (window.tgConfigPage && typeof window.tgConfigPage.loadUsers === 'function') {
+            window.tgConfigPage.loadUsers(root);
+        }
     }
 
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initInlineTabs);
+        document.addEventListener('DOMContentLoaded', initTabsAndData);
     } else {
-        initInlineTabs();
+        initTabsAndData();
     }
-    setTimeout(initInlineTabs, 200);
-    setTimeout(initInlineTabs, 800);
-    setTimeout(initInlineTabs, 2000);
+    setTimeout(initTabsAndData, 150);
+    setTimeout(initTabsAndData, 600);
+    setTimeout(initTabsAndData, 1500);
 })();
 </script>
 

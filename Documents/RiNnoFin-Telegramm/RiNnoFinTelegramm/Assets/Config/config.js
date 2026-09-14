@@ -230,19 +230,22 @@ const tgConfigPage = {
             ? apiClient.getUrl("/api/RiNnoFinConfig/GetUsers")
             : "/api/RiNnoFinConfig/GetUsers";
         
-        const headers = {};
-        if (apiClient) {
-            try {
-                if (typeof apiClient.getAuthorizationHeader === 'function') {
-                    headers['Authorization'] = apiClient.getAuthorizationHeader();
-                } else if (apiClient._authHeader) {
-                    headers['Authorization'] = apiClient._authHeader;
-                }
-            } catch(e) {}
+        let token = "";
+        try {
+            if (apiClient && typeof apiClient.accessToken === 'function') {
+                token = apiClient.accessToken();
+            } else if (apiClient && apiClient._accessToken) {
+                token = apiClient._accessToken;
+            }
+        } catch(e) {}
+
+        const headers = { 'Accept': 'application/json' };
+        if (token) {
+            headers['X-Emby-Token'] = token;
         }
         
         const doFetchFallback = () => {
-            fetch(url, { headers: { 'Accept': 'application/json' } })
+            fetch(url, { headers: headers })
                 .then(r => r.json())
                 .then(users => {
                     if (Array.isArray(users)) tgConfigPage.populateUsers(page, users);
@@ -347,7 +350,8 @@ const tgConfigPage = {
     },
 
     populateUsers: (page, users) => {
-        const tbody = page.querySelector("#UserListTbody");
+        const tbody = (page && page.querySelector) ? page.querySelector("#UserListTbody") : document.querySelector("#UserListTbody");
+        if (!tbody) return;
         tbody.innerHTML = "";
         try {
         
@@ -1236,6 +1240,8 @@ const tgTokenHelper = {
         }
     }
 }
+
+window.tgConfigPage = tgConfigPage;
 
     return function rinnofinController(view, params) {
         if (!view) view = document.querySelector('#rinnofin-config-page') || document;
