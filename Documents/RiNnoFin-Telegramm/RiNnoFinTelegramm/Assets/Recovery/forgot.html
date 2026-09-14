@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+    <title>RiNnoFin - Passwort vergessen</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet" />
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: #050505;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(225,39%,30%,0.2) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(339,49%,30%,0.2) 0, transparent 50%);
+            background-attachment: fixed;
+            background-size: cover;
+            background-position: center;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .glass-card {
+            background: rgba(25, 25, 35, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 460px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header img {
+            max-height: 60px;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: #9ca3af;
+            font-weight: 300;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: #d1d5db;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group input[type="text"],
+        .input-group input[type="email"] {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #6366f1;
+            background: rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .btn-submit:disabled {
+            background: #4b5563;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #9ca3af;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 500;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid #ef4444;
+            color: #fca5a5;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .success-state {
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .success-icon {
+            font-size: 64px;
+            color: #10b981;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="glass-card" id="mainCard">
+    <div class="header" id="header">
+        <img src="/sso/Telegram/RiNnoFinLogo.png" onerror="this.src='https://raw.githubusercontent.com/jellyfin/jellyfin-ux/master/branding/logowhite.png'" alt="Logo" id="brandLogo">
+        <h1>Passwort vergessen</h1>
+        <p>Gib deine E-Mail und deinen Benutzernamen ein, um einen Reset-Link zu erhalten.</p>
+    </div>
+
+    <form id="forgotForm">
+        <div class="input-group">
+            <label for="username">Benutzername</label>
+            <input type="text" id="username" placeholder="Dein Jellyfin Name" required autocomplete="username">
+        </div>
+
+        <div class="input-group">
+            <label for="email">E-Mail-Adresse</label>
+            <input type="email" id="email" placeholder="name@beispiel.de" required autocomplete="email">
+        </div>
+
+        <button type="submit" class="btn-submit" id="submitBtn">Link anfordern</button>
+        <a href="/web/index.html#!/login.html" class="btn-back">
+            <span class="material-symbols-outlined" style="font-size: 18px;">arrow_back</span>
+            Zurück zur Anmeldung
+        </a>
+
+        <div class="error-message" id="errorMsg"></div>
+    </form>
+
+    <div class="success-state" id="successState">
+        <span class="material-symbols-outlined success-icon">mail</span>
+        <h1 style="font-size: 24px; font-weight: 600; margin-bottom: 10px;">Link gesendet!</h1>
+        <p style="color: #9ca3af; font-size: 14px; margin-bottom: 25px; line-height: 1.6;">Falls ein Account mit dieser E-Mail-Adresse existiert, haben wir dir einen Link zum Zurücksetzen deines Passworts gesendet.</p>
+        
+        <a href="/web/index.html" class="btn-submit" style="display: block; text-align: center; text-decoration: none;">Verstanden</a>
+    </div>
+</div>
+
+<script>
+    document.getElementById('forgotForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const email = document.getElementById('email').value;
+        const username = document.getElementById('username').value;
+        const errorMsg = document.getElementById('errorMsg');
+        const submitBtn = document.getElementById('submitBtn');
+
+        errorMsg.style.display = 'none';
+        submitBtn.innerText = "Bitte warten...";
+        submitBtn.disabled = true;
+
+        try {
+            const response = await fetch('/api/RiNnoFinPublic/RequestPasswordReset', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ Username: username, Email: email })
+            });
+
+            if (response.ok) {
+                document.getElementById('forgotForm').style.display = 'none';
+                document.getElementById('header').style.display = 'none';
+                document.getElementById('successState').style.display = 'block';
+            } else {
+                let errorText = "Fehler bei der Anforderung.";
+                const text = await response.text();
+                try {
+                    const data = JSON.parse(text);
+                    if(data.message) errorText = data.message;
+                } catch(e) {
+                    if(text) errorText = text;
+                }
+                throw new Error(errorText);
+            }
+        } catch (err) {
+            errorMsg.innerText = err.message;
+            errorMsg.style.display = 'block';
+            submitBtn.innerText = "Link anfordern";
+            submitBtn.disabled = false;
+        }
+    });
+</script>
+</body>
+</html>

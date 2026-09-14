@@ -1,0 +1,109 @@
+[
+  {
+    "category": "Integration",
+    "guid": "9e1d84f2-901d-44a6-ba92-7fcf1a5598ba",
+    "name": "RiNnoFin Telegramm",
+    "description": "Telegram-Integration für Jellyfin mit SSO-Anmeldung, Passwortänderung, Medien-Newsletter und Request-Management.",
+    "owner": "Ronny",
+    "overview": "RiNnoFin Telegramm verbindet Jellyfin mit Telegram. Ermöglicht Benutzern die Anmeldung via Telegram SSO, Passwortänderungen im Chat, das Abonnieren von Medien-Newslettern für neue Filme, Serien & Musik, sowie das Einrichten von Gruppenordnern und das Einreichen von Medien-Anfragen.",
+    "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
+    "versions": [
+      {
+        "version": "1.0.4.56",
+        "changelog": "Bugfixes: Telegram-Bot Endlosschleife behoben (Inaktivitaetsschwelle auf 1 Woche erhoeht, sauberes Zuruecksetzen, weniger Log-Spam).",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.56.zip",
+        "checksum": "d48c68956216d7be005ef97d934f33e6",
+        "timestamp": "2026-09-14 07:12:46"
+      },
+      {
+        "version": "1.0.4.55",
+        "changelog": "Self-Service Portal implementiert, Syntax-Fehler behoben und Dashboard UI Stabilität optimiert.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm.zip",
+        "checksum": "88a4e34b08876720e55945b9dc91e5bf",
+        "timestamp": "2026-06-15 15:56:25"
+      },
+      {
+        "version": "1.0.4.46",
+        "changelog": "UI-Update: Die vordefinierten Begründungen für das Deaktivieren und Löschen von Accounts wurden aus der E-Mail-Konfiguration ausgelagert und haben nun einen eigenen, dedizierten Tab 'Definierte Nachrichten' im Plugin-Dashboard erhalten. Dies sorgt für eine bessere Übersichtlichkeit in der Verwaltungsoberfläche.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.46.zip",
+        "checksum": "779507763c6fd20c9b81cdb739a244ec",
+        "timestamp": "2026-06-12 14:00:00"
+      },
+      {
+        "version": "1.0.4.45",
+        "changelog": "Neue Funktion: Vordefinierte Deaktivierungs- und Löschgründe. Administratoren können im Plugin-Dashboard jetzt eigene, vordefinierte Begründungen anlegen. Bei der Aktion 'Deaktivieren' oder 'Löschen' öffnet sich nun ein modernes Auswahlfenster, in dem man bequem einen der vorgefertigten Gründe auswählen oder weiterhin einen eigenen, individuellen Text schreiben kann.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.45.zip",
+        "checksum": "9f90f686aa8a3b6f49a9acbbfacd5f43",
+        "timestamp": "2026-06-12 13:55:00"
+      },
+      {
+        "version": "1.0.4.44",
+        "changelog": "UI-Update: Die Willkommens-E-Mail (Standard) enthält nun einen echten Login-Button. Administratoren können für ihre eigenen Vorlagen jetzt den neuen Platzhalter `{loginLink}` verwenden, welcher direkt zum Web-Interface leitet. Zusätzlich wurde das CSS für das Passwort-Reset-Formular angepasst, sodass alle Eingabefelder (auch Benutzername & E-Mail) nun wieder korrekt das dunkle Jellyfin-Theme übernehmen und nicht mehr weiß-auf-schwarz angezeigt werden.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.44.zip",
+        "checksum": "2df8b1438a86efce0a950a40c4fcf8b2",
+        "timestamp": "2026-06-12 13:36:00"
+      },
+      {
+        "version": "1.0.4.43",
+        "changelog": "Fehlerbehebung: Die doppelte Versendung der Einladungs-E-Mail durch wiederholte Event-Listener im Javascript wurde korrigiert. Der Passwort-Reset und die initiale Passworterstellung fragen nun visuell nach dem Benutzernamen und der E-Mail (wie es das Backend erfordert). Zudem wurde das Verhalten von `{reason}` bei der Deaktivierungs- und Lösch-E-Mail korrigiert: Es wird nun korrekt in der Vorlage platziert anstatt roh angehängt.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.43.zip",
+        "checksum": "421686675ee7d16807eb17cd3cf58428",
+        "timestamp": "2026-06-12 13:26:00"
+      },
+      {
+        "version": "1.0.4.42",
+        "changelog": "Benutzererstellung & E-Mail Workflow: Wenn Administratoren im Dashboard Benutzer einladen und dabei einen Benutzernamen vorausfüllen, wird der Jellyfin-Account nun NICHT mehr sofort erstellt, sondern der Benutzername wird an den Einladungs-Link übergeben. Der Nutzer kann den Namen noch anpassen und der Account wird erst bei Passwortvergabe (im Registrierungs-Flow) generiert. Es wird ab sofort immer nur noch EINE einzelne Einladungs-E-Mail versendet, statt einer Kombination aus Kontoerstellungs- und Passwort-Reset-Mail.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.42.zip",
+        "checksum": "0e049cc9f24a8bc8543469a52cadc28c",
+        "timestamp": "2026-06-12 13:16:00"
+      },
+      {
+        "version": "1.0.4.41",
+        "changelog": "Fehlerbehebung & Robustheit in der Benutzerverwaltung: Behebt das Problem, dass die Benutzerliste nicht geladen wurde (automatisches Vorladen beim Aufrufen der Seite und verbesserte Case-Insensitivity für Jellyfin-Objekteigenschaften). SSO HTML-Vorlagen werden nun automatisch mit Standard-Designs befüllt, wenn sie in der Konfiguration leer sind.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.41.zip",
+        "checksum": "00bd883ea301c9ea2817d357818c5638",
+        "timestamp": "2026-06-12 13:00:00"
+      },
+      {
+        "version": "1.0.4.40",
+        "changelog": "UI-Reorganisation & Professionalisierung: Die Benutzerverwaltung wurde an die erste Position verschoben und ist nun standardmäßig aktiv. Hilfreiche Info-Banner wurden auf allen Einstellungs-Tabs hinzugefügt. E-Mail-Vorlagen wurden visuell voneinander getrennt und bieten nun direkt Inline-Test-Buttons und eine Live-Vorschau. Ein neuer Tab für HTML-Vorlagen wurde hinzugefügt, über den die SSO-Seiten angepasst und im Sandbox-Iframe getestet oder auf den Standard zurückgesetzt werden können.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.40.zip",
+        "checksum": "ae21ce21218d15eaec1fda971c33f836",
+        "timestamp": "2026-06-12 12:55:00"
+      },
+      {
+        "version": "1.0.4.39",
+        "changelog": "Hotfix: Behebt den massiven Fehler (SyntaxError in Javascript), der dazu führte, dass die Plugin-Einstellungen gar nicht geladen wurden (Anzeige: 'Bitte aktiviere JavaScript'). Das Bedienfeld und alle Tabs funktionieren nun wieder einwandfrei.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.39.zip",
+        "checksum": "a4fecc0a35b846ee1f4fc35623db7cad",
+        "timestamp": "2026-06-12 10:40:00"
+      },
+      {
+        "version": "1.0.4.38",
+        "changelog": "Hotfix: Behebt das Problem, dass die Tabs und Buttons im Bedienfeld (Benutzerverwaltung, Gruppenverwaltung, etc.) nicht mehr reagierten. Der Fehler wurde durch einen JavaScript-Referenzfehler auf den Jellyfin ApiClient verursacht, welcher durch das letzte Update fehlte.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.38.zip",
+        "checksum": "d84e22192acd6e7b97f8605cbc5f377a",
+        "timestamp": "2026-06-12 10:30:00"
+      },
+      {
+        "version": "1.0.4.37",
+        "changelog": "Newsletter Verwaltung Update: Administratoren können ab sofort die Newsletter-Abonnements (E-Mail & Telegram) für einzelne Nutzer direkt im Dashboard über 'Bearbeiten' (Zahnrad-Symbol) manuell setzen. Zudem wurde der Fehler behoben, dass Nutzer als 'mit Telegram verknüpft' angezeigt wurden, obwohl noch keine aktive Bot-Verbindung bestand.",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.37.zip",
+        "checksum": "d7b6b84b859ff5ec0403c37ecc6f95ef",
+        "timestamp": "2026-06-11 12:20:00"
+      }
+    ]
+  }
+]

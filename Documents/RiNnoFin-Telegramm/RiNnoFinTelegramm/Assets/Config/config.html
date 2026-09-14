@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+    <title>RiNnoFin Telegramm Plugin</title>
+</head>
+<body>
+<div class="page type-interior pluginConfigurationPage rinnofin-page"
+     data-controller="__plugin/RiNnoFinTelegramm_v10453.js"
+     data-require="emby-input,emby-button,emby-select,emby-checkbox,listViewStyle,paper-icon-button"
+     data-role="page"
+     id="rinnofin-config-page">
+    <div data-role="content">
+        <div class="content-primary">
+
+            <!-- Header Section -->
+            <div class="sectionTitleContainer flex align-items-center">
+                <h2 class="sectionTitle">RiNnoFin Telegramm</h2>
+                <h3>Version: <b id="RiNnoFinVersion">1.0.4.53</b></h3>
+            </div>
+
+            
+<style>
+  .rinnofin-layout { display: flex; flex-direction: row; min-height: 80vh; margin-top: 10px; }
+  .rinnofin-sidebar { width: 250px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 15px; flex-shrink: 0; }
+  .rinnofin-content { flex: 1; padding-left: 20px; overflow-x: auto; }
+  .rinnofin-tab { display: none; }
+  .rinnofin-tab.active { display: block; }
+  .rinnofin-menu-item { padding: 10px 15px; margin-bottom: 5px; cursor: pointer; border-radius: 4px; transition: background 0.2s; }
+  .rinnofin-menu-item:hover { background: rgba(255,255,255,0.05); }
+  .rinnofin-menu-item.active { background: #00a4dc; color: #fff; font-weight: bold; }
+  .action-btn-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; }
+  .action-btn { background: #374151; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
+  .action-btn:hover { background: #4b5563; }
+  .action-btn.btn-green { background: #10b981; } .action-btn.btn-green:hover { background: #059669; }
+  .action-btn.btn-red { background: #ef4444; } .action-btn.btn-red:hover { background: #dc2626; }
+  .action-btn.btn-blue { background: #3b82f6; } .action-btn.btn-blue:hover { background: #2563eb; }
+  .action-btn.btn-yellow { background: #f59e0b; } .action-btn.btn-yellow:hover { background: #d97706; }
+  .action-btn.btn-purple { background: #8b5cf6; } .action-btn.btn-purple:hover { background: #7c3aed; }
+  
+  .rinnofin-info-banner {
+      background: rgba(0, 164, 220, 0.1);
+      border-left: 4px solid #00a4dc;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+      font-size: 14px;
+      line-height: 1.5;
+  }
+  .rinnofin-info-banner h4 {
+      margin: 0 0 8px 0;
+      color: #00a4dc;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 16px;
+  }
+  .rinnofin-info-banner p {
+      margin: 0;
+  }
+
+  /* Mobile: die feste 250px-Sidebar frisst auf Handys fast den ganzen
+     Bildschirm und schneidet den Inhalt rechts ab. Ab hier wird die
+     Sidebar zu einer horizontal scrollbaren Reiterleiste oben, damit
+     der Inhalt darunter die volle Breite bekommt. */
+  @media (max-width: 780px) {
+    .rinnofin-layout {
+        flex-direction: column;
+        min-height: 0;
+    }
+    .rinnofin-sidebar {
+        width: 100%;
+        display: flex;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-right: none;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding-right: 0;
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+    }
+    .rinnofin-menu-item {
+        flex-shrink: 0;
+        white-space: nowrap;
+        margin-bottom: 0;
+        margin-right: 6px;
+    }
+    .rinnofin-content {
+        padding-left: 0;
+        overflow-x: hidden;
+    }
+  }
+</style>
+
+<div class="rinnofin-layout">
+    <div class="rinnofin-sidebar" id="rinnofin-sidebar-menu">
+        <div class="rinnofin-menu-item active" data-tab="tab-users">👥 Benutzerverwaltung</div>
+        <div class="rinnofin-menu-item" data-tab="tab-general">🔌 Telegram & Allgemein</div>
+        <div class="rinnofin-menu-item" data-tab="tab-groups">👥 Gruppenverwaltung</div>
+        <div class="rinnofin-menu-item" data-tab="tab-user-settings">⚙️ Benutzereinstellungen</div>
+        <div class="rinnofin-menu-item" data-tab="tab-email">📧 E-Mail-Einstellungen</div>
+        <div class="rinnofin-menu-item" data-tab="tab-html-templates">🌐 HTML-Vorlagen</div>
+        <div class="rinnofin-menu-item" data-tab="tab-predefined-messages">💬 Definierte Nachrichten</div>
+        <div class="rinnofin-menu-item" data-tab="tab-messages">✉️ Verlauf & Anfragen</div>
+        <div class="rinnofin-menu-item" data-tab="tab-email-logs">📨 E-Mail-Protokoll</div>
+        <div class="rinnofin-menu-item" data-tab="tab-logs">📋 Protokoll (Logs)</div>
+    </div>
+    
+    <div class="rinnofin-content">
+
+        <div id="tab-general" class="rinnofin-tab">
+            <div class="rinnofin-info-banner">
+                <h4>🔌 Telegram & Allgemein</h4>
+                <p>Richte die Verbindung zu deinem Telegram-Bot ein. Der Bot ermöglicht deinen Benutzern die automatische Registrierung (SSO), das Zurücksetzen von Passwörtern und den Empfang von Benachrichtigungen. Voraussetzungen: Ein Bot-Token von @BotFather und eine öffentlich erreichbare Jellyfin-Domain.</p>
+            </div>
+            <div class="block">
+                    <form id="InfoSectionForm">
+                        <fieldset class="verticalSection">
+                            <legend><h3>Allgemeine Informationen</h3></legend>
+                            <p>
+                                <i>Hinweis:</i>
+                                Dieses Plugin ist freie Open-Source-Software. Es wird keine Haftung für Schäden oder Fehlfunktionen übernommen.
+                            </p>
+
+                            <strong>Voraussetzungen:</strong>
+                            <ul>
+                                <li>Benutzer müssen einen Telegram-Benutzernamen besitzen, um sich via SSO anzumelden.</li>
+                                <li>Ein Telegram-Bot-Token ist erforderlich, um die Authentifizierung durchzuführen.</li>
+                                <li>Eine öffentlich erreichbare Domain mit gültigem SSL-Zertifikat wird für das Login-Widget benötigt.</li>
+                                <li>Den Bot-Token erhältst du beim offiziellen Bot <a class="button-link emby-button" href="https://t.me/Botfather" is="emby-linkbutton" target="_blank">@BotFather</a>.</li>
+                                <li>Verwende den Befehl <i>/setdomain</i> im Chat mit @BotFather, um deine Jellyfin-Domain für den Bot freizugeben.</li>
+                                <li>Ein Telegram-Benutzer muss Jellyfin-Administrator sein oder mindestens einer berechtigten Telegram-Gruppe angehören, um sich anzumelden.</li>
+                            </ul>
+
+                            <strong>Kurzanleitung:</strong>
+                            <ol>
+                                <li>Trage unten dein Telegram-Bot-Token ein und klicke auf "Konfiguration speichern".</li>
+                                <li>Erstelle eine Gruppe im Bereich "Gruppenverwaltung" (z.B. "Freunde") und klicke auf "Hinzufügen".</li>
+                                <li>Wähle die Gruppe in der Liste aus.</li>
+                                <li>Wähle die Bibliotheken, auf die diese Gruppe Zugriff erhalten soll.</li>
+                                <li>Trage die Telegram-Benutzernamen der Mitglieder ein (einer pro Zeile).</li>
+                                <li>Speichere die Gruppen über "Gruppen speichern".</li>
+                            </ol>
+                        </fieldset>
+                    </form>
+                </div>
+            <div class="block">
+                    <form id="BrandingSectionForm">
+                        <fieldset class="verticalSection">
+                            <legend><h3>Branding-Informationen</h3></legend>
+                            <strong>
+                                Telegram Login-Seite URL:
+                                <a class="button-link" id="SSOTelegramLoginUrl" is="emby-linkbutton" target="_blank"></a>
+                            </strong>
+                            <br/>
+                            <p>
+                                Du kannst diesen Link an deine Benutzer senden oder ihn direkt in das Jellyfin-Web-Branding einbinden. Kopiere dazu einfach den folgenden HTML-Code:
+                            </p>
+                            <div id="ExampleBranding">Bitte aktiviere JavaScript.</div>
+                            <pre id="ExampleBrandingCode">Bitte aktiviere JavaScript.</pre>
+                            <p>
+                                Den kopierten Code kannst du im Jellyfin-Dashboard unter:
+                                <a class="button-link emby-button" href="/web/#/dashboard/branding" target="_blank">Dashboard -> Branding -> Custom HTML</a> einfügen.
+                            </p>
+                        </fieldset>
+                    </form>
+                </div>
+            <div class="block">
+                    <form id="BasicConfigForm">
+                        <fieldset class="verticalSection">
+                            <legend><h3>Allgemeine Konfiguration</h3></legend>
+                            <div class="inputContainer bot-token-input">
+                                <div>
+                                    <label class="inputLabel inputLabelUnfocused" for="TgBotToken">Telegram Bot Token:</label>
+                                    <div style="display: flex; gap: 10px;">
+                                        <input class="sso-text" id="TgBotToken" is="emby-input" maxlength="200" required="required" type="password" style="flex: 1;" />
+                                        <button class="raised button-alt emby-button" id="TestTokenBtn" is="emby-button" type="button" style="margin: 0; padding: 0.5em 1em;">
+                                            <span>Token testen</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <a class="button-link" id="show-hide-token" is="emby-linkbutton" target="_blank" style="margin-top: 5px;">
+                                    <p>Anzeigen / Ausblenden</p>
+                                </a>
+                                <div class="fieldDescription">
+                                    <div class="paperlist">
+                                        <p>Telegram Bot Verbindungsstatus:</p>
+                                        <p id="TgBotUsername"></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Enable Bot Service -->
+                            <div class="inputContainer">
+                                <label>
+                                    <input id="EnableBotService"
+                                           is="emby-checkbox"
+                                           type="checkbox"/>
+                                    <span>Telegram Bot Hintergrunddienst aktivieren</span>
+                                </label>
+                                <div class="fieldDescription">
+                                    Steuert, ob der Telegram-Bot im Hintergrund aktiv ist, um auf Nachrichten und Befehle zu lauschen. (Zum Neustarten Haken entfernen, speichern und wieder aktivieren).
+                                </div>
+                            </div>
+
+                            <!-- LoginBaseUrl -->
+                            <div class="inputContainer">
+                                <div>
+                                    <label class="inputLabel inputLabelUnfocused" for="LoginBaseUrl">Server-Domain & Basis-URL:</label>
+                                    <input class="sso-text" id="LoginBaseUrl" is="emby-input" maxlength="200" type="url"/>
+                                    <div class="fieldDescription">
+                                        Die öffentliche Adresse deines Servers (z.B. https://jellyfin.mein-domain.de). Muss mit der Domain übereinstimmen, die bei @BotFather mit /setdomain konfiguriert wurde.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Administrators List -->
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused" for="TgAdministrators">Administratoren (Telegram-Usernames):</label>
+                                <textarea class="sso-line-list emby-textarea"
+                                          id="TgAdministrators"
+                                          is="emby-textarea"
+                                          maxlength="500"
+                                          onkeyup="this.value=this.value.replace('@', '').replace('https://t.me/', '')"
+                                          type="text"></textarea>
+                                <div class="fieldDescription">
+                                    Eine Liste von Telegram-Benutzernamen, die beim Login automatisch Jellyfin-Administratorrechte erhalten sollen (einer pro Zeile).
+                                </div>
+                            </div>
+
+
+
+                            <!-- Forced URL Scheme -->
+                            <div class="inputContainer">
+                                <div>
+                                    <label class="inputLabel inputLabelUnfocused" for="ForcedUrlScheme">
+                                        Protokoll-Schema (HTTP/HTTPS) erzwingen?
+                                    </label>
+                                    <select class="emby-select-withcolor emby-select" id="ForcedUrlScheme">
+                                        <option value="none">Keines</option>
+                                        <option value="https">Sicher (https://)</option>
+                                        <option value="http">Unsicher (http://)</option>
+                                    </select>
+                                </div>
+                                <div class="fieldDescription checkboxFieldDescription">
+                                    Hilfreich, wenn dein Jellyfin hinter einem Reverse Proxy betrieben wird, welcher SSL-Terminierung durchführt (z.B. Traefik/Nginx). Wenn unsicher, wähle "Keines".
+                                </div>
+                            </div>
+                            
+                            <!-- SSO Logo Customization -->
+                            <div class="inputContainer">
+                                <h3 class="checkboxListLabel" style="margin-top: 1.5em; font-size: 1.2em;">Benutzerdefiniertes SSO Logo</h3>
+                                <div style="display: flex; flex-direction: row; gap: 10px; align-items: center; margin-top: 0.5em;">
+                                    <input type="file" id="logoUpload" accept="image/png, image/jpeg" style="flex-grow: 1;" class="emby-input" />
+                                    <button id="btnUploadLogo" type="button" is="emby-button" class="raised button-submit block emby-button" style="width: auto;">Hochladen</button>
+                                    <button id="btnResetLogo" type="button" is="emby-button" class="raised button-cancel block emby-button" style="width: auto;">Zurücksetzen</button>
+                                </div>
+                                <div class="fieldDescription">Lade ein eigenes Bild (PNG, JPG) hoch, das auf der Login- und Einladungsseite angezeigt wird, oder setze es auf das Standardlogo zurück.</div>
+                            </div>
+
+                            <button class="raised button-submit block emby-button"
+                                    id="SaveConfig"
+                                    is="emby-button"
+                                    type="button">
+                                <span>Konfiguration speichern</span>
+                            </button>
+                        </fieldset>
+                    </form>
+                </div>
+        </div>
+        <div id="tab-groups" class="rinnofin-tab">
+            <div class="rinnofin-info-banner">
+                <h4>👥 Gruppenverwaltung</h4>
+                <p>Verwalte Telegram-Gruppen, die mit deinem Jellyfin-Server verknüpft sind. Mitglieder verknüpfter Gruppen erhalten automatisch Zugriff auf definierte Jellyfin-Bibliotheken. Du kannst auch automatische Quiz-Fragen aktivieren, um die Interaktion in der Gruppe zu fördern.</p>
+            </div>
+            <div class="block">
+                    <form id="GroupManagementForm">
+                        <fieldset class="verticalSection">
+                            <legend><h3>Gruppenverwaltung</h3></legend>
+
+                            <div class="group-management">
+                                <div class="grid-4-columns">
+                                    <!-- Groups -->
+                                    <div class="group-column">
+                                        <div class="column-header">Gruppen</div>
+                                        <div class="group-input-row">
+                                            <input class="sso-text"
+                                                   id="TgGroupName"
+                                                   is="emby-input"
+                                                   maxlength="32"
+                                                   minlength="3"
+                                                   onkeyup="this.value=this.value.replace(/[^a-zA-Z0-9_\-]/g, '')"
+                                                   placeholder="Neuer Gruppenname"
+                                                   type="text"/>
+                                            <button class="button-submit emby-button"
+                                                    id="AddGroup"
+                                                    is="emby-button"
+                                                    type="button">
+                                                <span>Neu</span>
+                                            </button>
+                                        </div>
+
+                                        <div class="group-list" id="TgBotGroupList">
+                                            <!-- Dynamically filled -->
+                                        </div>
+
+                                        <button class="raised button-delete block emby-button"
+                                                id="DeleteGroup"
+                                                is="emby-button"
+                                                type="button">
+                                            <span>Gruppe löschen</span>
+                                        </button>
+                                    </div>
+
+                                    <!-- Libraries -->
+                                    <div class="group-column">
+                                        <div class="column-header">Medienbibliotheken</div>
+                                        <label>
+                                            <input id="EnableAllFolders"
+                                                   is="emby-checkbox"
+                                                   type="checkbox"/>
+                                            <span>Alle Bibliotheken freigeben</span>
+                                        </label>
+                                        <div class="folder-list checkboxList paperList checkboxList-paperList"
+                                             id="EnabledFolders">
+                                            <!-- Dynamically filled -->
+                                        </div>
+                                    </div>
+
+                                    <!-- Telegram Usernames -->
+                                    <div class="group-column">
+                                        <div class="column-header">Telegram-Mitglieder</div>
+                                        <textarea class="username-list sso-line-list emby-textarea"
+                                                  id="UserNames"
+                                                  is="emby-textarea"
+                                                  onkeyup="this.value=this.value.replace('@', '').replace('https://t.me/', '')"
+                                                  placeholder="Telegram-Benutzernamen, einer pro Zeile"></textarea>
+                                    </div>
+
+                                    <!-- Telegram Settings -->
+                                    <div class="group-column">
+                                        <div class="column-header">Telegram Einstellungen</div>
+                                        
+                                        <div class="inputContainer">
+                                            <label class="inputLabel" for="LinkedTelegramGroupIdInput">Verknüpfter Chat/Gruppe (Telegram Chat ID):</label>
+                                            <input class="sso-text" id="LinkedTelegramGroupIdInput" is="emby-input" type="text" placeholder="Keine (z.B. -100123456789)"/>
+                                        </div>
+
+                                        <a class="button-link emby-button" href="#INVALID_BOT_TOKEN" id="BotLinkCommandUrl" target="_blank">Gruppe mit Telegram verknüpfen (/link)</a>
+                                        
+                                        <div class="inputContainer" style="margin-top: 1em;">
+                                            <label class="inputLabel" for="ContentTopicId">Topic ID für neue Medien (Optional):</label>
+                                            <input class="sso-text" id="ContentTopicId" is="emby-input" type="number" placeholder="z.B. 1234"/>
+                                        </div>
+
+                                        <div class="inputContainer">
+                                            <label class="inputLabel" for="QuizTopicId">Topic ID für Quizbot (Optional):</label>
+                                            <input class="sso-text" id="QuizTopicId" is="emby-input" type="number" placeholder="z.B. 5678"/>
+                                        </div>
+
+                                        <label>
+                                            <input id="SyncUserNames"
+                                                   is="emby-checkbox"
+                                                   type="checkbox"/>
+                                            <span>Benutzernamen synchronisieren</span>
+                                        </label>
+                                        <label>
+                                            <input id="NotifyNewContent"
+                                                   is="emby-checkbox"
+                                                   type="checkbox"/>
+                                            <span>Über neue Medien benachrichtigen</span>
+                                        </label>
+                                        <label>
+                                            <input id="AllowRequests"
+                                                   is="emby-checkbox"
+                                                   type="checkbox"/>
+                                            <span>/request-Befehl erlauben</span>
+                                        </label>
+                                        <label>
+                                            <input id="EnableQuiz"
+                                                   is="emby-checkbox"
+                                                   type="checkbox"/>
+                                            <span>Quizbot aktivieren</span>
+                                        </label>
+
+                                        <button class="raised button-alt block emby-button"
+                                                id="TriggerGroupQuiz"
+                                                is="emby-button"
+                                                type="button"
+                                                style="margin-top: 1em;">
+                                            <span>Quizfrage jetzt senden</span>
+                                        </button>
+
+                                        <button class="raised button-submit block emby-button"
+                                                id="TriggerGroupAnnounce"
+                                                is="emby-button"
+                                                type="button"
+                                                style="margin-top: 1em;">
+                                            <span>Ankündigung in Gruppe senden</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div id="GroupAnnouncePanel" style="display:none; background: rgba(0,0,0,0.1); padding: 15px; margin-top: 15px; margin-bottom: 15px; border-radius: 6px;">
+                                    <h3>Nachricht in verknüpfte Gruppe senden</h3>
+                                    <p style="font-size: 13px; color: #aaa; margin-bottom: 15px;">Versendet eine Telegram-Nachricht direkt in den verknüpften Chat/Kanal.</p>
+                                    
+                                    <div style="margin-bottom: 10px;">
+                                        <label class="inputLabel" for="GroupAnnounceMessage">Nachricht (Markdown):</label>
+                                        <textarea id="GroupAnnounceMessage" class="emby-input" rows="5" style="width: 100%; border-radius: 6px; padding: 10px; background: rgba(0,0,0,0.2); color: #fff;" placeholder="Hey Leute, ..."></textarea>
+                                    </div>
+                                    
+                                    <button class="action-btn btn-blue" id="SendGroupAnnounceBtn" type="button">Nachricht Senden</button>
+                                    <button class="action-btn" id="CancelGroupAnnounceBtn" type="button">Abbrechen</button>
+                                </div>
+
+                                <button class="raised button-submit block emby-button"
+                                        id="SaveGroupConfig"
+                                        is="emby-button"
+                                        type="button">
+                                    <span>Gruppen speichern</span>
+                                </button>
+                            </div>
+                        </fieldset>
+                    </form>
+                </div>
+        </div>
+        
+        <div id="tab-users" class="rinnofin-tab active">
+            <form id="UserManagementForm">
+                <fieldset class="verticalSection">
+                    <legend><h3>Benutzerverwaltung</h3></legend>
+                    <div class="rinnofin-info-banner">
+                        <h4>👥 Benutzerverwaltung</h4>
+                        <p>Hier verwaltest du alle deine Jellyfin-Benutzer, die mit Telegram verknüpft sind oder eingeladen werden sollen. Du kannst neue Benutzer per E-Mail einladen, Ablaufdaten setzen, Berechtigungen klonen und Massenaktionen wie Aktivieren/Deaktivieren durchführen.</p>
+                    </div>
+
+                    <div class="inputContainer" style="margin-bottom: 20px;">
+                        <label class="inputLabel" for="ExpirationAction">Aktion bei Ablauf des Accounts:</label>
+                        <select class="emby-select-withcolor emby-select" id="ExpirationAction" style="max-width: 300px;">
+                            <option value="Disable">Account deaktivieren (Empfohlen)</option>
+                            <option value="Delete">Account endgültig löschen</option>
+                        </select>
+                    </div>
+                    
+                    <div class="action-btn-bar">
+                        <button class="action-btn" id="ActionLoadAll" type="button">Load All</button>
+                        <button class="action-btn btn-green" id="ActionAddUser" type="button">Benutzer hinzufügen</button>
+                        <button class="action-btn" id="ActionAnnounce" type="button">Ankündigung senden</button>
+                        <button class="action-btn" id="ActionSettings" type="button">Benutzer bearbeiten</button>
+                        <button class="action-btn" id="ActionRecommendations" type="button" style="display:none;">Empfehlungen aktivieren</button>
+                        <button class="action-btn" id="ActionExpiry" type="button" style="display:none;">Ablaufdatum</button>
+                        <button class="action-btn btn-blue" id="AdminResendInvite" type="button">Einladung erneut senden</button>
+                        <button class="action-btn btn-yellow" id="AdminDisableUser" type="button">Deaktivieren</button>
+                        <button class="action-btn btn-green" id="AdminEnableUser" type="button">Aktivieren</button>
+                        <button class="action-btn btn-purple" id="AdminSendPasswordReset" type="button">Sende Passwortrücksetzung</button>
+                        <button class="action-btn btn-red" id="AdminDeleteUser" type="button">Benutzer löschen</button>
+                    </div>
+
+                    <div id="InviteUserPanel" style="display:none; background: rgba(0,0,0,0.1); padding: 15px; margin-bottom: 15px; border-radius: 6px;">
+                        <h3>Neuen Benutzer anlegen & Einladen</h3>
+                        <p style="font-size: 13px; color: #aaa; margin-bottom: 15px;">Wenn du einen Benutzernamen angibst, wird das Konto sofort erstellt und der Nutzer erhält einen Link, um sein Passwort festzulegen.</p>
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
+                            <div style="flex: 1; min-width: 200px;">
+                                <label class="inputLabel" for="InviteUsername">Benutzername (Optional):</label>
+                                <input class="sso-text" id="InviteUsername" is="emby-input" type="text" placeholder="Benutzername"/>
+                            </div>
+                            <div style="flex: 1; min-width: 200px;">
+                                <label class="inputLabel" for="InviteEmail">E-Mail Adresse:</label>
+                                <input class="sso-text" id="InviteEmail" is="emby-input" type="email" placeholder="example@example.com"/>
+                            </div>
+                            <div style="flex: 1; min-width: 200px;">
+                                <label class="inputLabel" for="InviteProfile">Profil-Vorlage (Rechte klonen):</label>
+                                <select class="emby-select-withcolor emby-select" id="InviteProfile">
+                                    <option value="">Lade Profile...</option>
+                                </select>
+                            </div>
+                            <div style="flex: 1; min-width: 200px;">
+                                <label class="inputLabel" for="InviteExpirationDays">Gültigkeit in Tagen (optional):</label>
+                                <input class="sso-text" id="InviteExpirationDays" is="emby-input" type="number" min="1" placeholder="z.B. 30"/>
+                            </div>
+                        </div>
+                        <button class="action-btn btn-green" id="CreateInviteBtn" type="button">Einladung Senden</button>
+                        <button class="action-btn" id="CancelInviteBtn" type="button">Abbrechen</button>
+                    </div>
+
+                    <div id="EditUserPanel" style="display:none; background: rgba(0,0,0,0.1); padding: 15px; margin-bottom: 15px; border-radius: 6px;">
+                        <h3>Benutzer bearbeiten</h3>
+                        <p style="font-size: 13px; color: #aaa; margin-bottom: 15px;">Passe die E-Mail oder den verknüpften Telegram-Benutzernamen an.</p>
+                        <input type="hidden" id="EditUserId" />
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
+                            <div style="flex: 1; min-width: 200px;">
+                                <label class="inputLabel" for="EditUserEmail">E-Mail Adresse:</label>
+                                <input class="sso-text" id="EditUserEmail" is="emby-input" type="email" placeholder="example@example.com"/>
+                            </div>
+                            <div style="flex: 1; min-width: 200px;">
+                                <label class="inputLabel" for="EditUserTelegram">Telegram-Benutzername:</label>
+                                <input class="sso-text" id="EditUserTelegram" is="emby-input" type="text" placeholder="Ohne @ (z.B. maxmuster)"/>
+                            </div>
+                            <div style="flex: 1; min-width: 200px;">
+                                <label class="inputLabel" for="EditUserExpiration">Ablaufdatum (optional):</label>
+                                <input class="sso-text" id="EditUserExpiration" is="emby-input" type="date" />
+                            </div>
+                            <div style="flex: 1; min-width: 200px; display: flex; align-items: center;">
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-top: 15px;">
+                                    <input type="checkbox" id="EditUserIsBotAdmin" style="width: 16px; height: 16px; accent-color: #3b82f6;" />
+                                    <span>Bot-Administrator Rechte</span>
+                                </label>
+                            </div>
+                            <div style="flex: 1; min-width: 200px; display: flex; align-items: center;">
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-top: 15px;">
+                                    <input type="checkbox" id="EditUserSubscribeEmailNewsletter" style="width: 16px; height: 16px; accent-color: #3b82f6;" />
+                                    <span>E-Mail Newsletter</span>
+                                </label>
+                            </div>
+                            <div style="flex: 1; min-width: 200px; display: flex; align-items: center;">
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-top: 15px;">
+                                    <input type="checkbox" id="EditUserSubscribeTelegramNewsletter" style="width: 16px; height: 16px; accent-color: #3b82f6;" />
+                                    <span>Telegram Newsletter</span>
+                                </label>
+                            </div>
+                        </div>
+                        <button class="action-btn btn-green" id="SaveEditUserBtn" type="button">Änderungen speichern</button>
+                        <button class="action-btn" id="CancelEditUserBtn" type="button">Abbrechen</button>
+                    </div>
+
+                    <div id="AnnouncePanel" style="display:none; background: rgba(0,0,0,0.1); padding: 15px; margin-bottom: 15px; border-radius: 6px;">
+                        <h3>Ankündigung an ausgewählte Benutzer senden</h3>
+                        <p style="font-size: 13px; color: #aaa; margin-bottom: 15px;">Versendet eine E-Mail und/oder eine Telegram-Nachricht an die gewählten Nutzer. Verfügbare Platzhalter: {username}, {email}</p>
+                        
+                        <div style="margin-bottom: 15px; display: flex; gap: 20px;">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="AnnounceViaEmail" style="width: 16px; height: 16px; accent-color: #3b82f6;" checked />
+                                <span>Per E-Mail senden (HTML)</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="AnnounceViaTelegram" style="width: 16px; height: 16px; accent-color: #3b82f6;" checked />
+                                <span>Per Telegram senden (Markdown)</span>
+                            </label>
+                        </div>
+                        
+                        <div style="margin-bottom: 10px;">
+                            <label class="inputLabel" for="AnnounceSubject">Betreff (nur E-Mail):</label>
+                            <input class="sso-text" id="AnnounceSubject" is="emby-input" type="text" placeholder="Wichtige Neuigkeiten!"/>
+                        </div>
+                        
+                        <div style="margin-bottom: 10px;">
+                            <label class="inputLabel" for="AnnounceMessage">Nachricht (HTML für E-Mail, Markdown für Telegram):</label>
+                            <textarea id="AnnounceMessage" class="emby-input" rows="5" style="width: 100%; border-radius: 6px; padding: 10px; background: rgba(0,0,0,0.2); color: #fff;" placeholder="Hallo {username}, ..."></textarea>
+                        </div>
+                        
+                        <button class="action-btn btn-blue" id="SendAnnounceBtn" type="button">Nachricht Senden</button>
+                        <button class="action-btn" id="CancelAnnounceBtn" type="button">Abbrechen</button>
+                    </div>
+
+                    <div class="tableScrollSlider" style="overflow-x: auto;">
+                        <table class="tableDetail" style="width: 100%; text-align: left; border-collapse: collapse;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.2);">
+                                    <th style="padding: 10px; width: 40px;"><input type="checkbox" id="SelectAllUsers" style="width: 18px; height: 18px; cursor: pointer; accent-color: #3b82f6;"/></th>
+                                    <th style="padding: 10px;">Benutzername</th>
+                                    <th style="padding: 10px;">Status</th>
+                                    <th style="padding: 10px;">E-Mail</th>
+                                    <th style="padding: 10px;">Telegram</th>
+                                    <th style="padding: 10px;">Newsletter (Abo)</th>
+                                    <th style="padding: 10px;">Ablaufdatum</th>
+                                    <th style="padding: 10px;">Letzter Zugriff</th>
+                                </tr>
+                            </thead>
+                            <tbody id="UserListTbody">
+                            </tbody>
+                        </table>
+                    </div>
+                </fieldset>
+            </form>
+        </div>
+
+        <div id="tab-user-settings" class="rinnofin-tab">
+            <form class="rinnofin-form">
+                <fieldset class="verticalSection">
+                    <legend><h3>Benutzereinstellungen &amp; Design</h3></legend>
+                    <div class="rinnofin-info-banner">
+                        <h4>⚙️ Benutzereinstellungen &amp; Design</h4>
+                        <p>Definiere Standard-Zugriffsrechte für neue Benutzer. Wenn sich ein neuer Benutzer registriert, werden die Berechtigungen, Bibliotheken und Einstellungen des hier ausgewählten Profils kopiert. Außerdem kannst du das Farbschema für das Portal anpassen.</p>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel" for="DefaultProfileUserId">Globales Standard-Profil (Rechte &amp; Einstellungen klonen):</label>
+                        <select class="emby-select-withcolor emby-select" id="DefaultProfileUserId">
+                            <option value="">Keines (Standard-Jellyfin-Rechte)</option>
+                        </select>
+                        <div class="fieldDescription">Dieses Profil wird kopiert, wenn neue Benutzer eingeladen werden (z. B. via Telegram oder wenn keine spezifische Vorlage ausgewählt wird).</div>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel" for="RegistrationTheme">Design der Registrierungs- &amp; Passwort-Seiten:</label>
+                        <select class="emby-select-withcolor emby-select" id="RegistrationTheme">
+                            <option value="jellyfin">Standard (Jellyfin Lila/Blau Gradient)</option>
+                            <option value="dark">Dark (Nachtmodus Dunkelgrau)</option>
+                            <option value="light">Light (Klassisch Hell)</option>
+                            <option value="blue">Blue (Ocean Blue)</option>
+                            <option value="green">Green (Emerald)</option>
+                            <option value="red">Red (Crimson)</option>
+                        </select>
+                        <div class="fieldDescription">Wähle das Farbschema für das öffentliche Registrierungs- und Passwort-Rücksetz-Portal aus.</div>
+                    </div>
+
+                    <div style="margin-top: 2em; display: flex; gap: 10px;">
+                        <button class="action-btn btn-green" id="SaveConfigUsers" type="button">Speichern</button>
+                    </div>
+                </fieldset>
+            </form>
+        </div>
+        <div id="tab-email" class="rinnofin-tab">
+            <fieldset class="verticalSection">
+                <legend><h3>E-Mail-Einstellungen</h3></legend>
+                <div class="rinnofin-info-banner">
+                    <h4>📧 E-Mail-Einstellungen &amp; Vorlagen</h4>
+                    <p>Konfiguriere den SMTP-Server für den automatischen Versand von System-Mails. Hier kannst du die E-Mail-Vorlagen für Einladungen, Willkommensnachrichten und Newsletter anpassen. Nutze die Vorschau und die Test-Funktion, um das Design zu prüfen.</p>
+                </div>
+                
+                <h3 style="margin-top:1em;">E-Mail Server (SMTP) Einstellungen</h3>
+                <p>Hier legst du fest, über welchen Server das Plugin Einladungen und Passwort-Reset-Mails verschickt.</p>
+                
+                <div class="inputContainer">
+                    <label>
+                        <input id="EnableEmail" is="emby-checkbox" type="checkbox"/>
+                        <span>E-Mail Versand aktivieren</span>
+                    </label>
+                </div>
+
+                <div class="inputContainer">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="SmtpServer">SMTP Server-Adresse:</label>
+                        <input class="sso-text" id="SmtpServer" is="emby-input" maxlength="200" type="text" placeholder="z.B. smtp.strato.de"/>
+                    </div>
+                </div>
+
+                <div class="inputContainer">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="SmtpPort">SMTP Port:</label>
+                        <input class="sso-text" id="SmtpPort" is="emby-input" type="number" placeholder="z.B. 587"/>
+                    </div>
+                </div>
+
+                <div class="inputContainer">
+                    <label>
+                        <input id="SmtpUseSsl" is="emby-checkbox" type="checkbox"/>
+                        <span>STARTTLS / SSL verwenden (Empfohlen)</span>
+                    </label>
+                </div>
+
+                <div class="inputContainer">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="SmtpUsername">SMTP Benutzername:</label>
+                        <input class="sso-text" id="SmtpUsername" is="emby-input" maxlength="200" type="text"/>
+                    </div>
+                </div>
+
+                <div class="inputContainer">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="SmtpPassword">SMTP Passwort:</label>
+                        <input class="sso-text" id="SmtpPassword" is="emby-input" maxlength="200" type="password"/>
+                    </div>
+                </div>
+
+                <div class="inputContainer">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailSenderAddress">Absender E-Mail-Adresse:</label>
+                        <input class="sso-text" id="EmailSenderAddress" is="emby-input" maxlength="200" type="email" placeholder="z.B. RinnoFin@brainless-rp.de"/>
+                        <div class="fieldDescription">Die Adresse, die Empfängern als Absender angezeigt wird.</div>
+                    </div>
+                </div>
+
+                <div class="inputContainer">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailSenderName">Absender Name:</label>
+                        <input class="sso-text" id="EmailSenderName" is="emby-input" maxlength="200" type="text" placeholder="z.B. Rinno Einladungssystem"/>
+                        <div class="fieldDescription">Der Anzeigename, z.B. "Rinno Einladungssystem".</div>
+                    </div>
+                </div>
+
+                <div class="inputContainer">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="TestEmailAddress">E-Mail für den Testversand:</label>
+                        <input class="sso-text" id="TestEmailAddress" is="emby-input" maxlength="200" type="email" placeholder="z.B. deine@email.de"/>
+                        <div class="fieldDescription">An diese Adresse wird die Test-E-Mail gesendet.</div>
+                    </div>
+                </div>
+
+                <button class="raised button-alt emby-button block" id="TestSmtpBtn" is="emby-button" type="button">
+                    <span>Test E-Mail senden</span>
+                </button>
+                
+                <hr style="margin: 30px 0; border: 1px solid rgba(255, 255, 255, 0.1);" />
+                <legend><h3>E-Mail Vorlagen (HTML erlaubt)</h3></legend>
+                <p style="margin-bottom: 20px; font-size: 13px; color: #9ca3af;">Du kannst HTML verwenden. Ersetzbare Variablen: {inviteLink}, {resetLink}, {username}</p>
+
+                <div class="inputContainer email-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailSubjectInvite" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Einladung</label>
+                        <input class="sso-text" id="EmailSubjectInvite" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
+                        
+                        <label class="inputLabel inputLabelUnfocused" for="EmailTemplateInvite">Einladungs-E-Mail (Variable: {inviteLink}):</label>
+                        <textarea class="sso-text" id="EmailTemplateInvite" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+
+                        <div style="margin-top: 10px; display: flex; gap: 10px;">
+                            <button class="action-btn btn-blue test-template-btn" data-template-id="EmailTemplateInvite" data-subject-id="EmailSubjectInvite" type="button">Test-Mail senden</button>
+                            <button class="action-btn preview-template-btn" data-template-id="EmailTemplateInvite" type="button">Vorschau</button>
+                        </div>
+                        <div class="template-preview-container" id="Preview_EmailTemplateInvite" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 400px; border: 1px solid #ccc;"></div>
+                    </div>
+                </div>
+
+                <div class="inputContainer email-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailSubjectWelcome" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Willkommen</label>
+                        <input class="sso-text" id="EmailSubjectWelcome" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
+
+                        <label class="inputLabel inputLabelUnfocused" for="EmailTemplateWelcome">Willkommens-Nachricht (Variablen: {username}, {serverUrl}, {loginLink}):</label>
+                        <textarea class="sso-text" id="EmailTemplateWelcome" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+
+                        <div style="margin-top: 10px; display: flex; gap: 10px;">
+                            <button class="action-btn btn-blue test-template-btn" data-template-id="EmailTemplateWelcome" data-subject-id="EmailSubjectWelcome" type="button">Test-Mail senden</button>
+                            <button class="action-btn preview-template-btn" data-template-id="EmailTemplateWelcome" type="button">Vorschau</button>
+                        </div>
+                        <div class="template-preview-container" id="Preview_EmailTemplateWelcome" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 400px; border: 1px solid #ccc;"></div>
+                    </div>
+                </div>
+
+                <div class="inputContainer email-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailSubjectPasswordReset" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Passwort zurücksetzen</label>
+                        <input class="sso-text" id="EmailSubjectPasswordReset" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
+
+                        <label class="inputLabel inputLabelUnfocused" for="EmailTemplatePasswordReset">Passwort-Reset E-Mail (Variable: {resetLink}, {username}):</label>
+                        <textarea class="sso-text" id="EmailTemplatePasswordReset" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+
+                        <div style="margin-top: 10px; display: flex; gap: 10px;">
+                            <button class="action-btn btn-blue test-template-btn" data-template-id="EmailTemplatePasswordReset" data-subject-id="EmailSubjectPasswordReset" type="button">Test-Mail senden</button>
+                            <button class="action-btn preview-template-btn" data-template-id="EmailTemplatePasswordReset" type="button">Vorschau</button>
+                        </div>
+                        <div class="template-preview-container" id="Preview_EmailTemplatePasswordReset" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 400px; border: 1px solid #ccc;"></div>
+                    </div>
+                </div>
+
+                <div class="inputContainer email-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailSubjectPasswordChanged" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Passwort geändert</label>
+                        <input class="sso-text" id="EmailSubjectPasswordChanged" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
+
+                        <label class="inputLabel inputLabelUnfocused" for="EmailTemplatePasswordChanged">Passwort Erfolgreich Geändert (Variable: {username}):</label>
+                        <textarea class="sso-text" id="EmailTemplatePasswordChanged" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+
+                        <div style="margin-top: 10px; display: flex; gap: 10px;">
+                            <button class="action-btn btn-blue test-template-btn" data-template-id="EmailTemplatePasswordChanged" data-subject-id="EmailSubjectPasswordChanged" type="button">Test-Mail senden</button>
+                            <button class="action-btn preview-template-btn" data-template-id="EmailTemplatePasswordChanged" type="button">Vorschau</button>
+                        </div>
+                        <div class="template-preview-container" id="Preview_EmailTemplatePasswordChanged" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 400px; border: 1px solid #ccc;"></div>
+                    </div>
+                </div>
+
+                <div class="inputContainer email-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailSubjectAccountEnabled" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Account aktiviert</label>
+                        <input class="sso-text" id="EmailSubjectAccountEnabled" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
+
+                        <label class="inputLabel inputLabelUnfocused" for="EmailTemplateAccountEnabled">Account Aktiviert (Variable: {username}):</label>
+                        <textarea class="sso-text" id="EmailTemplateAccountEnabled" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+
+                        <div style="margin-top: 10px; display: flex; gap: 10px;">
+                            <button class="action-btn btn-blue test-template-btn" data-template-id="EmailTemplateAccountEnabled" data-subject-id="EmailSubjectAccountEnabled" type="button">Test-Mail senden</button>
+                            <button class="action-btn preview-template-btn" data-template-id="EmailTemplateAccountEnabled" type="button">Vorschau</button>
+                        </div>
+                        <div class="template-preview-container" id="Preview_EmailTemplateAccountEnabled" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 400px; border: 1px solid #ccc;"></div>
+                    </div>
+                </div>
+
+                <div class="inputContainer email-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailSubjectAccountDisabled" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Account deaktiviert</label>
+                        <input class="sso-text" id="EmailSubjectAccountDisabled" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
+
+                        <label class="inputLabel inputLabelUnfocused" for="EmailTemplateAccountDisabled">Account Deaktiviert (Variable: {username}):</label>
+                        <textarea class="sso-text" id="EmailTemplateAccountDisabled" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+
+                        <div style="margin-top: 10px; display: flex; gap: 10px;">
+                            <button class="action-btn btn-blue test-template-btn" data-template-id="EmailTemplateAccountDisabled" data-subject-id="EmailSubjectAccountDisabled" type="button">Test-Mail senden</button>
+                            <button class="action-btn preview-template-btn" data-template-id="EmailTemplateAccountDisabled" type="button">Vorschau</button>
+                        </div>
+                        <div class="template-preview-container" id="Preview_EmailTemplateAccountDisabled" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 400px; border: 1px solid #ccc;"></div>
+                    </div>
+                </div>
+
+                <div class="inputContainer email-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailSubjectAccountDeleted" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Account gelöscht</label>
+                        <input class="sso-text" id="EmailSubjectAccountDeleted" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
+
+                        <label class="inputLabel inputLabelUnfocused" for="EmailTemplateAccountDeleted">Account Gelöscht (Variablen: {username}, {reason}):</label>
+                        <textarea class="sso-text" id="EmailTemplateAccountDeleted" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+
+                        <div style="margin-top: 10px; display: flex; gap: 10px;">
+                            <button class="action-btn btn-blue test-template-btn" data-template-id="EmailTemplateAccountDeleted" data-subject-id="EmailSubjectAccountDeleted" type="button">Test-Mail senden</button>
+                            <button class="action-btn preview-template-btn" data-template-id="EmailTemplateAccountDeleted" type="button">Vorschau</button>
+                        </div>
+                        <div class="template-preview-container" id="Preview_EmailTemplateAccountDeleted" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 400px; border: 1px solid #ccc;"></div>
+                    </div>
+                </div>
+
+                <div class="inputContainer email-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailSubjectExpirationWarning" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Account läuft bald ab (Warnung)</label>
+                        <input class="sso-text" id="EmailSubjectExpirationWarning" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
+
+                        <label class="inputLabel inputLabelUnfocused" for="EmailTemplateExpirationWarning">Ablauf-Warnung (Variablen: {username}, {daysLeft}, {expirationDate}):</label>
+                        <textarea class="sso-text" id="EmailTemplateExpirationWarning" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+
+                        <div style="margin-top: 10px; display: flex; gap: 10px;">
+                            <button class="action-btn btn-blue test-template-btn" data-template-id="EmailTemplateExpirationWarning" data-subject-id="EmailSubjectExpirationWarning" type="button">Test-Mail senden</button>
+                            <button class="action-btn preview-template-btn" data-template-id="EmailTemplateExpirationWarning" type="button">Vorschau</button>
+                        </div>
+                        <div class="template-preview-container" id="Preview_EmailTemplateExpirationWarning" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 400px; border: 1px solid #ccc;"></div>
+                    </div>
+                </div>
+
+                <div class="inputContainer email-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailSubjectAccountExpired" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Account abgelaufen</label>
+                        <input class="sso-text" id="EmailSubjectAccountExpired" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
+
+                        <label class="inputLabel inputLabelUnfocused" for="EmailTemplateAccountExpired">Account Abgelaufen (Variablen: {username}, {expirationDate}):</label>
+                        <textarea class="sso-text" id="EmailTemplateAccountExpired" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+
+                        <div style="margin-top: 10px; display: flex; gap: 10px;">
+                            <button class="action-btn btn-blue test-template-btn" data-template-id="EmailTemplateAccountExpired" data-subject-id="EmailSubjectAccountExpired" type="button">Test-Mail senden</button>
+                            <button class="action-btn preview-template-btn" data-template-id="EmailTemplateAccountExpired" type="button">Vorschau</button>
+                        </div>
+                        <div class="template-preview-container" id="Preview_EmailTemplateAccountExpired" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 400px; border: 1px solid #ccc;"></div>
+                    </div>
+                </div>
+
+                <div class="inputContainer email-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailSubjectNewsletterCombined" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Medien Newsletter (Filme & Serien)</label>
+                        <input class="sso-text" id="EmailSubjectNewsletterCombined" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
+
+                        <label class="inputLabel inputLabelUnfocused" for="EmailTemplateNewsletterCombined">Newsletter Medien (Variablen: {username}, {content}, {serverUrl}):</label>
+                        <textarea class="sso-text" id="EmailTemplateNewsletterCombined" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+
+                        <div style="margin-top: 10px; display: flex; gap: 10px;">
+                            <button class="action-btn btn-blue test-template-btn" data-template-id="EmailTemplateNewsletterCombined" data-subject-id="EmailSubjectNewsletterCombined" type="button">Test-Mail senden</button>
+                            <button class="action-btn preview-template-btn" data-template-id="EmailTemplateNewsletterCombined" type="button">Vorschau</button>
+                        </div>
+                        <div class="template-preview-container" id="Preview_EmailTemplateNewsletterCombined" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 400px; border: 1px solid #ccc;"></div>
+                    </div>
+                </div>
+
+                <div class="inputContainer email-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
+                    <div>
+                        <label class="inputLabel inputLabelUnfocused" for="EmailSubjectAnnounce" style="font-weight: bold; margin-bottom: 5px; display: block;">Betreff: Ankündigung</label>
+                        <input class="sso-text" id="EmailSubjectAnnounce" is="emby-input" type="text" style="width: 100%; margin-bottom: 10px;" />
+
+                        <label class="inputLabel inputLabelUnfocused" for="EmailTemplateAnnounce">Benutzerdefinierte Ankündigung (Variablen: {username}, {message}, {serverName}, {platformLink}):</label>
+                        <textarea class="sso-text" id="EmailTemplateAnnounce" rows="6" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+
+                        <div style="margin-top: 10px; display: flex; gap: 10px;">
+                            <button class="action-btn btn-blue test-template-btn" data-template-id="EmailTemplateAnnounce" data-subject-id="EmailSubjectAnnounce" type="button">Test-Mail senden</button>
+                            <button class="action-btn preview-template-btn" data-template-id="EmailTemplateAnnounce" type="button">Vorschau</button>
+                        </div>
+                        <div class="template-preview-container" id="Preview_EmailTemplateAnnounce" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 400px; border: 1px solid #ccc;"></div>
+                    </div>
+                </div>
+
+                <button class="raised button-submit block emby-button" id="SaveConfigEmail" is="emby-button" type="button">
+                    <span>E-Mail Konfiguration speichern</span>
+                </button>
+
+            </fieldset>
+        </div>
+        <div id="tab-html-templates" class="rinnofin-tab">
+            <fieldset class="verticalSection">
+                <legend><h3>SSO HTML-Vorlagen</h3></legend>
+                <div class="rinnofin-info-banner">
+                    <h4>🌐 HTML-Vorlagen</h4>
+                    <p>Hier kannst du die Weboberflächen anpassen, die deinen Benutzern beim Login über Telegram, beim Registrieren über einen Einladungslink oder beim Zurücksetzen des Passworts angezeigt werden. Du kannst HTML, CSS und JavaScript frei bearbeiten. Falls etwas schiefgeht, kannst du jederzeit das Standard-Design wiederherstellen.</p>
+                </div>
+
+                <div class="inputContainer html-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
+                    <label class="inputLabel" for="HtmlTemplateLogin">Login-Seite HTML (login.html):</label>
+                    <textarea class="sso-text" id="HtmlTemplateLogin" rows="12" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+                    <div style="margin-top: 10px; display: flex; gap: 10px;">
+                        <button class="action-btn btn-blue preview-html-btn" data-template-id="HtmlTemplateLogin" type="button">Vorschau</button>
+                        <button class="action-btn btn-red restore-html-btn" data-template-id="HtmlTemplateLogin" data-type="loginHtml" type="button">Standard wiederherstellen</button>
+                    </div>
+                    <div class="template-preview-container" id="Preview_HtmlTemplateLogin" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 450px; border: 1px solid #ccc;"></div>
+                </div>
+
+                <div class="inputContainer html-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
+                    <label class="inputLabel" for="HtmlTemplateLoginCss">Login-Seite CSS (login.css):</label>
+                    <textarea class="sso-text" id="HtmlTemplateLoginCss" rows="12" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+                    <div style="margin-top: 10px; display: flex; gap: 10px;">
+                        <button class="action-btn btn-red restore-html-btn" data-template-id="HtmlTemplateLoginCss" data-type="loginCss" type="button">Standard wiederherstellen</button>
+                    </div>
+                </div>
+
+                <div class="inputContainer html-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
+                    <label class="inputLabel" for="HtmlTemplateLoginJs">Login-Seite JS (login.js):</label>
+                    <textarea class="sso-text" id="HtmlTemplateLoginJs" rows="12" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+                    <div style="margin-top: 10px; display: flex; gap: 10px;">
+                        <button class="action-btn btn-red restore-html-btn" data-template-id="HtmlTemplateLoginJs" data-type="loginJs" type="button">Standard wiederherstellen</button>
+                    </div>
+                </div>
+
+                <div class="inputContainer html-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
+                    <label class="inputLabel" for="HtmlTemplateInvite">Einladungs-Seite HTML (invite.html):</label>
+                    <textarea class="sso-text" id="HtmlTemplateInvite" rows="12" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+                    <div style="margin-top: 10px; display: flex; gap: 10px;">
+                        <button class="action-btn btn-blue preview-html-btn" data-template-id="HtmlTemplateInvite" type="button">Vorschau</button>
+                        <button class="action-btn btn-red restore-html-btn" data-template-id="HtmlTemplateInvite" data-type="inviteHtml" type="button">Standard wiederherstellen</button>
+                    </div>
+                    <div class="template-preview-container" id="Preview_HtmlTemplateInvite" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 450px; border: 1px solid #ccc;"></div>
+                </div>
+
+                <div class="inputContainer html-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
+                    <label class="inputLabel" for="HtmlTemplateForgot">Passwort-Vergessen HTML (forgot.html):</label>
+                    <textarea class="sso-text" id="HtmlTemplateForgot" rows="12" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+                    <div style="margin-top: 10px; display: flex; gap: 10px;">
+                        <button class="action-btn btn-blue preview-html-btn" data-template-id="HtmlTemplateForgot" type="button">Vorschau</button>
+                        <button class="action-btn btn-red restore-html-btn" data-template-id="HtmlTemplateForgot" data-type="forgotHtml" type="button">Standard wiederherstellen</button>
+                    </div>
+                    <div class="template-preview-container" id="Preview_HtmlTemplateForgot" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 450px; border: 1px solid #ccc;"></div>
+                </div>
+
+                <div class="inputContainer html-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
+                    <label class="inputLabel" for="HtmlTemplateReset">Passwort-Zurücksetzen HTML (reset.html):</label>
+                    <textarea class="sso-text" id="HtmlTemplateReset" rows="12" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+                    <div style="margin-top: 10px; display: flex; gap: 10px;">
+                        <button class="action-btn btn-blue preview-html-btn" data-template-id="HtmlTemplateReset" type="button">Vorschau</button>
+                        <button class="action-btn btn-red restore-html-btn" data-template-id="HtmlTemplateReset" data-type="resetHtml" type="button">Standard wiederherstellen</button>
+                    </div>
+                    <div class="template-preview-container" id="Preview_HtmlTemplateReset" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 450px; border: 1px solid #ccc;"></div>
+                </div>
+
+                <div class="inputContainer html-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
+                    <label class="inputLabel" for="HtmlTemplatePortal">Self-Service Portal HTML (portal.html):</label>
+                    <textarea class="sso-text" id="HtmlTemplatePortal" rows="12" style="width: 100%; padding: 10px; font-family: monospace;"></textarea>
+                    <div style="margin-top: 10px; display: flex; gap: 10px;">
+                        <button class="action-btn btn-blue preview-html-btn" data-template-id="HtmlTemplatePortal" type="button">Vorschau</button>
+                        <button class="action-btn btn-red restore-html-btn" data-template-id="HtmlTemplatePortal" data-type="portalHtml" type="button">Standard wiederherstellen</button>
+                    </div>
+                    <div class="template-preview-container" id="Preview_HtmlTemplatePortal" style="display:none; margin-top:15px; padding:15px; border-radius:4px; background:white; color:black; overflow:auto; max-height: 450px; border: 1px solid #ccc;"></div>
+                </div>
+
+                <button class="raised button-submit block emby-button" id="SaveConfigHtml" is="emby-button" type="button" style="margin-top: 20px;">
+                    <span>HTML-Vorlagen speichern</span>
+                </button>
+            </fieldset>
+        </div>
+        <div id="tab-predefined-messages" class="rinnofin-tab">
+            <fieldset class="verticalSection">
+                <legend><h3>Definierte Nachrichten</h3></legend>
+                <div class="rinnofin-info-banner">
+                    <h4>💬 Vordefinierte Begründungen</h4>
+                    <p>Lege hier Standard-Begründungen fest, die du schnell auswählen kannst, wenn du im Dashboard einen Benutzer <strong>deaktivierst</strong> oder <strong>löschst</strong>. Jede Zeile im Textfeld entspricht einem auswählbaren Grund im Popup-Fenster.</p>
+                </div>
+                
+                <div class="inputContainer email-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
+                    <label class="inputLabel inputLabelUnfocused" for="PredefinedDeactivateReasons" style="font-weight: bold; margin-bottom: 5px; display: block;">Gründe für DEAKTIVIERUNG (Eine pro Zeile):</label>
+                    <p style="font-size: 13px; color: #9ca3af; margin-bottom: 10px;">Diese Optionen werden als klickbare Buttons angezeigt, wenn du einen Account deaktivierst.</p>
+                    <textarea class="sso-text" id="PredefinedDeactivateReasons" rows="6" style="width: 100%; padding: 10px; font-family: sans-serif;"></textarea>
+                </div>
+
+                <div class="inputContainer email-template-container" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.15);">
+                    <label class="inputLabel inputLabelUnfocused" for="PredefinedDeleteReasons" style="font-weight: bold; margin-bottom: 5px; display: block;">Gründe für LÖSCHEN (Eine pro Zeile):</label>
+                    <p style="font-size: 13px; color: #9ca3af; margin-bottom: 10px;">Diese Optionen werden als klickbare Buttons angezeigt, wenn du einen Account endgültig löschst.</p>
+                    <textarea class="sso-text" id="PredefinedDeleteReasons" rows="6" style="width: 100%; padding: 10px; font-family: sans-serif;"></textarea>
+                </div>
+
+                <button class="raised button-submit block emby-button" id="SaveConfigMessages" is="emby-button" type="button" style="margin-top: 20px;">
+                    <span>Begründungen speichern</span>
+                </button>
+            </fieldset>
+        </div>
+        <div id="tab-messages" class="rinnofin-tab">
+            <div class="block">
+                    <form id="RequestManagementForm">
+                        <fieldset class="verticalSection">
+                            <legend><h3>Anfragenverwaltung</h3></legend>
+                            <div class="rinnofin-info-banner">
+                                <h4>✉️ Verlauf &amp; Anfragen</h4>
+                                <p>In diesem Bereich verwaltest du Medienwünsche, die deine Benutzer über den Telegram-Bot eingereicht haben. Benutzer können im Chat z.B. mit dem Befehl <code>/request IMDb-ID</code> einen Film oder eine Serie anfordern. Du siehst hier alle offenen Anfragen und kannst diese mit einem Klick genehmigen oder ablehnen.</p>
+                            </div>
+
+                            <div class="inputContainer">
+                                <div class="column-header">Aktive Medienwünsche verwalten</div>
+                                <div class="group-input-row">
+                                    <input class="sso-text"
+                                           id="NewRequestImdbId"
+                                           is="emby-input"
+                                           minlength="3"
+                                           placeholder="IMDb ID (z.B. tt1234567)"
+                                           type="text"/>
+                                    <button class="button-submit emby-button"
+                                            id="AddManualRequest"
+                                            is="emby-button"
+                                            type="button">
+                                        <span>Neu</span>
+                                    </button>
+                                </div>
+                                <div class="fieldDescription">
+                                    Füge manuell eine Medienanfrage über die IMDb-ID hinzu. Titel und Jahr werden automatisch geladen.
+                                </div>
+                            </div>
+
+                            <div class="paperList requestList" id="RequestList">
+                                <!-- Dynamically filled -->
+                            </div>
+
+                            <button class="raised button-alt block emby-button"
+                                    id="RefreshRequests"
+                                    is="emby-button"
+                                    type="button">
+                                <span>Liste aktualisieren</span>
+                            </button>
+                        </fieldset>
+                    </form>
+                </div>
+        </div>
+        <div id="tab-email-logs" class="rinnofin-tab">
+            <fieldset class="verticalSection">
+                <legend><h3>E-Mail-Protokoll</h3></legend>
+                <div class="rinnofin-info-banner">
+                    <h4>📨 E-Mail-Zustellstatus</h4>
+                    <p>Hier siehst du, welche E-Mails verschickt wurden und ob sie erfolgreich beim Nutzer ankamen oder ob es beim SMTP-Server Fehler gab. So kannst du prüfen, ob Einladungen oder Newsletter zugestellt wurden.</p>
+                </div>
+                
+                <div class="action-btn-bar" style="justify-content: flex-end;">
+                    <button class="action-btn btn-blue" id="RefreshEmailLogsBtn" type="button">Aktualisieren</button>
+                    <button class="action-btn btn-red" id="ClearEmailLogsBtn" type="button">Protokoll leeren</button>
+                </div>
+
+                <div class="tableScrollSlider" style="overflow-x: auto;">
+                    <table class="tableDetail" style="width: 100%; text-align: left; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.2);">
+                                <th style="padding: 10px;">Datum / Uhrzeit</th>
+                                <th style="padding: 10px;">Empfänger</th>
+                                <th style="padding: 10px;">Betreff</th>
+                                <th style="padding: 10px;">Status</th>
+                                <th style="padding: 10px;">Fehler (falls vorhanden)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="EmailLogsTbody">
+                            <!-- Dynamic Content -->
+                        </tbody>
+                    </table>
+                </div>
+            </fieldset>
+        </div>
+        <div id="tab-logs" class="rinnofin-tab">
+            <fieldset class="verticalSection">
+                <legend><h3>Protokoll (Logs)</h3></legend>
+                <div class="rinnofin-info-banner">
+                    <h4>📋 Protokoll (Logs)</h4>
+                    <p>Hier siehst du ein Echtzeit-Protokoll der letzten Systemereignisse, wie z.B. Bot-Verbindungsaufbau, E-Mail-Versand, Benutzerregistrierungen oder Fehler. Diese Infos sind nützlich für die Fehlersuche.</p>
+                </div>
+                <div class="inputContainer">
+                    <textarea class="sso-text" id="PluginLogsArea" readonly rows="15" style="width: 100%; padding: 10px; font-family: monospace; background: rgba(0,0,0,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; resize: vertical;"></textarea>
+                </div>
+                <button class="raised button-alt block emby-button" id="RefreshLogsBtn" is="emby-button" type="button" style="margin-top: 15px;">
+                    <span>Logs aktualisieren</span>
+                </button>
+            </fieldset>
+        </div>
+
+    </div>
+</div>
+
+        </div>
+    </div>
+</div>
+</body>
+</html>
+
+
+

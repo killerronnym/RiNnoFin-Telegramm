@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html class="layout-mobile" lang="de">
+<head>
+    <meta charset="utf-8" />
+    <meta content="RiNnoFin Telegramm Portal" property="og:title"/>
+    <meta content="RiNnoFin Telegramm SSO" property="og:site_name"/>
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+    <meta content="Jellyfin" name="application-name">
+    <meta content="noindex, nofollow, noarchive" name="robots">
+    <title>Jellyfin - RiNnoFin Telegramm Portal</title>
+    <link href="/web/themes/dark/theme.css" rel="stylesheet" type="text/css"/>
+    <link href="/sso/Telegram/login.css" rel="stylesheet" type="text/css"/>
+    <link href="/web/favicon.ico" rel="icon" type="image/x-icon"/>
+    <style id="cssBranding">
+        /*{{CUSTOM_CSS}}*/
+        
+        /* Custom Portal Styles on top of Jellyfin native */
+        .portal-container {
+            margin-top: 15px;
+            text-align: left;
+            width: 100%;
+        }
+        .portal-section-title {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: var(--theme-primary-color);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 5px;
+        }
+        .portal-badge {
+            background: rgba(var(--theme-primary-color-rgb), 0.15);
+            color: var(--theme-primary-color);
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(var(--theme-primary-color-rgb), 0.3);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+        }
+        .portal-badge.warning {
+            background: rgba(251, 191, 36, 0.1);
+            border-color: rgba(251, 191, 36, 0.3);
+            color: #fbbf24;
+        }
+        .portal-badge span.material-symbols-outlined {
+            margin-right: 10px;
+        }
+        .logout-btn {
+            background: transparent;
+            color: var(--theme-text-color);
+            margin-top: 20px;
+        }
+        .logout-btn:hover {
+            color: #ef4444;
+        }
+        
+        .hidden { display: none !important; }
+        
+        .loader-ring {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .msg-box {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .msg-error { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .msg-success { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+    </style>
+</head>
+<body class="force-scroll hideMainDrawer">
+<div class="backdropContainer"></div>
+<div class="backgroundContainer"></div>
+
+<div class="skinHeader skinHeader-blurred semiTransparent noHeaderRight">
+    <div class="flex align-items-center flex-grow headerTop">
+        <div class="headerLeft">
+            <h3 class="pageTitle pageTitleWithLogo pageTitleWithDefaultLogo"></h3>
+        </div>
+    </div>
+</div>
+
+<div class="mainAnimatedPages skinBody">
+    <div class="page standalonePage mainAnimatedPage rinnofin-page" data-role="page" data-type="portal" id="portalPage">
+        <div class="padded-left padded-right padded-bottom-page margin-auto-y">
+            <div class="readOnlyContent">
+                
+                <!-- LOGIN VIEW -->
+                <div class="loginCard" id="loginView">
+                    <div class="padded-left padded-right flex flex-direction-column align-items-center justify-content-center">
+                        <div class="linkLogos flex flex-direction-row align-items-center justify-content-center">
+                            <img src="/sso/Telegram/RiNnoFinLogo.png" alt="RiNnoFin Logo" class="brand-logo" />
+                            <span class="material-symbols-outlined animate-on-load animate-on-hover" id="ssoSyncIcon">
+                                manage_accounts
+                            </span>
+                            <svg aria-label="Jellyfin" role="img" style="height:3.8em;" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+                                <rect fill="#ffffff" height="512" rx="15%" width="512"/>
+                                <defs>
+                                    <path d="M190.56 329.07c8.63 17.3 122.4 17.12 130.93 0 8.52-17.1-47.9-119.78-65.46-119.8-17.57 0-74.1 102.5-65.47 119.8z" id="A"/>
+                                    <linearGradient gradientUnits="userSpaceOnUse" id="B" x1="126.15" x2="457.68" y1="219.32" y2="410.73">
+                                        <stop offset="0%" stop-color="#aa5cc3"/>
+                                        <stop offset="100%" stop-color="#00a4dc"/>
+                                    </linearGradient>
+                                </defs>
+                                <use fill="url(#B)" href="#A"/>
+                                <use fill="#32b5d4" href="#A" transform="rotate(60 255.97 256.03)"/>
+                                <use fill="#00a4dc" href="#A" transform="rotate(-60 256.03 255.97)"/>
+                            </svg>
+                        </div>
+
+                        <h1 style="margin-top:20px; font-size:1.5em; text-align:center;">RiNnoFin Portal</h1>
+                        <p style="text-align:center; color: var(--theme-text-color-muted); margin-bottom:20px;">Melde dich mit deinen Jellyfin Zugangsdaten an, um deine Benachrichtigungen zu verwalten.</p>
+
+                        <form id="loginForm" style="width:100%;">
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused" for="username">Benutzername</label>
+                                <input class="sso-text emby-input" id="username" required type="text" placeholder="Dein Jellyfin Benutzername"/>
+                                <div class="fieldDescription"></div>
+                            </div>
+                            
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused" for="password">Passwort</label>
+                                <input class="sso-text emby-input" id="password" required type="password" placeholder="••••••••"/>
+                                <div class="fieldDescription"></div>
+                            </div>
+                            
+                            <button class="raised button-submit block emby-button" id="loginBtn" is="emby-button" type="submit">
+                                <span>Anmelden</span>
+                            </button>
+                            
+                            <div class="msg-box msg-error hidden" id="loginError"></div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- DASHBOARD VIEW -->
+                <div class="loginCard hidden" id="dashboardView">
+                    <div class="padded-left padded-right flex flex-direction-column align-items-center justify-content-center">
+                        <div class="linkLogos flex flex-direction-row align-items-center justify-content-center" style="margin-bottom: 20px;">
+                            <img src="/sso/Telegram/RiNnoFinLogo.png" alt="RiNnoFin Logo" class="brand-logo" />
+                        </div>
+
+                        <h1 style="margin-top:0; font-size:1.5em; text-align:center;">Willkommen, <span id="dashUser"></span>!</h1>
+                        <p style="text-align:center; color: var(--theme-text-color-muted); margin-bottom:20px;">Hier kannst du deine E-Mail-Adresse und deine Benachrichtigungen verwalten.</p>
+
+                        <div class="portal-container">
+                            <div class="portal-badge hidden" id="tgBadge">
+                                <span class="material-symbols-outlined">send</span>
+                                <div>Verknüpft mit Telegram: <strong id="tgUsername"></strong></div>
+                            </div>
+                            <div class="portal-badge warning hidden" id="tgBadgeNotLinked">
+                                <span class="material-symbols-outlined">warning</span>
+                                <div>Du hast noch keinen Telegram-Account verknüpft. (Sende <strong style="color:#fff;">/start</strong> an den Bot)</div>
+                            </div>
+
+                            <form id="settingsForm" style="width:100%;">
+                                <div class="portal-section-title">Kontaktdaten</div>
+                                <div class="inputContainer">
+                                    <label class="inputLabel inputLabelUnfocused" for="emailInput">E-Mail-Adresse</label>
+                                    <input class="sso-text emby-input" id="emailInput" type="email" placeholder="deine@email.de"/>
+                                </div>
+                                
+                                <div class="portal-section-title" style="margin-top:30px;">Newsletter & Benachrichtigungen</div>
+                                <div class="inputContainer">
+                                    <label class="checkboxContainer" style="display: flex; align-items: center; cursor: pointer; margin-bottom:15px;">
+                                        <input type="checkbox" id="chkEmail" style="margin-right: 15px; width:20px; height:20px;" />
+                                        <span>Per E-Mail erhalten</span>
+                                    </label>
+                                    <label class="checkboxContainer" id="tgCheckboxContainer" style="display: flex; align-items: center; cursor: pointer;">
+                                        <input type="checkbox" id="chkTelegram" style="margin-right: 15px; width:20px; height:20px;" />
+                                        <span>Per Telegram erhalten</span>
+                                    </label>
+                                </div>
+
+                                <button class="raised button-submit block emby-button" id="saveBtn" is="emby-button" type="submit" style="margin-top:30px;">
+                                    <span>Einstellungen speichern</span>
+                                </button>
+                                
+                                <div class="msg-box hidden" id="settingsMessage"></div>
+
+                                <button type="button" class="block emby-button logout-btn" id="logoutBtn">Abmelden</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const baseUrl = window.location.origin;
+        let authToken = localStorage.getItem('JellyfinPortalToken') || '';
+        let jellyfinUser = localStorage.getItem('JellyfinPortalUser') || '';
+
+        const loginView = document.getElementById('loginView');
+        const dashboardView = document.getElementById('dashboardView');
+        const loginForm = document.getElementById('loginForm');
+        const settingsForm = document.getElementById('settingsForm');
+
+        if (authToken) {
+            loadDashboard();
+        }
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('loginBtn');
+            const err = document.getElementById('loginError');
+            
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+            
+            btn.innerHTML = '<span><span class="loader-ring"></span> Anmelden...</span>';
+            btn.disabled = true;
+            err.classList.add('hidden');
+            err.textContent = '';
+
+            try {
+                const res = await fetch(`${baseUrl}/Users/AuthenticateByName`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'MediaBrowser Client="RiNnoFin Portal", Device="Web", DeviceId="Portal123", Version="1.0.0"'
+                    },
+                    body: JSON.stringify({ Username: u, Pw: p })
+                });
+
+                if (!res.ok) throw new Error('Falscher Benutzername oder Passwort.');
+                
+                const data = await res.json();
+                authToken = data.AccessToken;
+                jellyfinUser = data.User.Name;
+                
+                localStorage.setItem('JellyfinPortalToken', authToken);
+                localStorage.setItem('JellyfinPortalUser', jellyfinUser);
+                
+                loadDashboard();
+            } catch (error) {
+                err.classList.remove('hidden');
+                err.textContent = error.message;
+            } finally {
+                btn.innerHTML = '<span>Anmelden</span>';
+                btn.disabled = false;
+            }
+        });
+
+        async function loadDashboard() {
+            loginView.classList.add('hidden');
+            dashboardView.classList.remove('hidden');
+            document.getElementById('dashUser').textContent = jellyfinUser;
+            
+            try {
+                const res = await fetch(`${baseUrl}/api/RiNnoFinPublic/PortalConfig`, {
+                    headers: { 'Authorization': `MediaBrowser Token="${authToken}"` }
+                });
+
+                if (res.status === 401) {
+                    logout();
+                    return;
+                }
+
+                const data = await res.json();
+                
+                document.getElementById('emailInput').value = data.EmailAddress || '';
+                document.getElementById('chkEmail').checked = data.SubscribeEmailNewsletter;
+                document.getElementById('chkTelegram').checked = data.SubscribeTelegramNewsletter;
+
+                if (data.TelegramUsername) {
+                    document.getElementById('tgBadge').classList.remove('hidden');
+                    document.getElementById('tgUsername').textContent = '@' + data.TelegramUsername;
+                    document.getElementById('tgBadgeNotLinked').classList.add('hidden');
+                    document.getElementById('tgCheckboxContainer').style.opacity = '1';
+                    document.getElementById('chkTelegram').disabled = false;
+                } else {
+                    document.getElementById('tgBadge').classList.add('hidden');
+                    document.getElementById('tgBadgeNotLinked').classList.remove('hidden');
+                    document.getElementById('tgCheckboxContainer').style.opacity = '0.5';
+                    document.getElementById('chkTelegram').disabled = true;
+                }
+                
+            } catch (error) {
+                const msg = document.getElementById('settingsMessage');
+                msg.classList.remove('hidden');
+                msg.classList.remove('msg-success');
+                msg.classList.add('msg-error');
+                msg.textContent = 'Fehler beim Laden der Daten.';
+            }
+        }
+
+        settingsForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('saveBtn');
+            const msg = document.getElementById('settingsMessage');
+            
+            btn.innerHTML = '<span><span class="loader-ring"></span> Speichern...</span>';
+            btn.disabled = true;
+            msg.classList.add('hidden');
+
+            const payload = {
+                EmailAddress: document.getElementById('emailInput').value,
+                SubscribeEmailNewsletter: document.getElementById('chkEmail').checked,
+                SubscribeTelegramNewsletter: document.getElementById('chkTelegram').checked
+            };
+
+            try {
+                const res = await fetch(`${baseUrl}/api/RiNnoFinPublic/UpdatePortalConfig`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `MediaBrowser Token="${authToken}"`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.status === 401) { logout(); return; }
+                if (!res.ok) throw new Error('Fehler beim Speichern.');
+
+                msg.classList.remove('hidden');
+                msg.classList.remove('msg-error');
+                msg.classList.add('msg-success');
+                msg.textContent = 'Einstellungen erfolgreich gespeichert!';
+                
+                setTimeout(() => { msg.classList.add('hidden'); }, 3000);
+            } catch (error) {
+                msg.classList.remove('hidden');
+                msg.classList.remove('msg-success');
+                msg.classList.add('msg-error');
+                msg.textContent = error.message;
+            } finally {
+                btn.innerHTML = '<span>Einstellungen speichern</span>';
+                btn.disabled = false;
+            }
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+
+        function logout() {
+            authToken = '';
+            jellyfinUser = '';
+            localStorage.removeItem('JellyfinPortalToken');
+            localStorage.removeItem('JellyfinPortalUser');
+            dashboardView.classList.add('hidden');
+            loginView.classList.remove('hidden');
+            document.getElementById('loginForm').reset();
+            document.getElementById('loginError').classList.add('hidden');
+        }
+    });
+</script>
+</body>
+</html>

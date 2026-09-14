@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+    <title>RiNnoFin - Passwort zurücksetzen</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet" />
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: #050505;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(225,39%,30%,0.2) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(339,49%,30%,0.2) 0, transparent 50%);
+            background-attachment: fixed;
+            background-size: cover;
+            background-position: center;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .glass-card {
+            background: rgba(25, 25, 35, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 460px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header img {
+            max-height: 60px;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: #9ca3af;
+            font-weight: 300;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: #d1d5db;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #6366f1;
+            background: rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .btn-submit:disabled {
+            background: #4b5563;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid #ef4444;
+            color: #fca5a5;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        /* Password Strength */
+        .pwd-strength-container {
+            margin-top: 8px;
+            display: none;
+        }
+        .pwd-strength-text {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .pwd-bar-bg {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .pwd-bar-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 2px;
+            transition: all 0.4s ease;
+        }
+
+        /* Success State */
+        .success-state {
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .success-icon {
+            font-size: 64px;
+            color: #10b981;
+            margin-bottom: 20px;
+        }
+
+        .login-btn {
+            display: inline-block;
+            width: 100%;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .login-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+    </style>
+</head>
+<body>
+
+<div class="glass-card" id="mainCard">
+    <div class="header" id="header">
+        <img src="/sso/Telegram/RiNnoFinLogo.png" onerror="this.src='https://raw.githubusercontent.com/jellyfin/jellyfin-ux/master/branding/logowhite.png'" alt="Logo" id="brandLogo">
+        <h1>Neues Passwort</h1>
+        <p>Bitte wähle ein neues, sicheres Passwort für deinen Account.</p>
+    </div>
+
+    <form id="resetForm">
+        <div class="input-group">
+            <label for="username">Benutzername</label>
+            <input type="text" id="username" placeholder="Dein Jellyfin-Benutzername" required autocomplete="username">
+        </div>
+
+        <div class="input-group">
+            <label for="email">E-Mail-Adresse</label>
+            <input type="email" id="email" placeholder="Deine registrierte E-Mail" required autocomplete="email">
+        </div>
+
+        <div class="input-group">
+            <label for="password">Neues Passwort</label>
+            <input type="password" id="password" placeholder="Mindestens 8 Zeichen" required autocomplete="new-password">
+            <div class="pwd-strength-container" id="pwdContainer">
+                <div class="pwd-strength-text">
+                    <span>Sicherheit</span>
+                    <span id="pwdLabel">Schwach</span>
+                </div>
+                <div class="pwd-bar-bg">
+                    <div class="pwd-bar-fill" id="pwdBar" style="background: #ef4444;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label for="password_confirm">Passwort wiederholen</label>
+            <input type="password" id="password_confirm" placeholder="Passwort bestätigen" required autocomplete="new-password">
+        </div>
+
+        <button type="submit" class="btn-submit" id="submitBtn">Passwort speichern</button>
+
+        <div class="error-message" id="errorMsg"></div>
+    </form>
+
+    <div class="success-state" id="successState">
+        <span class="material-symbols-outlined success-icon">lock_open</span>
+        <h1 style="font-size: 24px; font-weight: 600; margin-bottom: 10px;">Passwort geändert!</h1>
+        <p style="color: #9ca3af; font-size: 14px; margin-bottom: 25px; line-height: 1.6;">Dein Passwort wurde erfolgreich aktualisiert. Du kannst dich nun mit deinem neuen Passwort anmelden.</p>
+        
+        <a href="/web/index.html" class="login-btn">Zum Login</a>
+    </div>
+</div>
+
+<script>
+    // URL Check
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    if (!token) {
+        const err = document.getElementById('errorMsg');
+        err.innerText = "Ungültiger oder abgelaufener Reset-Link.";
+        err.style.display = 'block';
+        document.getElementById('submitBtn').disabled = true;
+    }
+
+    // Password Strength
+    const pwdInput = document.getElementById('password');
+    const pwdContainer = document.getElementById('pwdContainer');
+    const pwdBar = document.getElementById('pwdBar');
+    const pwdLabel = document.getElementById('pwdLabel');
+
+    pwdInput.addEventListener('input', () => {
+        const val = pwdInput.value;
+        if (val.length === 0) {
+            pwdContainer.style.display = 'none';
+            return;
+        }
+        pwdContainer.style.display = 'block';
+        
+        let strength = 0;
+        if (val.length >= 8) strength += 25;
+        if (val.length >= 12) strength += 25;
+        if (/[A-Z]/.test(val)) strength += 20;
+        if (/[0-9]/.test(val)) strength += 15;
+        if (/[^A-Za-z0-9]/.test(val)) strength += 15;
+
+        pwdBar.style.width = strength + '%';
+        if (strength < 40) {
+            pwdBar.style.background = '#ef4444';
+            pwdLabel.innerText = 'Schwach';
+            pwdLabel.style.color = '#ef4444';
+        } else if (strength < 80) {
+            pwdBar.style.background = '#f59e0b';
+            pwdLabel.innerText = 'Mittel';
+            pwdLabel.style.color = '#f59e0b';
+        } else {
+            pwdBar.style.background = '#10b981';
+            pwdLabel.innerText = 'Stark';
+            pwdLabel.style.color = '#10b981';
+        }
+    });
+
+    // Submit
+    document.getElementById('resetForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const usr = document.getElementById('username').value.trim();
+        const eml = document.getElementById('email').value.trim();
+        const pwd = document.getElementById('password').value;
+        const pwdConf = document.getElementById('password_confirm').value;
+        const errorMsg = document.getElementById('errorMsg');
+        const submitBtn = document.getElementById('submitBtn');
+
+        if (pwd !== pwdConf) {
+            errorMsg.innerText = 'Die Passwörter stimmen nicht überein!';
+            errorMsg.style.display = 'block';
+            return;
+        }
+
+        if (pwd.length < 8) {
+            errorMsg.innerText = 'Das Passwort muss mindestens 8 Zeichen lang sein.';
+            errorMsg.style.display = 'block';
+            return;
+        }
+
+        errorMsg.style.display = 'none';
+        submitBtn.innerText = "Bitte warten...";
+        submitBtn.disabled = true;
+
+        try {
+            const response = await fetch('/api/RiNnoFinPublic/ResetPassword', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ Token: token, NewPassword: pwd, Username: usr, Email: eml })
+            });
+
+            if (response.ok) {
+                document.getElementById('resetForm').style.display = 'none';
+                document.getElementById('header').style.display = 'none';
+                document.getElementById('successState').style.display = 'block';
+            } else {
+                let errorText = "Fehler beim Zurücksetzen.";
+                const text = await response.text();
+                try {
+                    const data = JSON.parse(text);
+                    if(data.message) errorText = data.message;
+                } catch(err) {}
+                throw new Error(errorText);
+            }
+        } catch (err) {
+            errorMsg.innerText = err.message;
+            errorMsg.style.display = 'block';
+            submitBtn.innerText = "Passwort speichern";
+            submitBtn.disabled = false;
+        }
+    });
+</script>
+</body>
+</html>

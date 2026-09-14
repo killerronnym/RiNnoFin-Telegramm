@@ -1,0 +1,241 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --spin-animation-time: 4s;
+    --primary-gradient: linear-gradient(135deg, #a78bfa 0%, #3b82f6 100%);
+    --bg-dark: #090a0f;
+    --card-bg: rgba(17, 18, 25, 0.65);
+    --border-color: rgba(255, 255, 255, 0.08);
+    --text-primary: #f3f4f6;
+    --text-secondary: #9ca3af;
+}
+
+@font-face {
+    font-family: "Material Symbols Outlined";
+    font-style: normal;
+    font-weight: 400;
+    src: url("./material_icons.woff2") format("woff2");
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    -webkit-font-smoothing: antialiased;
+}
+
+html, body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    height: 100%;
+    overflow: hidden;
+}
+
+/* Background animation */
+body::before {
+    content: '';
+    position: absolute;
+    top: -30%;
+    left: -20%;
+    width: 60%;
+    height: 60%;
+    background: radial-gradient(circle, rgba(167, 139, 250, 0.15) 0%, rgba(59, 130, 246, 0.03) 70%, transparent 100%);
+    filter: blur(80px);
+    z-index: -1;
+    pointer-events: none;
+}
+
+body::after {
+    content: '';
+    position: absolute;
+    bottom: -30%;
+    right: -20%;
+    width: 60%;
+    height: 60%;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(167, 139, 250, 0.03) 70%, transparent 100%);
+    filter: blur(80px);
+    z-index: -1;
+    pointer-events: none;
+}
+
+.material-symbols-outlined {
+    direction: ltr;
+    display: inline-block;
+    font-family: "Material Symbols Outlined";
+    font-size: 24px;
+    font-style: normal;
+    font-weight: normal;
+    letter-spacing: normal;
+    line-height: 1;
+    text-transform: none;
+    white-space: nowrap;
+    word-wrap: normal;
+    vertical-align: middle;
+}
+
+/* Page container */
+.rinnofin-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    width: 100vw;
+    padding: 20px;
+}
+
+.readOnlyContent {
+    width: 100%;
+    max-width: 440px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* Glassmorphic card design */
+.loginCard {
+    background: var(--card-bg);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--border-color);
+    border-radius: 24px;
+    padding: 40px 32px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.linkLogos {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.brand-logo {
+    height: 3.8em;
+    width: auto;
+    filter: drop-shadow(0 4px 12px rgba(167, 139, 250, 0.3));
+}
+
+#ssoSyncIcon {
+    font-size: 28px;
+    color: var(--text-secondary);
+    animation: rotate-slow 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Titles & Description */
+.sectionTitle {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 32px;
+}
+
+/* Errors */
+#errorMessage {
+    display: none;
+    color: #f87171;
+    background: rgba(248, 113, 113, 0.1);
+    border: 1px solid rgba(248, 113, 113, 0.2);
+    border-radius: 12px;
+    padding: 14px;
+    font-size: 13px;
+    margin-bottom: 24px;
+    width: 100%;
+    text-align: left;
+    line-height: 1.4;
+}
+
+/* Telegram login button styling container */
+.telegramButton {
+    width: 100%;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: center;
+}
+
+/* Default login button */
+.backButton {
+    width: 100%;
+}
+
+.emby-button.block {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 14px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.emby-button.block:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-1px);
+}
+
+.emby-button.block:active {
+    transform: translateY(0);
+}
+
+.emby-button.block .material-symbols-outlined {
+    font-size: 18px;
+}
+
+/* Footer link */
+.provided-by {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.25);
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 500;
+    margin-top: 8px;
+}
+
+/* Rotation animations */
+@keyframes rotate-slow {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(720deg);
+    }
+}
+
+@keyframes continuous-rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-continuous {
+    pointer-events: none;
+    animation: continuous-rotate .8s linear infinite !important;
+}
