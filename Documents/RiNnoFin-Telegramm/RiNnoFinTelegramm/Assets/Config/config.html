@@ -6,7 +6,7 @@
 </head>
 <body>
 <div class="page type-interior pluginConfigurationPage rinnofin-page"
-     data-controller="__plugin/RiNnoFinTelegramm_v10466.js"
+     data-controller="__plugin/RiNnoFinTelegramm_v10467.js"
      data-require="emby-input,emby-button,emby-select,emby-checkbox,listViewStyle,paper-icon-button"
      data-role="page"
      id="rinnofin-config-page">
@@ -15,7 +15,7 @@
             <!-- Header Section -->
             <div class="sectionTitleContainer flex align-items-center" style="flex-wrap: wrap; gap: 10px;">
                 <h2 class="sectionTitle" style="margin: 0;">RiNnoFin Telegramm</h2>
-                <h3 style="margin: 0; opacity: 0.8; font-size: 1.1em;">Version: <b id="RiNnoFinVersion">1.0.4.66</b></h3>
+                <h3 style="margin: 0; opacity: 0.8; font-size: 1.1em;">Version: <b id="RiNnoFinVersion">1.0.4.67</b></h3>
             </div>
 
             
@@ -1240,42 +1240,21 @@
 
 <script>
 (function() {
-    function initTabsAndData() {
-        const root = document.querySelector('#rinnofin-config-page') || document;
-        const menuItems = root.querySelectorAll('.rinnofin-menu-item');
-        menuItems.forEach(function(item) {
-            if (item.getAttribute('data-rinnofin-inline') === 'true') return;
-            item.setAttribute('data-rinnofin-inline', 'true');
-            item.addEventListener('click', function(e) {
-                const tabId = item.getAttribute('data-tab');
-                if (!tabId) return;
-                root.querySelectorAll('.rinnofin-menu-item').forEach(function(el) { el.classList.remove('active'); });
-                root.querySelectorAll('.rinnofin-tab').forEach(function(el) { el.classList.remove('active'); });
-                item.classList.add('active');
-                const target = root.querySelector('#' + tabId);
-                if (target) {
-                    target.classList.add('active');
-                    target.style.display = 'block';
-                }
+    var initAttempts = 0;
+    function initController() {
+        initAttempts++;
+        const views = document.querySelectorAll('#rinnofin-config-page:not([data-init="true"])');
+        
+        if (views.length > 0 && typeof window.RiNnoFinController === 'function') {
+            views.forEach(view => {
+                view.setAttribute('data-init', 'true');
+                window.RiNnoFinController(view, {});
             });
-        });
-
-        // Trigger configuration & user loading
-        if (window.tgConfigPage && typeof window.tgConfigPage.loadConfiguration === 'function') {
-            window.tgConfigPage.loadConfiguration(root);
-        } else if (window.tgConfigPage && typeof window.tgConfigPage.loadUsers === 'function') {
-            window.tgConfigPage.loadUsers(root);
+        } else if (initAttempts < 100) {
+            setTimeout(initController, 100);
         }
     }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initTabsAndData);
-    } else {
-        initTabsAndData();
-    }
-    setTimeout(initTabsAndData, 150);
-    setTimeout(initTabsAndData, 600);
-    setTimeout(initTabsAndData, 1500);
+    initController();
 })();
 </script>
 

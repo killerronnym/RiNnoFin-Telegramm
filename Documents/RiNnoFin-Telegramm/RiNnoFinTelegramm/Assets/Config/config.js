@@ -1,12 +1,12 @@
 (function (global, factory) {
+    var controller = factory();
+    global.RiNnoFinController = controller;
     if (typeof define === 'function' && define.amd) {
-        define([], factory);
+        define([], function() { return controller; });
     } else if (typeof module === 'object' && module.exports) {
-        module.exports = factory();
-    } else {
-        global.RiNnoFinController = factory();
+        module.exports = controller;
     }
-}(typeof self !== 'undefined' ? self : this, function () {
+}(typeof self !== 'undefined' ? self : window, function () {
     "use strict";
 
     const LinkPrefix = "l:";
