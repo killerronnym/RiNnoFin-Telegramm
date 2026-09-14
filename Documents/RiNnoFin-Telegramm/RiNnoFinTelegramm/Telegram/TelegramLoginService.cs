@@ -8,9 +8,8 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
-using Jellyfin.Data;
-using Jellyfin.Database.Implementations.Entities;
-using Jellyfin.Database.Implementations.Enums;
+using Jellyfin.Data.Enums;
+using MediaBrowser.Controller.Entities;
 using Jellyfin.Plugin.RiNnoFinTelegramm.Classes;
 using MediaBrowser.Common.Extensions;
 using MediaBrowser.Controller.Authentication;
@@ -32,9 +31,9 @@ public class TelegramLoginService
     private readonly HMACSHA256 _hmac;
     private readonly RiNnoFinPlugin _instance;
     private readonly ISessionManager _sessionManager;
-    private readonly IUserManager _userManager;
+    private readonly object? _userManager;
 
-    internal TelegramLoginService(RiNnoFinPlugin instance, ISessionManager sessionManager, IUserManager userManager, ICryptoProvider cryptoProvider)
+    internal TelegramLoginService(RiNnoFinPlugin instance, ISessionManager sessionManager, object? userManager, ICryptoProvider cryptoProvider)
     {
         _instance = instance;
         _config = instance.Configuration;
@@ -47,7 +46,7 @@ public class TelegramLoginService
         _hmac = new HMACSHA256(sha256.ComputeHash(Encoding.ASCII.GetBytes(_config.BotToken)));
     }
 
-    public async Task<User> GetOrCreateJellyUser(SortedDictionary<string, string> authData)
+    public async Task<dynamic> GetOrCreateJellyUser(SortedDictionary<string, string> authData)
     {
         var userId = GetDictValue(authData, "id");
         var userName = GetDictValue(authData, "username");
@@ -79,30 +78,32 @@ public class TelegramLoginService
             _instance.SaveConfiguration(_config);
         }
 
-        User user = null;
+        dynamic? user = null;
         if (providedJellyfinUserId != Guid.Empty)
         {
-            user = _userManager.GetUserById(providedJellyfinUserId);
+            user = _userManager.GetUserByIdSafe(providedJellyfinUserId);
         }
         else if (existingLink != null && existingLink.JellyfinUserId != Guid.Empty)
         {
-            user = _userManager.GetUserById(existingLink.JellyfinUserId);
+            user = _userManager.GetUserByIdSafe(existingLink.JellyfinUserId);
         }
 
         if (user == null)
         {
-            user = _userManager.GetUserByName(userName);
+            user = _userManager.GetUserByNameSafe(userName);
         }
 
         if (user == null)
         {
             // Auto-create only for Whitelisted users or Admins
-            user = await _userManager.CreateUserAsync(userName).ConfigureAwait(false);
-
-            var randBytes = new byte[128];
-            using var rng = RandomNumberGenerator.Create();
-            rng.GetBytes(randBytes);
-            user.Password = _cryptoProvider.CreatePasswordHash(Convert.ToBase64String(randBytes)).ToString();
+            user = (dynamic?)await _userManager.CreateUserAsyncSafe(userName).ConfigureAwait(false);
+            if (user != null)
+            {
+                var randBytes = new byte[128];
+                using var rng = RandomNumberGenerator.Create();
+                rng.GetBytes(randBytes);
+                user.Password = _cryptoProvider.CreatePasswordHash(Convert.ToBase64String(randBytes)).ToString();
+            }
         }
 
         // Benutzer-Telegram-Verbindung registrieren/aktualisieren
@@ -152,12 +153,12 @@ public class TelegramLoginService
             user.SetPreference(PreferenceKind.EnabledFolders, userFolders);
         }
 
-        await _userManager.UpdateUserAsync(user).ConfigureAwait(false);
+        await ControllerExtensions.UpdateUserAsyncSafe(_userManager, (object)user).ConfigureAwait(false);
 
         return user;
     }
 
-    public async Task<AuthenticationResult?> DoJellyUserAuth(HttpRequest? request, User? user)
+    public async Task<AuthenticationResult?> DoJellyUserAuth(HttpRequest? request, dynamic? user)
     {
         if (request == null || user == null)
         {
@@ -256,7 +257,7 @@ public class TelegramLoginService
         return foundKey != null ? dataDictionary![foundKey] : default;
     }
 
-    private async Task<bool> DownloadUserImage(User user, SortedDictionary<string, string> authData)
+    private async Task<bool> DownloadUserImage(dynamic user, SortedDictionary<string, string> authData)
     {
         if (user == null)
         {
@@ -299,7 +300,7 @@ public class TelegramLoginService
 
             if (user.ProfileImage == null)
             {
-                user.ProfileImage = new ImageInfo(userImgFile);
+                user.ProfileImage = new Jellyfin.Data.Entities.ImageInfo(userImgFile);
             }
             else
             {
@@ -315,7 +316,7 @@ public class TelegramLoginService
         }
     }
 
-    private async Task<bool> SetDefaultUserImage(User user)
+    private async Task<bool> SetDefaultUserImage(dynamic user)
     {
         if (user == null)
         {
@@ -350,7 +351,7 @@ public class TelegramLoginService
 
             if (user.ProfileImage == null)
             {
-                user.ProfileImage = new ImageInfo(userImgFile);
+                user.ProfileImage = new Jellyfin.Data.Entities.ImageInfo(userImgFile);
             }
             else
             {

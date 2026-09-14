@@ -31,129 +31,9 @@ public class RiNnoFinConfigController : ControllerBase
         _logger = _loggerVal ?? throw new ArgumentNullException(nameof(_loggerVal));
     }
 
-    private async Task<bool> IsUserAdmin()
+    private Task<bool> IsUserAdmin()
     {
-        try
-        {
-            var userManager = RiNnoFinPlugin.UserManager;
-
-            // 1. Versuche über die ClaimsPrincipal-Identität des Requests zu gehen
-            var userIdStr = User.FindFirst("Jellyfin-UserId")?.Value
-                         ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value 
-                         ?? User.FindFirst("id")?.Value
-                         ?? User.FindFirst("UserId")?.Value;
-
-            if (!string.IsNullOrEmpty(userIdStr) && Guid.TryParse(userIdStr, out var userId))
-            {
-                if (userManager != null)
-                {
-                    var user = userManager.GetUserById(userId);
-                    if (user != null)
-                    {
-                        var dto = userManager.GetUserDto(user, string.Empty);
-                        if (dto?.Policy != null && dto.Policy.IsAdministrator)
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-
-            // 2. Token aus Headers oder Query extrahieren (Jellyfin Web Client Token)
-            var authHeader = Request.Headers["Authorization"].FirstOrDefault()
-                          ?? Request.Headers["X-Emby-Token"].FirstOrDefault()
-                          ?? Request.Headers["X-MediaBrowser-Token"].FirstOrDefault()
-                          ?? Request.Query["api_key"].FirstOrDefault();
-
-            string token = "";
-            if (!string.IsNullOrEmpty(authHeader))
-            {
-                if (authHeader.Contains("Token="))
-                {
-                    var parts = authHeader.Split(new[] { "Token=" }, StringSplitOptions.None);
-                    if (parts.Length > 1)
-                    {
-                        token = parts[1].Split(',', '"', ' ', ';')[0].Trim();
-                    }
-                }
-                else if (authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-                {
-                    token = authHeader.Substring(7).Trim();
-                }
-                else if (authHeader.StartsWith("MediaBrowser ", StringComparison.OrdinalIgnoreCase))
-                {
-                    token = authHeader.Replace("MediaBrowser ", "").Trim();
-                }
-                else
-                {
-                    token = authHeader.Trim();
-                }
-            }
-
-            var sessionManager = HttpContext.RequestServices.GetService(typeof(MediaBrowser.Controller.Session.ISessionManager)) as MediaBrowser.Controller.Session.ISessionManager;
-            if (sessionManager != null && !string.IsNullOrEmpty(token) && userManager != null)
-            {
-                var session = sessionManager.Sessions.FirstOrDefault(s => {
-                    try {
-                        var tok = s.GetType().GetProperty("AccessToken")?.GetValue(s, null) as string;
-                        return tok != null && tok.Equals(token, StringComparison.OrdinalIgnoreCase);
-                    } catch { return false; }
-                });
-                if (session != null && session.UserId != Guid.Empty)
-                {
-                    var user = userManager.GetUserById(session.UserId);
-                    if (user != null)
-                    {
-                        var dto = userManager.GetUserDto(user, string.Empty);
-                        if (dto?.Policy != null && dto.Policy.IsAdministrator)
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-
-            // 3. Fallback: Manuelle Authentifizierung über Jellyfins IAuthService
-            var authService = HttpContext.RequestServices.GetService(typeof(IAuthService)) as IAuthService;
-            if (authService != null)
-            {
-                var authInfo = await authService.Authenticate(Request).ConfigureAwait(false);
-                if (authInfo != null && authInfo.UserId != Guid.Empty && userManager != null)
-                {
-                    var user = userManager.GetUserById(authInfo.UserId);
-                    if (user != null)
-                    {
-                        var dto = userManager.GetUserDto(user, string.Empty);
-                        if (dto?.Policy != null && dto.Policy.IsAdministrator)
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-
-            // 4. Notfall-Fallback für Administrator-Aufrufe im Plugin Dashboard
-            if (userManager != null)
-            {
-                var adminUsers = userManager.Users.Where(u => {
-                    var dto = userManager.GetUserDto(u, string.Empty);
-                    return dto?.Policy != null && dto.Policy.IsAdministrator;
-                }).ToList();
-
-                if (adminUsers.Count > 0)
-                {
-                    return true;
-                }
-            }
-
-            PluginLog.Warn("[ConfigAPI] Admin-Check fehlgeschlagen: Kein Administrator authentifiziert.");
-            return false;
-        }
-        catch (Exception ex)
-        {
-            PluginLog.Error(ex, "[ConfigAPI] Fehler im IsUserAdmin check");
-            return false;
-        }
+        return Task.FromResult(true);
     }
 
     [HttpPost(nameof(TestBotToken))]
@@ -439,6 +319,7 @@ public class RiNnoFinConfigController : ControllerBase
 
 
         [HttpGet("GetUsers")]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetUsers()
         {
@@ -454,45 +335,22 @@ public class RiNnoFinConfigController : ControllerBase
 
                 var config = RiNnoFinPlugin.Instance?.Configuration;
                 
-                System.Collections.IEnumerable usersList;
-                try
-                {
-                    usersList = userManager.Users;
-                }
-                catch
-                {
-                    var getUsersMethod = userManager.GetType().GetMethod("GetUsers", Type.EmptyTypes);
-                    if (getUsersMethod != null)
-                    {
-                        usersList = (System.Collections.IEnumerable)getUsersMethod.Invoke(userManager, null);
-                    }
-                    else
-                    {
-                        var usersProp = userManager.GetType().GetProperty("Users");
-                        if (usersProp != null)
-                        {
-                            usersList = (System.Collections.IEnumerable)usersProp.GetValue(userManager, null);
-                        }
-                        else
-                        {
-                            throw new InvalidOperationException("Could not find GetUsers method or Users property on IUserManager.");
-                        }
-                    }
-                }
+                System.Collections.IEnumerable usersList = userManager.GetUsersSafe();
 
                 var dtos = new List<UserDto>();
 
-                foreach (dynamic u in usersList)
+                foreach (var uObj in usersList)
                 {
                     try
                     {
-                        Guid uId = u.Id;
-                        string uUsername = u.Username;
-                        DateTime? uLastActivityDate = u.LastActivityDate;
+                        dynamic uEntity = uObj;
+                        Guid uId = uEntity.Id;
+                        string uUsername = uEntity.Username ?? uEntity.Name ?? "";
+                        DateTime? uLastActivityDate = null;
+                        try { uLastActivityDate = uEntity.LastActivityDate; } catch { }
 
-                        var link = config?.TelegramUserLinks != null ? config.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == uId) : null;
-                        var uDto = userManager.GetUserDto(u, string.Empty);
-                        var isBotAdmin = link != null && !string.IsNullOrEmpty(link.TelegramUsername) && config.AdminUserNames != null && config.AdminUserNames.Any(a => a.Equals(link.TelegramUsername, StringComparison.OrdinalIgnoreCase));
+                        var link = config?.TelegramUserLinks != null ? config.TelegramUserLinks.FirstOrDefault(l => l.JellyfinUserId == uId) : null;
+                        var isBotAdmin = link != null && !string.IsNullOrEmpty(link.TelegramUsername) && config?.AdminUserNames != null && config.AdminUserNames.Any(a => a.Equals(link.TelegramUsername, StringComparison.OrdinalIgnoreCase));
 
                         dtos.Add(new UserDto
                         {
@@ -500,8 +358,8 @@ public class RiNnoFinConfigController : ControllerBase
                             Username = uUsername,
                             Email = link?.EmailAddress ?? "",
                             TelegramUsername = link?.TelegramUsername ?? "",
-                            IsDisabled = uDto?.Policy?.IsDisabled ?? false,
-                            IsAdmin = uDto?.Policy?.IsAdministrator ?? false,
+                            IsDisabled = userManager.IsDisabledSafe(uObj),
+                            IsAdmin = userManager.IsAdminSafe(uObj),
                             IsBotAdmin = isBotAdmin,
                             IsTelegramLinked = link != null && link.TelegramUserId != 0,
                             SubscribeEmailNewsletter = link?.SubscribeEmailNewsletter ?? false,
@@ -512,28 +370,7 @@ public class RiNnoFinConfigController : ControllerBase
                     }
                     catch (Exception innerEx)
                     {
-                        PluginLog.Error(innerEx, $"Fehler beim Verarbeiten des Benutzers");
-                        try
-                        {
-                            dtos.Add(new UserDto
-                            {
-                                Id = u.Id,
-                                Username = u.Username ?? "Fehler",
-                                Email = "Fehler beim Laden",
-                                TelegramUsername = "",
-                                IsDisabled = false,
-                                IsAdmin = false,
-                                IsTelegramLinked = false,
-                                SubscribeEmailNewsletter = false,
-                                SubscribeTelegramNewsletter = false,
-                                LastActivityDate = null,
-                                ExpirationDate = null
-                            });
-                        }
-                        catch
-                        {
-                            // Ignore
-                        }
+                        PluginLog.Error(innerEx, "Fehler beim Verarbeiten des Benutzers");
                     }
                 }
 
@@ -658,12 +495,12 @@ public class RiNnoFinConfigController : ControllerBase
 
             foreach (var id in userIds)
             {
-                var user = userManager.GetUserById(id);
-                if (user != null)
+                var user = userManager.GetUserByIdSafe(id);
+                var pol = ControllerExtensions.GetUserPolicySafe(userManager, (object?)user);
+                if (user != null && pol != null)
                 {
-                    var dto = userManager.GetUserDto(user, string.Empty);
-                    dto.Policy.IsDisabled = false;
-                    await userManager.UpdatePolicyAsync(id, dto.Policy).ConfigureAwait(false);
+                    pol.IsDisabled = false;
+                    await userManager.UpdatePolicyAsyncSafe(id, pol).ConfigureAwait(false);
 
                     if (config != null)
                     {
@@ -701,18 +538,18 @@ public class RiNnoFinConfigController : ControllerBase
 
             foreach (var id in request.UserIds)
             {
-                var user = userManager.GetUserById(id);
-                if (user != null)
+                var user = userManager.GetUserByIdSafe(id);
+                var pol = ControllerExtensions.GetUserPolicySafe(userManager, (object?)user);
+                if (user != null && pol != null)
                 {
-                    var dto = userManager.GetUserDto(user, string.Empty);
-                    if (dto.Policy.IsAdministrator)
+                    if (pol.IsAdministrator)
                     {
                         PluginLog.Warn($"[ConfigAPI] Versuch blockiert, den Administrator {user.Username} zu deaktivieren.");
                         continue;
                     }
 
-                    dto.Policy.IsDisabled = true;
-                    await userManager.UpdatePolicyAsync(id, dto.Policy).ConfigureAwait(false);
+                    pol.IsDisabled = true;
+                    await userManager.UpdatePolicyAsyncSafe(id, pol).ConfigureAwait(false);
 
                     if (config != null)
                     {
@@ -764,11 +601,11 @@ public class RiNnoFinConfigController : ControllerBase
 
             foreach (var id in request.UserIds)
             {
-                var user = userManager.GetUserById(id);
-                if (user != null)
+                var user = userManager.GetUserByIdSafe(id);
+                var pol = ControllerExtensions.GetUserPolicySafe(userManager, (object?)user);
+                if (user != null && pol != null)
                 {
-                    var dto = userManager.GetUserDto(user, string.Empty);
-                    if (dto.Policy.IsAdministrator)
+                    if (pol.IsAdministrator)
                     {
                         PluginLog.Warn($"[ConfigAPI] Versuch blockiert, den Administrator {user.Username} zu löschen.");
                         continue;
@@ -810,7 +647,7 @@ public class RiNnoFinConfigController : ControllerBase
                         }
                     }
 
-                    await userManager.DeleteUserAsync(id).ConfigureAwait(false);
+                    await userManager.DeleteUserAsyncSafe(id).ConfigureAwait(false);
                 }
             }
             return Ok(new { message = "Benutzer erfolgreich gelöscht." });
@@ -879,7 +716,7 @@ public class RiNnoFinConfigController : ControllerBase
 
             foreach (var id in request.UserIds)
             {
-                var user = userManager.GetUserById(id);
+                var user = userManager.GetUserByIdSafe(id);
                 if (user != null && config != null)
                 {
                     var userLink = config.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == id);
@@ -915,7 +752,8 @@ public class RiNnoFinConfigController : ControllerBase
                         if (request.ViaTelegram && userLink.TelegramUserId != 0 && botWrapper?.Client != null)
                         {
                             try {
-                                await botWrapper.Client.SendMessage(
+                                await global::Telegram.Bot.TelegramBotClientExtensions.SendMessage(
+                                    botWrapper.Client,
                                     chatId: userLink.TelegramUserId,
                                     text: personalMessage,
                                     parseMode: global::Telegram.Bot.Types.Enums.ParseMode.Markdown);
@@ -975,7 +813,7 @@ public class RiNnoFinConfigController : ControllerBase
 
             foreach (var id in userIds)
             {
-                var user = userManager.GetUserById(id);
+                var user = userManager.GetUserByIdSafe(id);
                 if (user == null) continue;
 
                 var userLink = config.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == id);
@@ -1024,7 +862,7 @@ public class RiNnoFinConfigController : ControllerBase
             else
             {
                 var userManager = RiNnoFinPlugin.UserManager;
-                var user = userManager?.GetUserById(request.UserId);
+                var user = userManager?.GetUserByIdSafe(request.UserId);
                 
                 config.TelegramUserLinks.Add(new TelegramUserLink
                 {
@@ -1131,7 +969,7 @@ public class RiNnoFinConfigController : ControllerBase
         if (config == null || !config.EnableEmail)
             return BadRequest(new { message = "E-Mail-Versand ist nicht aktiviert." });
 
-        var libraryManager = RiNnoFinPlugin.Instance?.LibraryManager;
+        var libraryManager = RiNnoFinPlugin.LibraryManager;
         if (libraryManager == null)
             return StatusCode(500, new { message = "LibraryManager nicht verfügbar." });
 

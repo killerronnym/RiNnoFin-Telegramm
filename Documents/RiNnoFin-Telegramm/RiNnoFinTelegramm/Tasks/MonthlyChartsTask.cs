@@ -18,15 +18,18 @@ namespace Jellyfin.Plugin.RiNnoFinTelegramm.Tasks
     public class MonthlyChartsTask : IScheduledTask
     {
         private readonly ILogger<MonthlyChartsTask> _logger;
-        private readonly ILibraryManager _libraryManager;
-        private readonly TelegramBotClientWrapper _botWrapper;
+        private readonly ILibraryManager? _libraryManager;
+        private readonly TelegramBotClientWrapper? _botWrapper;
 
-        public MonthlyChartsTask(ILogger<MonthlyChartsTask> logger, ILibraryManager libraryManager, TelegramBotClientWrapper botWrapper)
+        public MonthlyChartsTask(ILogger<MonthlyChartsTask> logger, ILibraryManager? libraryManager = null, TelegramBotClientWrapper? botWrapper = null)
         {
             _logger = logger;
             _libraryManager = libraryManager;
             _botWrapper = botWrapper;
         }
+
+        private ILibraryManager? LibraryManager => _libraryManager ?? RiNnoFinPlugin.LibraryManager;
+        private TelegramBotClientWrapper? BotWrapper => _botWrapper ?? RiNnoFinPlugin.Instance?.GetBotClientWrapper();
 
         public string Name => "RiNnoFin Monatliche Server-Charts";
 
@@ -53,7 +56,8 @@ namespace Jellyfin.Plugin.RiNnoFinTelegramm.Tasks
             }
 
             var config = RiNnoFinPlugin.Instance?.Configuration;
-            if (config == null || _botWrapper.Client == null) return;
+            var botWrapper = BotWrapper;
+            if (config == null || botWrapper?.Client == null) return;
 
             var notifyGroups = config.TelegramGroups?
                 .Where(g => g.TelegramGroupChat is { NotifyNewContent: true })
@@ -75,7 +79,14 @@ namespace Jellyfin.Plugin.RiNnoFinTelegramm.Tasks
                 IsVirtualItem = false
             };
 
-            var newItems = _libraryManager.GetItemList(query);
+            var libManager = LibraryManager;
+            if (libManager == null)
+            {
+                _logger.LogWarning("LibraryManager ist nicht verfügbar.");
+                return;
+            }
+
+            var newItems = libManager.GetItemList(query);
 
             var topMovies = newItems.Where(i => i.GetType().Name == "Movie")
                                     .OrderByDescending(i => i.CommunityRating ?? 0)
@@ -137,7 +148,7 @@ namespace Jellyfin.Plugin.RiNnoFinTelegramm.Tasks
                 cancellationToken.ThrowIfCancellationRequested();
                 try
                 {
-                    await _botWrapper.Client.SendMessage(
+                    await botWrapper.Client.SendMessage(
                         chatId: group.TelegramGroupChat!.TelegramChatId,
                         text: messageText,
                         parseMode: global::Telegram.Bot.Types.Enums.ParseMode.Markdown,

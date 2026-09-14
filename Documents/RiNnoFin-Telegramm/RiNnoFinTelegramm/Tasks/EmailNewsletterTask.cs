@@ -19,13 +19,15 @@ namespace Jellyfin.Plugin.RiNnoFinTelegramm.Tasks
     public class EmailNewsletterTask : IScheduledTask
     {
         private readonly ILogger<EmailNewsletterTask> _logger;
-        private readonly ILibraryManager _libraryManager;
+        private readonly ILibraryManager? _libraryManager;
 
-        public EmailNewsletterTask(ILogger<EmailNewsletterTask> logger, ILibraryManager libraryManager)
+        public EmailNewsletterTask(ILogger<EmailNewsletterTask> logger, ILibraryManager? libraryManager = null)
         {
             _logger = logger;
             _libraryManager = libraryManager;
         }
+
+        private ILibraryManager? LibraryManager => _libraryManager ?? RiNnoFinPlugin.LibraryManager;
 
         public string Name => "RiNnoFin E-Mail Newsletter (Live-Batch)";
 
@@ -44,6 +46,13 @@ namespace Jellyfin.Plugin.RiNnoFinTelegramm.Tasks
         {
             var config = RiNnoFinPlugin.Instance?.Configuration;
             if (config == null || !config.EnableEmail) return;
+
+            var libManager = LibraryManager;
+            if (libManager == null)
+            {
+                _logger.LogWarning("LibraryManager ist nicht verfügbar.");
+                return;
+            }
 
             var emailUsers = config.TelegramUserLinks?
                 .Where(u => u.SubscribeEmailNewsletter && !string.IsNullOrWhiteSpace(u.EmailAddress))
@@ -80,7 +89,7 @@ namespace Jellyfin.Plugin.RiNnoFinTelegramm.Tasks
                 IsVirtualItem = false
             };
 
-            var newItems = _libraryManager.GetItemList(query);
+            var newItems = libManager.GetItemList(query);
 
             var movies = newItems.Where(i => i.GetType().Name == "Movie").OrderByDescending(i => i.DateCreated).ToList();
             var episodes = newItems.Where(i => i.GetType().Name == "Episode").Cast<Episode>().ToList();

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -60,7 +60,7 @@ public class RiNnoFinPublicController : ControllerBase
         try
         {
             PluginLog.Info($"[PublicAPI] Prüfe ob Benutzer '{request.Username}' bereits existiert...");
-            var existingUser = userManager.GetUserByName(request.Username);
+            var existingUser = userManager.GetUserByNameSafe(request.Username);
             if (existingUser != null)
             {
                 PluginLog.Warn($"[PublicAPI] Benutzername '{request.Username}' ist bereits vergeben.");
@@ -68,12 +68,18 @@ public class RiNnoFinPublicController : ControllerBase
             }
 
             PluginLog.Info($"[PublicAPI] Erstelle neuen Jellyfin Benutzer '{request.Username}'...");
-            var user = await userManager.CreateUserAsync(request.Username).ConfigureAwait(false);
-            PluginLog.Info($"[PublicAPI] Jellyfin Benutzer '{request.Username}' erfolgreich angelegt (ID: {user.Id}). Setze Passwort...");
+            var user = await userManager.CreateUserAsyncSafe(request.Username).ConfigureAwait(false);
+            if (user == null)
+            {
+                return BadRequest(new { message = "Fehler beim Erstellen des Benutzers." });
+            }
+            dynamic userObj = user;
+            Guid newUserId = userObj.Id;
+            PluginLog.Info($"[PublicAPI] Jellyfin Benutzer '{request.Username}' erfolgreich angelegt (ID: {newUserId}). Setze Passwort...");
             
             // Set password
-            user.Password = cryptoProvider.CreatePasswordHash(request.Password).ToString();
-            await userManager.UpdateUserAsync(user).ConfigureAwait(false);
+            userObj.Password = cryptoProvider.CreatePasswordHash(request.Password).ToString();
+            await userManager.UpdateUserAsyncSafe(user).ConfigureAwait(false);
             PluginLog.Info("[PublicAPI] Passwort erfolgreich gesetzt und Benutzer aktualisiert.");
 
             // Clone Policy and Configuration if provided (or fallback to global default)
@@ -87,26 +93,29 @@ public class RiNnoFinPublicController : ControllerBase
 
             if (actualProfileUserId.HasValue)
             {
-                PluginLog.Info($"[PublicAPI] Profil-Cloning angefordert. Kopiere Rechte von Profile-User ID: '{actualProfileUserId.Value}' auf neuen User '{user.Id}'...");
-                var profileUser = userManager.GetUserById(actualProfileUserId.Value);
+                PluginLog.Info($"[PublicAPI] Profil-Cloning angefordert. Kopiere Rechte von Profile-User ID: '{actualProfileUserId.Value}' auf neuen User '{newUserId}'...");
+                var profileUser = userManager.GetUserByIdSafe(actualProfileUserId.Value);
                 if (profileUser != null)
                 {
-                    // 1. Copy policy and force the user to not be disabled
-                    var profileDto = userManager.GetUserDto(profileUser, string.Empty);
-                    profileDto.Policy.IsDisabled = false;
-                    await userManager.UpdatePolicyAsync(user.Id, profileDto.Policy).ConfigureAwait(false);
-                    PluginLog.Info("[PublicAPI] Policy-Rechte erfolgreich geklont und Status auf Aktiv gesetzt.");
+                    var pol = ControllerExtensions.GetUserPolicySafe(userManager, (object)profileUser);
+                    if (pol != null)
+                    {
+                        pol.IsDisabled = false;
+                        await userManager.UpdatePolicyAsyncSafe(newUserId, pol).ConfigureAwait(false);
+                        PluginLog.Info("[PublicAPI] Policy-Rechte erfolgreich geklont und Status auf Aktiv gesetzt.");
+                    }
 
                     // 2. Copy user configuration
                     try
                     {
-                        if (profileDto.Configuration != null)
+                        var profileConfig = ControllerExtensions.GetUserConfigurationSafe(userManager, (object)profileUser);
+                        if (profileConfig != null)
                         {
-                            var clonedConfigJson = System.Text.Json.JsonSerializer.Serialize(profileDto.Configuration);
+                            var clonedConfigJson = System.Text.Json.JsonSerializer.Serialize(profileConfig);
                             var clonedConfig = System.Text.Json.JsonSerializer.Deserialize<MediaBrowser.Model.Configuration.UserConfiguration>(clonedConfigJson);
                             if (clonedConfig != null)
                             {
-                                await userManager.UpdateConfigurationAsync(user.Id, clonedConfig).ConfigureAwait(false);
+                                await userManager.UpdateConfigurationAsyncSafe(newUserId, clonedConfig).ConfigureAwait(false);
                                 PluginLog.Info("[PublicAPI] User-Konfiguration erfolgreich geklont.");
                             }
                         }
@@ -129,9 +138,13 @@ public class RiNnoFinPublicController : ControllerBase
             // Speichern der E-Mail im Plugin-Config (damit wir wissen, wem dieser Account gehört)
                 if (config != null)
                 {
+                    dynamic uObjInner = user;
+                    Guid uId = uObjInner.Id;
+                    string uUsername = uObjInner.Username;
+
                     PluginLog.Info("[PublicAPI] Verknüpfe E-Mail-Adresse in Plugin-Konfiguration...");
                     if (config.TelegramUserLinks == null) config.TelegramUserLinks = new List<TelegramUserLink>();
-                    var existingLink = config.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == user.Id);
+                    var existingLink = config.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == uId);
                     if (existingLink != null)
                     {
                         existingLink.EmailAddress = email;
@@ -143,8 +156,8 @@ public class RiNnoFinPublicController : ControllerBase
                     {
                         config.TelegramUserLinks.Add(new TelegramUserLink
                         {
-                            JellyfinUserId = user.Id,
-                            JellyfinUsername = user.Username,
+                            JellyfinUserId = uId,
+                            JellyfinUsername = uUsername,
                             EmailAddress = email,
                             SubscribeTelegramNewsletter = request.SubscribeNewsletter,
                             SubscribeEmailNewsletter = request.SubscribeNewsletter,
@@ -158,7 +171,7 @@ public class RiNnoFinPublicController : ControllerBase
                 var baseUrl = config.LoginBaseUrl?.TrimEnd('/') ?? "http://localhost:8096";
                 string loginLink = $"{baseUrl}/web/index.html";
                 string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplateWelcome)
-                        ? config.EmailTemplateWelcome.Replace("{username}", user.Username).Replace("{loginLink}", loginLink)
+                        ? config.EmailTemplateWelcome.Replace("{username}", uUsername).Replace("{loginLink}", loginLink)
                         : $@"
 <div style='font-family: Arial, sans-serif; background-color: #060b14; padding: 40px 20px; color: #f8fafc;'>
     <div style='max-width: 520px; margin: 0 auto; background-color: #0d1623; border-radius: 16px; overflow: hidden; border: 1px solid #1e3a5f;'>
@@ -167,7 +180,7 @@ public class RiNnoFinPublicController : ControllerBase
             <h1 style='font-size: 24px; font-weight: 800; color: #f8fafc; margin: 0;'>Willkommen bei <span style='color: #2563eb;'>RiNnoFin</span></h1>
         </div>
         <div style='padding: 32px 36px;'>
-            <p style='font-size: 15px; color: #94a3b8; line-height: 1.6; margin-top: 0;'>Hallo <strong style='color: #e2e8f0;'>{user.Username}</strong>,</p>
+            <p style='font-size: 15px; color: #94a3b8; line-height: 1.6; margin-top: 0;'>Hallo <strong style='color: #e2e8f0;'>{uUsername}</strong>,</p>
             <p style='font-size: 15px; color: #94a3b8; line-height: 1.6;'>Dein Account wurde erfolgreich eingerichtet und ist ab sofort startklar. Wir freuen uns, dich an Bord zu haben!</p>
             
             <div style='text-align: center; margin: 35px 0;'>
@@ -251,7 +264,7 @@ public class RiNnoFinPublicController : ControllerBase
         try
         {
             var token = Guid.NewGuid().ToString("N");
-            var activeUser = RiNnoFinPlugin.UserManager.GetUserByName(userLink.JellyfinUsername.Trim());
+            var activeUser = RiNnoFinPlugin.UserManager.GetUserByNameSafe(userLink.JellyfinUsername.Trim());
             PluginLog.Info($"[PublicAPI] RequestPasswordReset: GetUserByName('{userLink.JellyfinUsername.Trim()}') returned {(activeUser != null ? activeUser.Id.ToString() : "null")}");
             if (activeUser == null)
             {
@@ -337,7 +350,7 @@ public class RiNnoFinPublicController : ControllerBase
         try
         {
             PluginLog.Info($"[PublicAPI] ResetPassword TryGetUserByName('{request.Username}')");
-              var user = userManager.GetUserByName(request.Username);
+              var user = userManager.GetUserByNameSafe(request.Username);
               if (user != null) {
                   PluginLog.Info($"[PublicAPI] GetUserByName('{request.Username}') returned ID: {user.Id}");
               }
@@ -364,8 +377,7 @@ public class RiNnoFinPublicController : ControllerBase
             // All validations passed. Remove token now.
             ResetTokenManager.RemoveResetToken(request.Token);
 
-            user.Password = cryptoProvider.CreatePasswordHash(request.NewPassword).ToString();
-            await userManager.UpdateUserAsync(user).ConfigureAwait(false);
+            await ControllerExtensions.UpdateUserAsyncSafe(userManager, (object)user).ConfigureAwait(false);
 
             if (config != null)
             {
@@ -431,7 +443,7 @@ public class RiNnoFinPublicController : ControllerBase
         if (config == null) return NotFound("Konfiguration nicht gefunden");
 
         var userManager = RiNnoFinPlugin.UserManager;
-        var user = userManager?.GetUserById(authInfo.UserId);
+        var user = userManager?.GetUserByIdSafe(authInfo.UserId);
         if (user == null) return Unauthorized(new { message = "Benutzer nicht gefunden" });
 
         var userLink = config.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == authInfo.UserId);
@@ -466,7 +478,7 @@ public class RiNnoFinPublicController : ControllerBase
         if (config == null) return NotFound("Konfiguration nicht gefunden");
 
         var userManager = RiNnoFinPlugin.UserManager;
-        var user = userManager?.GetUserById(authInfo.UserId);
+        var user = userManager?.GetUserByIdSafe(authInfo.UserId);
         if (user == null) return Unauthorized(new { message = "Benutzer nicht gefunden" });
 
         if (config.TelegramUserLinks == null) config.TelegramUserLinks = new();

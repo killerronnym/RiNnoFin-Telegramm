@@ -15,15 +15,18 @@ namespace Jellyfin.Plugin.RiNnoFinTelegramm.Tasks
     public class ServerMonitoringTask : IScheduledTask
     {
         private readonly ILogger<ServerMonitoringTask> _logger;
-        private readonly TelegramBotClientWrapper _botWrapper;
-        private readonly ISessionManager _sessionManager;
+        private readonly TelegramBotClientWrapper? _botWrapper;
+        private readonly ISessionManager? _sessionManager;
 
-        public ServerMonitoringTask(ILogger<ServerMonitoringTask> logger, TelegramBotClientWrapper botWrapper, ISessionManager sessionManager)
+        public ServerMonitoringTask(ILogger<ServerMonitoringTask> logger, TelegramBotClientWrapper? botWrapper = null, ISessionManager? sessionManager = null)
         {
             _logger = logger;
             _botWrapper = botWrapper;
             _sessionManager = sessionManager;
         }
+
+        private TelegramBotClientWrapper? BotWrapper => _botWrapper ?? RiNnoFinPlugin.Instance?.GetBotClientWrapper();
+        private ISessionManager? SessionManager => _sessionManager ?? (RiNnoFinPlugin.ServiceProvider?.GetService(typeof(ISessionManager)) as ISessionManager);
 
         public string Name => "RiNnoFin Server-Überwachung";
 
@@ -41,7 +44,8 @@ namespace Jellyfin.Plugin.RiNnoFinTelegramm.Tasks
         public async Task ExecuteAsync(IProgress<double> progress, CancellationToken cancellationToken)
         {
             var config = RiNnoFinPlugin.Instance?.Configuration;
-            if (config == null || _botWrapper.Client == null) return;
+            var botWrapper = BotWrapper;
+            if (config == null || botWrapper?.Client == null) return;
 
             var adminUsernames = config.AdminUserNames ?? new List<string>();
             var adminTelegramIds = new List<long>();
@@ -87,18 +91,22 @@ namespace Jellyfin.Plugin.RiNnoFinTelegramm.Tasks
             // 2. Transcoding-Warnung
             try
             {
-                int transcodingCount = 0;
-                foreach (var session in _sessionManager.Sessions)
+                var sessManager = SessionManager;
+                if (sessManager != null)
                 {
-                    if (session.PlayState?.PlayMethod == MediaBrowser.Model.Session.PlayMethod.Transcode)
+                    int transcodingCount = 0;
+                    foreach (var session in sessManager.Sessions)
                     {
-                        transcodingCount++;
+                        if (session.PlayState?.PlayMethod == MediaBrowser.Model.Session.PlayMethod.Transcode)
+                        {
+                            transcodingCount++;
+                        }
                     }
-                }
 
-                if (transcodingCount >= 3)
-                {
-                    warnings.Add($"🔥 *Transcoding-Warnung:*\nAktuell laufen *{transcodingCount} Transcoding-Streams* gleichzeitig!\nDies kann zu hoher CPU-Auslastung führen.");
+                    if (transcodingCount >= 3)
+                    {
+                        warnings.Add($"🔥 *Transcoding-Warnung:*\nAktuell laufen *{transcodingCount} Transcoding-Streams* gleichzeitig!\nDies kann zu hoher CPU-Auslastung führen.");
+                    }
                 }
             }
             catch (Exception ex)
@@ -117,7 +125,7 @@ namespace Jellyfin.Plugin.RiNnoFinTelegramm.Tasks
                     cancellationToken.ThrowIfCancellationRequested();
                     try
                     {
-                        await _botWrapper.Client.SendMessage(
+                        await botWrapper.Client.SendMessage(
                             chatId: adminId,
                             text: message,
                             parseMode: global::Telegram.Bot.Types.Enums.ParseMode.Markdown,

@@ -1,64 +1,53 @@
 using System;
 using System.Collections.Generic;
-using Jellyfin.Plugin.RiNnoFinTelegramm.Services;
+using System.Linq;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Plugins;
 using MediaBrowser.Model.Serialization;
-using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.RiNnoFinTelegramm;
 
-public class RiNnoFinPlugin : BasePlugin<PluginConfiguration>, IPlugin, IHasWebPages, IDisposable
+public class RiNnoFinPlugin : BasePlugin<PluginConfiguration>, IPlugin, IHasWebPages
 {
-    private readonly ILibraryManager _libraryManager;
-    private readonly NotificationService _notificationService;
-    private readonly ILogger<RiNnoFinPlugin> _logger;
-
-    public static MediaBrowser.Controller.Library.IUserManager? UserManager { get; private set; }
+    public static object? UserManager { get; private set; }
     public static MediaBrowser.Model.Cryptography.ICryptoProvider? CryptoProvider { get; private set; }
-
-    public RiNnoFinPlugin(
-        ILogger<RiNnoFinPlugin> logger,
-        IApplicationPaths applicationPaths,
-        IXmlSerializer xmlSerializer,
-        ILibraryManager libraryManager,
-        NotificationService notificationService,
-        MediaBrowser.Controller.Library.IUserManager userManager,
-        MediaBrowser.Model.Cryptography.ICryptoProvider cryptoProvider)
-        : base(applicationPaths, xmlSerializer)
-    {
-        _logger = logger;
-        ApplicationPaths = applicationPaths;
-        Instance = this;
-        UserManager = userManager;
-        CryptoProvider = cryptoProvider;
-        _libraryManager = libraryManager;
-        _notificationService = notificationService;
-        
-        _libraryManager.ItemAdded += _notificationService.OnItemAdded;
-        _libraryManager.ItemUpdated += _notificationService.OnItemUpdated;
-        
-        _logger.LogInformation("{PluginName} initialisiert.", nameof(RiNnoFinPlugin));
-    }
-
+    public static ILibraryManager? LibraryManager { get; private set; }
+    public static IServiceProvider? ServiceProvider { get; private set; }
     public static RiNnoFinPlugin? Instance { get; private set; }
 
-    public ILibraryManager LibraryManager => _libraryManager;
-    
+    public RiNnoFinPlugin(
+        IApplicationPaths applicationPaths,
+        IXmlSerializer xmlSerializer,
+        IServiceProvider serviceProvider)
+        : base(applicationPaths, xmlSerializer)
+    {
+        ApplicationPaths = applicationPaths;
+        Instance = this;
+        ServiceProvider = serviceProvider;
+
+        try
+        {
+            var umType = System.AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(a => { try { return a.GetTypes(); } catch { return Array.Empty<Type>(); } })
+                .FirstOrDefault(t => t.Name == "IUserManager" || t.FullName == "MediaBrowser.Controller.Library.IUserManager");
+            if (umType != null)
+            {
+                UserManager = serviceProvider.GetService(umType);
+            }
+
+            CryptoProvider = serviceProvider.GetService(typeof(MediaBrowser.Model.Cryptography.ICryptoProvider)) as MediaBrowser.Model.Cryptography.ICryptoProvider;
+            LibraryManager = serviceProvider.GetService(typeof(ILibraryManager)) as ILibraryManager;
+        }
+        catch { }
+    }
+
     private Jellyfin.Plugin.RiNnoFinTelegramm.Services.TelegramBotClientWrapper? _botWrapper;
     public Jellyfin.Plugin.RiNnoFinTelegramm.Services.TelegramBotClientWrapper? GetBotClientWrapper() => _botWrapper;
     public void SetBotClientWrapper(Jellyfin.Plugin.RiNnoFinTelegramm.Services.TelegramBotClientWrapper wrapper) => _botWrapper = wrapper;
 
     public new IApplicationPaths ApplicationPaths { get; }
-
-    public void Dispose()
-    {
-        _libraryManager.ItemAdded -= _notificationService.OnItemAdded;
-        _libraryManager.ItemUpdated -= _notificationService.OnItemUpdated;
-        GC.SuppressFinalize(this);
-    }
 
     IEnumerable<PluginPageInfo> IHasWebPages.GetPages()
     {
@@ -71,7 +60,7 @@ public class RiNnoFinPlugin : BasePlugin<PluginConfiguration>, IPlugin, IHasWebP
                 EnableInMainMenu = true,
                 MenuIcon = "send"
             },
-            new PluginPageInfo { Name = "RiNnoFinTelegramm_v10461.js", EmbeddedResourcePath = $"{typeof(RiNnoFinPlugin).Namespace}.Assets.Config.config.js" },
+            new PluginPageInfo { Name = "RiNnoFinTelegramm_v10462.js", EmbeddedResourcePath = $"{typeof(RiNnoFinPlugin).Namespace}.Assets.Config.config.js" },
             new PluginPageInfo { Name = "RiNnoFinTelegramm.css", EmbeddedResourcePath = $"{typeof(RiNnoFinPlugin).Namespace}.Assets.Config.config.css" }
         ];
     }

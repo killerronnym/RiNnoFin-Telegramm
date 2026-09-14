@@ -9,6 +9,8 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
+using Jellyfin.Plugin.RiNnoFinTelegramm.Services;
+using Jellyfin.Plugin.RiNnoFinTelegramm.Classes;
 
 namespace Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.Commands;
 
@@ -170,7 +172,7 @@ internal class CommandWunsch : ICommandBase
 
         foreach (var adminName in admins)
         {
-            var user = userManager.Users.FirstOrDefault(u => u.Username.Equals(adminName, StringComparison.OrdinalIgnoreCase));
+            var user = userManager.GetUsersSafe().Cast<dynamic>().FirstOrDefault(u => u.Username != null && u.Username.Equals(adminName, StringComparison.OrdinalIgnoreCase));
             if (user != null)
             {
                 var adminLink = telegramBotService.Config.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == user.Id);

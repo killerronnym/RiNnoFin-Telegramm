@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Plugin.RiNnoFinTelegramm.Services;
+using Jellyfin.Plugin.RiNnoFinTelegramm.Classes;
 using Jellyfin.Plugin.RiNnoFinTelegramm.Telegram.Commands;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
@@ -436,10 +437,10 @@ internal sealed class TelegramBotService : ITelegramBotService
 
         try
         {
-            var userManager = ServiceProvider.GetRequiredService<IUserManager>();
+            var userManager = RiNnoFinPlugin.UserManager;
             var cryptoProvider = ServiceProvider.GetRequiredService<ICryptoProvider>();
 
-            var user = userManager.GetUserById(link.JellyfinUserId);
+            var user = userManager.GetUserByIdSafe(link.JellyfinUserId);
             if (user == null)
             {
                 await botClient.SendMessage(
@@ -631,7 +632,7 @@ internal sealed class TelegramBotService : ITelegramBotService
 
                     foreach (var adminName in admins)
                     {
-                        var user = userManager.Users.FirstOrDefault(u => u.Username.Equals(adminName, StringComparison.OrdinalIgnoreCase));
+                        var user = userManager.GetUsersSafe().Cast<dynamic>().FirstOrDefault(u => u.Username != null && u.Username.Equals(adminName, StringComparison.OrdinalIgnoreCase));
                         if (user != null)
                         {
                             var adminLink = Config.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == user.Id);

@@ -42,7 +42,7 @@ public static class QuizHelper
 
         logger.LogInformation("QuizHelper: Chat={ChatId} ThreadId={ThreadId}", chatId, threadId?.ToString() ?? "null");
 
-        var libraryManager = RiNnoFinPlugin.Instance?.LibraryManager
+        var libraryManager = RiNnoFinPlugin.LibraryManager
             ?? throw new InvalidOperationException("LibraryManager ist nicht verfügbar.");
 
         var items = libraryManager.GetItemList(new InternalItemsQuery

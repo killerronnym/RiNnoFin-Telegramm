@@ -18,15 +18,18 @@ namespace Jellyfin.Plugin.RiNnoFinTelegramm.Tasks
     public class WeeklyDigestTask : IScheduledTask
     {
         private readonly ILogger<WeeklyDigestTask> _logger;
-        private readonly ILibraryManager _libraryManager;
-        private readonly TelegramBotClientWrapper _botWrapper;
+        private readonly ILibraryManager? _libraryManager;
+        private readonly TelegramBotClientWrapper? _botWrapper;
 
-        public WeeklyDigestTask(ILogger<WeeklyDigestTask> logger, ILibraryManager libraryManager, TelegramBotClientWrapper botWrapper)
+        public WeeklyDigestTask(ILogger<WeeklyDigestTask> logger, ILibraryManager? libraryManager = null, TelegramBotClientWrapper? botWrapper = null)
         {
             _logger = logger;
             _libraryManager = libraryManager;
             _botWrapper = botWrapper;
         }
+
+        private ILibraryManager? LibraryManager => _libraryManager ?? RiNnoFinPlugin.LibraryManager;
+        private TelegramBotClientWrapper? BotWrapper => _botWrapper ?? RiNnoFinPlugin.Instance?.GetBotClientWrapper();
 
         public string Name => "RiNnoFin Wochenrückblick senden";
 
@@ -44,7 +47,8 @@ namespace Jellyfin.Plugin.RiNnoFinTelegramm.Tasks
         public async Task ExecuteAsync(IProgress<double> progress, CancellationToken cancellationToken)
         {
             var config = RiNnoFinPlugin.Instance?.Configuration;
-            if (config == null || _botWrapper.Client == null) return;
+            var botWrapper = BotWrapper;
+            if (config == null || botWrapper?.Client == null) return;
 
             var notifyGroups = config.TelegramGroups?
                 .Where(g => g.TelegramGroupChat is { NotifyNewContent: true })
@@ -74,7 +78,14 @@ namespace Jellyfin.Plugin.RiNnoFinTelegramm.Tasks
                 IsVirtualItem = false
             };
 
-            var newItems = _libraryManager.GetItemList(query);
+            var libManager = LibraryManager;
+            if (libManager == null)
+            {
+                _logger.LogWarning("LibraryManager ist nicht verfügbar.");
+                return;
+            }
+
+            var newItems = libManager.GetItemList(query);
 
             var movies = newItems.Where(i => i.GetType().Name == "Movie").OrderByDescending(i => i.DateCreated).Take(10).ToList();
             var series = newItems.Where(i => i.GetType().Name == "Series").OrderByDescending(i => i.DateCreated).Take(10).ToList();
@@ -127,7 +138,7 @@ namespace Jellyfin.Plugin.RiNnoFinTelegramm.Tasks
                 cancellationToken.ThrowIfCancellationRequested();
                 try
                 {
-                    await _botWrapper.Client.SendMessage(
+                    await botWrapper.Client.SendMessage(
                         chatId: group.TelegramGroupChat!.TelegramChatId,
                         text: messageText,
                         parseMode: global::Telegram.Bot.Types.Enums.ParseMode.Markdown,
@@ -149,7 +160,7 @@ namespace Jellyfin.Plugin.RiNnoFinTelegramm.Tasks
                 {
                     try
                     {
-                        await _botWrapper.Client.SendMessage(
+                        await botWrapper.Client.SendMessage(
                             chatId: user.TelegramUserId,
                             text: messageText,
                             parseMode: global::Telegram.Bot.Types.Enums.ParseMode.Markdown,

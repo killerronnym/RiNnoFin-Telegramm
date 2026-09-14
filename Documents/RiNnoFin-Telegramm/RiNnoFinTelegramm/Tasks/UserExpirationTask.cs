@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Jellyfin.Plugin.RiNnoFinTelegramm.Classes;
 using Jellyfin.Plugin.RiNnoFinTelegramm.Services;
 using MediaBrowser.Model.Tasks;
 using Microsoft.Extensions.Logging;
@@ -50,11 +51,10 @@ namespace Jellyfin.Plugin.RiNnoFinTelegramm.Tasks
                 
                 if (link.ExpirationDate.HasValue)
                 {
-                    var user = userManager.GetUserById(link.JellyfinUserId);
+                    var user = userManager.GetUserByIdSafe(link.JellyfinUserId);
                     if (user != null)
                     {
-                        var dto = userManager.GetUserDto(user, string.Empty);
-                        if (dto.Policy.IsDisabled)
+                        if (ControllerExtensions.IsDisabledSafe(userManager, (object)user))
                         {
                             processed++;
                             continue; // Bereits deaktiviert
@@ -67,12 +67,16 @@ namespace Jellyfin.Plugin.RiNnoFinTelegramm.Tasks
                             
                             if (config.ExpirationAction == "Delete")
                             {
-                                await userManager.DeleteUserAsync(user.Id).ConfigureAwait(false);
+                                await ControllerExtensions.DeleteUserAsyncSafe(userManager, (Guid)user.Id).ConfigureAwait(false);
                             }
                             else
                             {
-                                dto.Policy.IsDisabled = true;
-                                await userManager.UpdatePolicyAsync(user.Id, dto.Policy).ConfigureAwait(false);
+                                var pol = ControllerExtensions.GetUserPolicySafe(userManager, (object)user);
+                                if (pol != null)
+                                {
+                                    pol.IsDisabled = true;
+                                    await ControllerExtensions.UpdatePolicyAsyncSafe(userManager, (Guid)user.Id, pol).ConfigureAwait(false);
+                                }
                             }
 
                             if (!string.IsNullOrEmpty(link.EmailAddress))

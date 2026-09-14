@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Jellyfin.Plugin.RiNnoFinTelegramm.Classes;
 using Jellyfin.Plugin.RiNnoFinTelegramm.Services;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Cryptography;
@@ -76,10 +77,10 @@ internal class CommandPasswort : ICommandBase
 
         try
         {
-            var userManager = telegramBotService.ServiceProvider.GetRequiredService<IUserManager>();
+            var userManager = RiNnoFinPlugin.UserManager;
             var cryptoProvider = telegramBotService.ServiceProvider.GetRequiredService<ICryptoProvider>();
 
-            var user = userManager.GetUserByName(link.JellyfinUsername);
+            var user = userManager.GetUserByNameSafe(link.JellyfinUsername);
             if (user == null)
             {
                 await botClient.SendMessage(
@@ -91,7 +92,7 @@ internal class CommandPasswort : ICommandBase
 
             // Neues Passwort hashen und speichern
             user.Password = cryptoProvider.CreatePasswordHash(newPassword).ToString();
-            await userManager.UpdateUserAsync(user).ConfigureAwait(false);
+            await ControllerExtensions.UpdateUserAsyncSafe(userManager, (object)user).ConfigureAwait(false);
 
             await botClient.SendMessage(
                 message.Chat.Id,
