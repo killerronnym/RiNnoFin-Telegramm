@@ -613,7 +613,162 @@ const tgConfigPage = {
                     data: JSON.stringify({ UserIds: userIds, Reason: reason }),
                     contentType: "application/json"
                 }).then(() => {
-                    window.Dashboard.hideLoadingMsg();
+                    
+    // === NEW ANNOUNCEMENTS TAB LOGIC ===
+    const targetTypeSelect = view.querySelector('#GlobalAnnounceTargetType');
+    const groupSelectContainer = view.querySelector('#GlobalAnnounceGroupSelectContainer');
+    const userSelectContainer = view.querySelector('#GlobalAnnounceUserSelectContainer');
+    
+    if (targetTypeSelect) {
+        targetTypeSelect.addEventListener('change', (e) => {
+            const val = e.target.value;
+            groupSelectContainer.style.display = val === 'group' ? 'block' : 'none';
+            userSelectContainer.style.display = val === 'specific' ? 'block' : 'none';
+        });
+    }
+
+    const populateAnnounceTab = async () => {
+        // Populate Groups
+        const groupSelect = view.querySelector('#GlobalAnnounceGroup');
+        if (groupSelect && tgConfigPage.lastConfig && tgConfigPage.lastConfig.TelegramGroups) {
+            groupSelect.innerHTML = tgConfigPage.lastConfig.TelegramGroups.map(g => `<option value="${g.GroupName}">${g.GroupName}</option>`).join('');
+        }
+        
+        // Populate Users
+        const userSelect = view.querySelector('#GlobalAnnounceUsers');
+        if (userSelect) {
+            try {
+                const users = await window.ApiClient.getUsers();
+                if (users && users.length > 0) {
+                    let html = '';
+                    for (const u of users) {
+                        html += `<option value="${u.Id}">${u.Name}</option>`;
+                    }
+                    userSelect.innerHTML = html;
+                }
+            } catch (err) {
+                console.error("Failed to load users for announcement tab", err);
+            }
+        }
+    };
+
+    populateAnnounceTab();
+
+    view.querySelector('#SendGlobalAnnounceBtn')?.addEventListener('click', async (e) => {
+        e.preventDefault();
+        
+        const targetType = view.querySelector('#GlobalAnnounceTargetType').value;
+        const message = view.querySelector('#GlobalAnnounceMessage').value.trim();
+        const subject = view.querySelector('#GlobalAnnounceSubject').value.trim();
+        const viaTelegram = view.querySelector('#GlobalAnnounceViaTelegram').checked;
+        const viaEmail = view.querySelector('#GlobalAnnounceViaEmail').checked;
+        const isSpoiler = view.querySelector('#GlobalAnnounceIsSpoiler').checked;
+        const imageInput = view.querySelector('#GlobalAnnounceImage');
+
+        if (!message) {
+            window.Dashboard.alert('Bitte gib eine Nachricht ein.');
+            return;
+        }
+
+        let imageBase64 = '';
+        if (imageInput && imageInput.files && imageInput.files[0]) {
+            const getBase64 = (file) => new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+            try {
+                imageBase64 = await getBase64(imageInput.files[0]);
+            } catch (err) {
+                window.Dashboard.alert('Fehler beim Lesen des Bildes.');
+                return;
+            }
+        }
+
+        const sendBtn = view.querySelector('#SendGlobalAnnounceBtn');
+        sendBtn.disabled = true;
+        window.Dashboard.showLoadingMsg();
+
+        try {
+            if (targetType === 'group') {
+                const groupName = view.querySelector('#GlobalAnnounceGroup').value;
+                if (!groupName) {
+                    window.Dashboard.alert('Bitte wähle eine Gruppe aus.');
+                    return;
+                }
+                const url = window.ApiClient.getUrl('/api/RiNnoFinConfig/SendGroupAnnouncement?groupName=' + encodeURIComponent(groupName));
+                await window.ApiClient.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: JSON.stringify({ 
+                        Message: message,
+                        ImageBase64: imageBase64,
+                        IsSpoiler: isSpoiler
+                    }),
+                    contentType: 'application/json'
+                });
+                window.Dashboard.alert('Gruppen-Ankündigung erfolgreich gesendet.');
+            } else {
+                let userIds = [];
+                if (targetType === 'all') {
+                    const userSelect = view.querySelector('#GlobalAnnounceUsers');
+                    if (userSelect && userSelect.options) {
+                        for(let i=0; i<userSelect.options.length; i++) {
+                            userIds.push(userSelect.options[i].value);
+                        }
+                    }
+                } else if (targetType === 'specific') {
+                    const userSelect = view.querySelector('#GlobalAnnounceUsers');
+                    if (userSelect && userSelect.selectedOptions) {
+                        for(let i=0; i<userSelect.selectedOptions.length; i++) {
+                            userIds.push(userSelect.selectedOptions[i].value);
+                        }
+                    }
+                }
+
+                if (userIds.length === 0) {
+                    window.Dashboard.alert('Keine Benutzer zum Senden ausgewählt.');
+                    return;
+                }
+
+                if (!viaEmail && !viaTelegram) {
+                    window.Dashboard.alert('Bitte wähle mindestens einen Kanal (E-Mail oder Telegram) aus.');
+                    return;
+                }
+
+                await window.ApiClient.ajax({
+                    url: window.ApiClient.getUrl('/api/RiNnoFinConfig/SendAnnouncement'),
+                    type: 'POST',
+                    data: JSON.stringify({ 
+                        UserIds: userIds, 
+                        Subject: subject, 
+                        Message: message,
+                        ViaEmail: viaEmail,
+                        ViaTelegram: viaTelegram,
+                        ImageBase64: imageBase64,
+                        IsSpoiler: isSpoiler
+                    }),
+                    contentType: 'application/json'
+                });
+                window.Dashboard.alert('Ankündigung erfolgreich an Benutzer gesendet.');
+            }
+            
+            view.querySelector('#GlobalAnnounceMessage').value = '';
+            view.querySelector('#GlobalAnnounceSubject').value = '';
+            if (imageInput) imageInput.value = '';
+            
+        } catch (err) {
+            const msg = err?.responseJSON?.message || err?.responseText || err?.message || "Unbekannter Fehler";
+            window.Dashboard.alert('Fehler: ' + msg);
+        } finally {
+            window.Dashboard.hideLoadingMsg();
+            sendBtn.disabled = false;
+        }
+    });
+    // === END NEW ANNOUNCEMENTS TAB LOGIC ===
+
+    window.Dashboard.hideLoadingMsg();
                     window.Dashboard.alert("Aktion erfolgreich ausgeführt!");
                     tgConfigPage.loadUsers(page);
                 }).catch(err => {
@@ -1294,45 +1449,7 @@ export default function rinnofinController(view, params) {
         if(panel) panel.style.display = 'none';
     });
 
-    view.querySelector('#SendAnnounceBtn')?.addEventListener('click', async (e) => {
-        e.preventDefault();
-        const userIds = tgConfigPage.getSelectedUserIds(view);
-        if (userIds.length === 0) {
-            window.Dashboard.alert('Bitte wähle mindestens einen Benutzer für die Ankündigung aus.');
-            return;
-        }
-
-        const subject = view.querySelector('#AnnounceSubject').value.trim();
-        const message = view.querySelector('#AnnounceMessage').value.trim();
-        const viaEmail = view.querySelector('#AnnounceViaEmail').checked;
-        const viaTelegram = view.querySelector('#AnnounceViaTelegram').checked;
-
-        if (!viaEmail && !viaTelegram) {
-            window.Dashboard.alert('Bitte wähle mindestens einen Kanal (E-Mail oder Telegram) aus.');
-            return;
-        }
-
-        if (!message) {
-            window.Dashboard.alert('Bitte gib eine Nachricht ein.');
-            return;
-        }
-        
-        if (viaEmail && !subject) {
-            window.Dashboard.alert('Bitte gib einen Betreff für die E-Mail ein.');
-            return;
-        }
-
-        const imageInput = view.querySelector('#AnnounceImage');
-        const isSpoiler = view.querySelector('#AnnounceIsSpoiler').checked;
-        let imageBase64 = '';
-
-        if (imageInput && imageInput.files && imageInput.files[0]) {
-            const getBase64 = (file) => new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
-            });
+    
             try {
                 imageBase64 = await getBase64(imageInput.files[0]);
             } catch (err) {
@@ -1631,26 +1748,7 @@ view.querySelector("#SaveConfigEmail")?.addEventListener("click", async (e) => {
         view.querySelector("#GroupAnnouncePanel").style.display = "none";
     });
 
-    view.querySelector("#SendGroupAnnounceBtn")?.addEventListener("click", async (e) => {
-        e.preventDefault();
-        if (!tgConfigPage.currentGroup) return;
-
-        const message = view.querySelector("#GroupAnnounceMessage").value.trim();
-        if (!message) {
-            window.Dashboard.alert('Bitte gib eine Nachricht ein.');
-            return;
-        }
-
-        const imageInput = view.querySelector('#GroupAnnounceImage');
-        const isSpoiler = view.querySelector('#GroupAnnounceIsSpoiler').checked;
-        let imageBase64 = '';
-        if (imageInput && imageInput.files && imageInput.files[0]) {
-            const getBase64 = (file) => new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
-            });
+    
             try {
                 imageBase64 = await getBase64(imageInput.files[0]);
             } catch (err) {
