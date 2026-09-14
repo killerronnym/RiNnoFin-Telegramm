@@ -6,7 +6,7 @@
 </head>
 <body>
 <div class="page type-interior pluginConfigurationPage rinnofin-page"
-     data-controller="__plugin/RiNnoFinTelegramm_v10453.js"
+     data-controller="__plugin/RiNnoFinTelegramm_v10460.js"
      data-require="emby-input,emby-button,emby-select,emby-checkbox,listViewStyle,paper-icon-button"
      data-role="page"
      id="rinnofin-config-page">
@@ -14,23 +14,23 @@
         <div class="content-primary">
 
             <!-- Header Section -->
-            <div class="sectionTitleContainer flex align-items-center">
-                <h2 class="sectionTitle">RiNnoFin Telegramm</h2>
-                <h3>Version: <b id="RiNnoFinVersion">1.0.4.53</b></h3>
+            <div class="sectionTitleContainer flex align-items-center" style="flex-wrap: wrap; gap: 10px;">
+                <h2 class="sectionTitle" style="margin: 0;">RiNnoFin Telegramm</h2>
+                <h3 style="margin: 0; opacity: 0.8; font-size: 1.1em;">Version: <b id="RiNnoFinVersion">1.0.4.60</b></h3>
             </div>
 
             
 <style>
-  .rinnofin-layout { display: flex; flex-direction: row; min-height: 80vh; margin-top: 10px; }
-  .rinnofin-sidebar { width: 250px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 15px; flex-shrink: 0; }
-  .rinnofin-content { flex: 1; padding-left: 20px; overflow-x: auto; }
+  .rinnofin-layout { display: flex; flex-direction: row; min-height: 80vh; margin-top: 10px; box-sizing: border-box; width: 100%; }
+  .rinnofin-sidebar { width: 250px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 15px; flex-shrink: 0; box-sizing: border-box; }
+  .rinnofin-content { flex: 1; padding-left: 20px; overflow-x: auto; min-width: 0; box-sizing: border-box; }
   .rinnofin-tab { display: none; }
   .rinnofin-tab.active { display: block; }
-  .rinnofin-menu-item { padding: 10px 15px; margin-bottom: 5px; cursor: pointer; border-radius: 4px; transition: background 0.2s; }
+  .rinnofin-menu-item { padding: 10px 15px; margin-bottom: 5px; cursor: pointer; border-radius: 4px; transition: background 0.2s; user-select: none; -webkit-tap-highlight-color: transparent; }
   .rinnofin-menu-item:hover { background: rgba(255,255,255,0.05); }
   .rinnofin-menu-item.active { background: #00a4dc; color: #fff; font-weight: bold; }
   .action-btn-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; }
-  .action-btn { background: #374151; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
+  .action-btn { background: #374151; color: white; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-size: 14px; touch-action: manipulation; }
   .action-btn:hover { background: #4b5563; }
   .action-btn.btn-green { background: #10b981; } .action-btn.btn-green:hover { background: #059669; }
   .action-btn.btn-red { background: #ef4444; } .action-btn.btn-red:hover { background: #dc2626; }
@@ -59,35 +59,70 @@
       margin: 0;
   }
 
-  /* Mobile: die feste 250px-Sidebar frisst auf Handys fast den ganzen
-     Bildschirm und schneidet den Inhalt rechts ab. Ab hier wird die
-     Sidebar zu einer horizontal scrollbaren Reiterleiste oben, damit
-     der Inhalt darunter die volle Breite bekommt. */
-  @media (max-width: 780px) {
+  /* Universal Input & Touch Fixes */
+  .rinnofin-page input[type="text"],
+  .rinnofin-page input[type="password"],
+  .rinnofin-page input[type="email"],
+  .rinnofin-page input[type="url"],
+  .rinnofin-page input[type="number"],
+  .rinnofin-page input[type="date"],
+  .rinnofin-page textarea,
+  .rinnofin-page select {
+      pointer-events: auto !important;
+      user-select: text !important;
+      -webkit-user-select: text !important;
+      opacity: 1 !important;
+      font-size: 16px !important; /* Prevents auto-zoom on mobile iOS/Android */
+      box-sizing: border-box !important;
+  }
+
+  /* Mobile Layout Rules (< 850px) */
+  @media (max-width: 850px) {
     .rinnofin-layout {
-        flex-direction: column;
-        min-height: 0;
+        flex-direction: column !important;
+        min-height: 0 !important;
     }
     .rinnofin-sidebar {
-        width: 100%;
-        display: flex;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        border-right: none;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
-        padding-right: 0;
-        padding-bottom: 10px;
-        margin-bottom: 10px;
+        width: 100% !important;
+        display: flex !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        border-right: none !important;
+        border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+        padding-right: 0 !important;
+        padding-bottom: 8px !important;
+        margin-bottom: 15px !important;
+        gap: 6px !important;
     }
     .rinnofin-menu-item {
-        flex-shrink: 0;
-        white-space: nowrap;
-        margin-bottom: 0;
-        margin-right: 6px;
+        flex-shrink: 0 !important;
+        white-space: nowrap !important;
+        margin-bottom: 0 !important;
+        padding: 8px 12px !important;
+        font-size: 14px !important;
     }
     .rinnofin-content {
-        padding-left: 0;
-        overflow-x: hidden;
+        padding-left: 0 !important;
+        overflow-x: hidden !important;
+        width: 100% !important;
+    }
+    .grid-4-columns {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 1.5rem !important;
+    }
+    .group-column {
+        width: 100% !important;
+        max-height: none !important;
+    }
+    .action-btn-bar {
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+    }
+    .action-btn {
+        flex: 1 1 auto !important;
+        text-align: center !important;
+        padding: 10px !important;
     }
   }
 </style>

@@ -8,6 +8,14 @@
     "imageUrl":  "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions":  [
                      {
+                         "changelog":  "UI Fix & Mobil-Optimierung: Eingabefelder und Tippen repariert, Responsive Design für Handys und Tablets verbessert, Cache-Busting für JS Controller (v1.0.4.60).",
+                         "version":  "1.0.4.60",
+                         "checksum":  "c643d2fb519806d689ed9813f67064fc",
+                         "timestamp":  "2026-09-14 16:28:00",
+                         "targetAbi":  "10.9.0.0",
+                         "sourceUrl":  "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.60.zip"
+                     },
+                     {
                          "changelog":  "Neues Release: Telegram-Broadcasts, geplante Aufgaben und Benachrichtigungs-System aktualisiert, verbesserte SSO- und Dashboard-Integration.",
                          "version":  "1.0.4.59",
                          "checksum":  "d5abfc70f4963a2991bf4d99eabda830",

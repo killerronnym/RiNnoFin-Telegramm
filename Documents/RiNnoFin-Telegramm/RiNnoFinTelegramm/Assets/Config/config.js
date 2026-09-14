@@ -1197,6 +1197,8 @@ const tgTokenHelper = {
 }
 
 export default function (view) {
+    tgConfigPage.loadConfiguration(view);
+
     view.addEventListener('viewshow', function (e) {
         tgConfigPage.loadConfiguration(view);
     });
