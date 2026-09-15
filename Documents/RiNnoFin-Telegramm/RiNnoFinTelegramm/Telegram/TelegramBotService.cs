@@ -337,24 +337,41 @@ internal sealed class TelegramBotService : ITelegramBotService
             var senderUsername = message.From.Username ?? "";
             var senderFirstName = message.From.FirstName ?? "";
 
-            var matchingLink = Config.TelegramUserLinks.FirstOrDefault(l =>
-                l.TelegramUserId == 0 && (
-                    (!string.IsNullOrEmpty(senderUsername) && (
-                        string.Equals(l.TelegramUsername, senderUsername, StringComparison.OrdinalIgnoreCase) ||
-                        string.Equals(l.JellyfinUsername, senderUsername, StringComparison.OrdinalIgnoreCase)
-                    )) ||
-                    (!string.IsNullOrEmpty(senderFirstName) && string.Equals(l.JellyfinUsername, senderFirstName, StringComparison.OrdinalIgnoreCase))
-                ));
-
-            if (matchingLink != null)
+            var existingLink = Config.TelegramUserLinks.FirstOrDefault(l => l.TelegramUserId == senderId);
+            if (existingLink != null)
             {
-                matchingLink.TelegramUserId = senderId;
-                if (!string.IsNullOrEmpty(senderUsername) && string.IsNullOrEmpty(matchingLink.TelegramUsername))
+                if (!string.IsNullOrEmpty(senderUsername) && (string.IsNullOrEmpty(existingLink.TelegramUsername) || existingLink.TelegramUsername == "-"))
                 {
-                    matchingLink.TelegramUsername = senderUsername;
+                    existingLink.TelegramUsername = senderUsername;
+                    RiNnoFinPlugin.Instance?.SaveConfiguration(Config);
                 }
-                RiNnoFinPlugin.Instance?.SaveConfiguration(Config);
-                Logger.LogInformation("Auto-linked TelegramUserId {TgId} for user {Username}", senderId, matchingLink.JellyfinUsername);
+            }
+            else
+            {
+                var matchingLink = Config.TelegramUserLinks.FirstOrDefault(l =>
+                    l.TelegramUserId == 0 && (
+                        (!string.IsNullOrEmpty(senderUsername) && (
+                            string.Equals(l.TelegramUsername, senderUsername, StringComparison.OrdinalIgnoreCase) ||
+                            string.Equals(l.JellyfinUsername, senderUsername, StringComparison.OrdinalIgnoreCase) ||
+                            (Config.AdminUserNames != null && Config.AdminUserNames.Any(a => string.Equals(a, senderUsername, StringComparison.OrdinalIgnoreCase)) && (
+                                string.Equals(l.JellyfinUsername, "Ronny", StringComparison.OrdinalIgnoreCase) ||
+                                (RiNnoFinPlugin.UserManager != null && (ControllerExtensions.GetUserPolicySafe(RiNnoFinPlugin.UserManager, RiNnoFinPlugin.UserManager.GetUserByIdSafe(l.JellyfinUserId))?.IsAdministrator ?? false))
+                            ))
+                        )) ||
+                        (!string.IsNullOrEmpty(senderFirstName) && string.Equals(l.JellyfinUsername, senderFirstName, StringComparison.OrdinalIgnoreCase))
+                    ));
+
+                if (matchingLink != null)
+                {
+                    matchingLink.TelegramUserId = senderId;
+                    if (!string.IsNullOrEmpty(senderUsername))
+                    {
+                        matchingLink.TelegramUsername = senderUsername;
+                    }
+                    RiNnoFinPlugin.Instance?.SaveConfiguration(Config);
+                    Logger.LogInformation("Auto-linked TelegramUserId {TgId} (@{TgUser}) for user {Username}", senderId, senderUsername, matchingLink.JellyfinUsername);
+                    PluginLog.Info($"[TelegramBotService] Auto-linked TelegramUserId {senderId} (@{senderUsername}) for Jellyfin user {matchingLink.JellyfinUsername}");
+                }
             }
         }
 

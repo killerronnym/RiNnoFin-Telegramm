@@ -807,6 +807,26 @@ public class RiNnoFinConfigController : ControllerBase
                         }
                     }
 
+                    if (tgUserId == 0 && config.TelegramUserLinks != null)
+                    {
+                        var adminLinkWithId = config.TelegramUserLinks.FirstOrDefault(l => l.TelegramUserId != 0 &&
+                            ((config.AdminUserNames != null && config.AdminUserNames.Any(a => string.Equals(a, l.TelegramUsername, StringComparison.OrdinalIgnoreCase))) ||
+                             string.Equals(l.JellyfinUsername, "Ronny", StringComparison.OrdinalIgnoreCase)));
+                        if (adminLinkWithId != null && (string.Equals(usernameStr, "Ronny", StringComparison.OrdinalIgnoreCase) ||
+                            (config.AdminUserNames != null && config.AdminUserNames.Any(a => string.Equals(a, usernameStr, StringComparison.OrdinalIgnoreCase)))))
+                        {
+                            tgUserId = adminLinkWithId.TelegramUserId;
+                            if (userLink != null && userLink.TelegramUserId == 0)
+                            {
+                                userLink.TelegramUserId = tgUserId;
+                                if (!string.IsNullOrEmpty(adminLinkWithId.TelegramUsername) && string.IsNullOrEmpty(userLink.TelegramUsername))
+                                {
+                                    userLink.TelegramUsername = adminLinkWithId.TelegramUsername;
+                                }
+                            }
+                        }
+                    }
+
                     PluginLog.Info($"[SendAnnouncement] Empfänger '{usernameStr}' (Id={id}): TelegramUserLink={(userLink != null ? "Gefunden" : "NICHT GEFUNDEN")}, TgUserId={tgUserId}, Email='{targetEmail}'");
 
                     string personalMessage = request.Message
