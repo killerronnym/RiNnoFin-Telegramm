@@ -95,7 +95,8 @@ public class RiNnoFinConfigController : ControllerBase
     {
         if (!await IsUserAdmin().ConfigureAwait(false)) return StatusCode(StatusCodes.Status403Forbidden, null);
 
-        var requestService = (RequestService)HttpContext.RequestServices.GetService(typeof(RequestService));
+        var requestService = (RequestService?)HttpContext.RequestServices.GetService(typeof(RequestService));
+        if (requestService == null) return Ok(new List<MediaRequest>());
         var requests = await requestService.GetRequestsAsync(cancellationToken).ConfigureAwait(false);
         return Ok(requests);
     }

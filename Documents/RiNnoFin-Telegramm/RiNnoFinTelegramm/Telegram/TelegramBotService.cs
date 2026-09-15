@@ -124,8 +124,19 @@ internal sealed class TelegramBotService : ITelegramBotService
 
             BotInfo = await BotClientWrapper.Client.GetMe(cancellationToken: _cancellationTokenSource.Token);
             Logger.LogInformation("Telegram-Bot lauscht als @{UserName}", BotInfo.Username);
+            PluginLog.Info($"[TelegramBotService] Telegram-Bot erfolgreich verbunden und lauscht als @{BotInfo.Username}");
             StartTime = DateTime.UtcNow;
             LastActivityTime = DateTime.UtcNow;
+
+            try
+            {
+                await BotClientWrapper.Client.DeleteWebhook(dropPendingUpdates: false, cancellationToken: _cancellationTokenSource.Token);
+                PluginLog.Info("[TelegramBotService] Webhook gelöscht & Long-Polling aktiviert.");
+            }
+            catch (Exception exWebhook)
+            {
+                PluginLog.Warn($"[TelegramBotService] Hinweis beim Löschen des Webhooks: {exWebhook.Message}");
+            }
 
             BotClientWrapper.Client.StartReceiving(
                 HandleUpdateAsync,
@@ -143,15 +154,18 @@ internal sealed class TelegramBotService : ITelegramBotService
                 }).ToArray();
                 await BotClientWrapper.Client.SetMyCommands(botCommands, cancellationToken: _cancellationTokenSource.Token);
                 Logger.LogInformation("Telegram-Bot-Befehle erfolgreich registriert.");
+                PluginLog.Info($"[TelegramBotService] {botCommands.Length} Telegram-Bot-Befehle im Bot-Menü registriert.");
             }
             catch (Exception ex)
             {
                 Logger.LogError(ex, "Fehler beim Registrieren der Befehle im Telegram-Menü.");
+                PluginLog.Error(ex, "[TelegramBotService] Fehler beim Registrieren der Befehle im Bot-Menü");
             }
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Fehler beim Starten des Telegram-Bots: {Msg}", ex.Message);
+            PluginLog.Error(ex, "[TelegramBotService] Fehler beim Starten des Telegram-Bots");
         }
     }
 
@@ -161,10 +175,11 @@ internal sealed class TelegramBotService : ITelegramBotService
         {
             if (BotInfo == null)
             {
-                throw new Exception($"Keine Bot-Informationen verfügbar in: {nameof(TelegramBotService)}.{nameof(HandleUpdateAsync)}");
+                try { BotInfo = await BotClientWrapper.Client!.GetMe(cancellationToken); } catch { }
             }
 
             LastActivityTime = DateTime.UtcNow;
+            PluginLog.Info($"[TelegramBotService] Update empfangen (Typ: {update.Type})");
 
             switch (update)
             {
@@ -177,7 +192,7 @@ internal sealed class TelegramBotService : ITelegramBotService
                     }
                     break;
                 }
-                case { Type: UpdateType.Message, Message.Text: not null }:
+                case { Type: UpdateType.Message, Message: not null }:
                     await HandleBotMessage(update, cancellationToken);
                     break;
                 case { Type: UpdateType.CallbackQuery, CallbackQuery: not null }:
@@ -188,6 +203,7 @@ internal sealed class TelegramBotService : ITelegramBotService
         catch (Exception ex)
         {
             Logger.LogError("Fehler beim Verarbeiten des Updates: {ErrMsg}", ex.Message);
+            PluginLog.Error(ex, "[TelegramBotService] Fehler beim Verarbeiten des Updates");
         }
     }
 
@@ -941,6 +957,7 @@ internal sealed class TelegramBotService : ITelegramBotService
         };
 
         Logger.LogError("Fehler im Bot Polling: {Err}", errorMessage);
+        PluginLog.Error($"[TelegramBotService] Polling-Fehler: {errorMessage}");
         return Task.CompletedTask;
     }
 

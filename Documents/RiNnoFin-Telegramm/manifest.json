@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "changelog": "Add DeleteWebhook, PluginLog reporting and fix UpdateType.Message matching in TelegramBotService (v1.0.4.86)",
+        "version": "1.0.4.86",
+        "checksum": "b557c6ffc9b51648de49f681ed5cd0fe",
+        "timestamp": "2026-09-15 17:06:00",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.86.zip"
+      },
+      {
         "changelog": "Fix TelegramController DI activation and bot update text null check and early return (v1.0.4.85)",
         "version": "1.0.4.85",
         "checksum": "469be63cbec3e5b711d786532a7fdcb3",
