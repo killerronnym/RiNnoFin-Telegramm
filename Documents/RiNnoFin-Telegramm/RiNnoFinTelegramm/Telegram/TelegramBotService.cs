@@ -122,16 +122,16 @@ internal sealed class TelegramBotService : ITelegramBotService
             BotClientWrapper.Client = new TelegramBotClient(_botToken);
             RiNnoFinPlugin.Instance?.SetBotClientWrapper(BotClientWrapper);
 
+            BotInfo = await BotClientWrapper.Client.GetMe(cancellationToken: _cancellationTokenSource.Token);
+            Logger.LogInformation("Telegram-Bot lauscht als @{UserName}", BotInfo.Username);
+            StartTime = DateTime.UtcNow;
+            LastActivityTime = DateTime.UtcNow;
+
             BotClientWrapper.Client.StartReceiving(
                 HandleUpdateAsync,
                 HandlePollingErrorAsync,
                 cancellationToken: _cancellationTokenSource.Token
             );
-
-            BotInfo = await BotClientWrapper.Client.GetMe();
-            Logger.LogInformation("Telegram-Bot lauscht als @{UserName}", BotInfo.Username);
-            StartTime = DateTime.UtcNow;
-            LastActivityTime = DateTime.UtcNow;
 
             // Register commands in Telegram Client menu
             try
@@ -307,28 +307,27 @@ internal sealed class TelegramBotService : ITelegramBotService
 
     private async Task HandleBotMessage(Update update, CancellationToken cancellationToken)
     {
-        if (BotInfo?.Username == null)
+        if (BotInfo?.Username == null && BotClientWrapper.Client != null)
         {
-            throw new Exception($"Keine Bot-Informationen verfügbar in: {nameof(TelegramBotService)}.{nameof(HandleBotMessage)}");
+            try { BotInfo = await BotClientWrapper.Client.GetMe(cancellationToken); } catch { }
         }
 
         var message = update.Message!;
-        if (!message.Text!.StartsWith('/') && message.ReplyToMessage == null)
-        {
-            return;
-        }
-
         Logger.LogDebug("Bot Update empfangen Typ: {UpdateType} von UserId: '{FromId}' Text: '{MsgText}'", update.Type, message.From?.Id, message.Text);
 
         if (message.From != null && message.From.Id != 0 && Config?.TelegramUserLinks != null)
         {
             var senderId = message.From.Id;
             var senderUsername = message.From.Username ?? "";
-            
+            var senderFirstName = message.From.FirstName ?? "";
+
             var matchingLink = Config.TelegramUserLinks.FirstOrDefault(l =>
                 l.TelegramUserId == 0 && (
-                    (!string.IsNullOrEmpty(senderUsername) && string.Equals(l.TelegramUsername, senderUsername, StringComparison.OrdinalIgnoreCase)) ||
-                    (!string.IsNullOrEmpty(senderUsername) && string.Equals(l.JellyfinUsername, senderUsername, StringComparison.OrdinalIgnoreCase))
+                    (!string.IsNullOrEmpty(senderUsername) && (
+                        string.Equals(l.TelegramUsername, senderUsername, StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(l.JellyfinUsername, senderUsername, StringComparison.OrdinalIgnoreCase)
+                    )) ||
+                    (!string.IsNullOrEmpty(senderFirstName) && string.Equals(l.JellyfinUsername, senderFirstName, StringComparison.OrdinalIgnoreCase))
                 ));
 
             if (matchingLink != null)
@@ -341,6 +340,11 @@ internal sealed class TelegramBotService : ITelegramBotService
                 RiNnoFinPlugin.Instance?.SaveConfiguration(Config);
                 Logger.LogInformation("Auto-linked TelegramUserId {TgId} for user {Username}", senderId, matchingLink.JellyfinUsername);
             }
+        }
+
+        if (string.IsNullOrEmpty(message.Text) || (!message.Text.StartsWith('/') && message.ReplyToMessage == null))
+        {
+            return;
         }
 
         if (message.ReplyToMessage != null)

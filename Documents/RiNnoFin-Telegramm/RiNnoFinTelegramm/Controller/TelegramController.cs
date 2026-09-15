@@ -33,15 +33,16 @@ public class TelegramController : ControllerBase
     private readonly TelegramBotClientWrapper _botClientWrapper;
 
     public TelegramController(
-        ISessionManager sessionManager,
         IServiceProvider serviceProvider,
         ICryptoProvider cryptoProvider,
         IConfigurationManager configurationManager,
-        TelegramBotClientWrapper botClientWrapper)
+        TelegramBotClientWrapper botClientWrapper,
+        ISessionManager? sessionManager = null)
     {
         _instance = RiNnoFinPlugin.Instance ?? throw new ArgumentException("RiNnoFinPlugin Instanz ist null.");
         var userManager = RiNnoFinPlugin.UserManager;
-        _telegramLoginService = new TelegramLoginService(_instance, sessionManager, userManager, cryptoProvider);
+        var resolvedSessionManager = sessionManager ?? serviceProvider.GetService(typeof(ISessionManager)) as ISessionManager;
+        _telegramLoginService = new TelegramLoginService(_instance, resolvedSessionManager, userManager, cryptoProvider);
         _brandingOptions = configurationManager.GetConfiguration<BrandingOptions>("branding");
         _botClientWrapper = botClientWrapper;
     }
