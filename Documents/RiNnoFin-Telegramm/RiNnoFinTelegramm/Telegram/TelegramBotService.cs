@@ -320,6 +320,29 @@ internal sealed class TelegramBotService : ITelegramBotService
 
         Logger.LogDebug("Bot Update empfangen Typ: {UpdateType} von UserId: '{FromId}' Text: '{MsgText}'", update.Type, message.From?.Id, message.Text);
 
+        if (message.From != null && message.From.Id != 0 && Config?.TelegramUserLinks != null)
+        {
+            var senderId = message.From.Id;
+            var senderUsername = message.From.Username ?? "";
+            
+            var matchingLink = Config.TelegramUserLinks.FirstOrDefault(l =>
+                l.TelegramUserId == 0 && (
+                    (!string.IsNullOrEmpty(senderUsername) && string.Equals(l.TelegramUsername, senderUsername, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(senderUsername) && string.Equals(l.JellyfinUsername, senderUsername, StringComparison.OrdinalIgnoreCase))
+                ));
+
+            if (matchingLink != null)
+            {
+                matchingLink.TelegramUserId = senderId;
+                if (!string.IsNullOrEmpty(senderUsername) && string.IsNullOrEmpty(matchingLink.TelegramUsername))
+                {
+                    matchingLink.TelegramUsername = senderUsername;
+                }
+                RiNnoFinPlugin.Instance?.SaveConfiguration(Config);
+                Logger.LogInformation("Auto-linked TelegramUserId {TgId} for user {Username}", senderId, matchingLink.JellyfinUsername);
+            }
+        }
+
         if (message.ReplyToMessage != null)
         {
             var replyText = message.ReplyToMessage.Text ?? "";

@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "changelog": "Add automatic Telegram Chat-ID matching on bot interaction (v1.0.4.84)",
+        "version": "1.0.4.84",
+        "checksum": "a569eac47a4280fd40d750b2a46bf0ed",
+        "timestamp": "2026-09-15 16:50:00",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.84.zip"
+      },
+      {
         "changelog": "Fix populateUsers JS reference error and update controller script asset binding (v1.0.4.83)",
         "version": "1.0.4.83",
         "checksum": "c05d3f829b6b053e4fe490277a2d9130",
