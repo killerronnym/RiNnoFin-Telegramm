@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "changelog": "Fix botWrapper DI resolution in SendAnnouncement/SendGroupAnnouncement and add detailed recipient diagnostic logging (v1.0.4.80)",
+        "version": "1.0.4.80",
+        "checksum": "1ebde003e2e67bd6408b7175e21bba30",
+        "timestamp": "2026-09-15 16:06:00",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.80.zip"
+      },
+      {
         "changelog": "Fix multi-stage user link resolution for message delivery and add modern dark HTML email template (v1.0.4.79)",
         "version": "1.0.4.79",
         "checksum": "8205499cec395b3010aed4fd3102083b",
