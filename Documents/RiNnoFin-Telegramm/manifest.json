@@ -9,6 +9,22 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "changelog": "Remove TelegramBotClientWrapper from TelegramController constructor parameter list to fix DI activation (v1.0.4.91)",
+        "version": "1.0.4.91",
+        "checksum": "fd1521041ce5c23df9ee3e57e3a48bf4",
+        "timestamp": "2026-09-15 17:55:00",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.91.zip"
+      },
+      {
+        "changelog": "Fix TelegramController DI constructor error for SSO forgot password page (v1.0.4.90)",
+        "version": "1.0.4.90",
+        "checksum": "9b2abfe3aaaaaaecc9c6d45095123bdc",
+        "timestamp": "2026-09-15 17:51:00",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.90.zip"
+      },
+      {
         "changelog": "Add support for non-slash command inputs (start, verbinden, ping, hilfe, staat) in Telegram private chat (v1.0.4.89)",
         "version": "1.0.4.89",
         "checksum": "ab564e53a9fab77f29478d229a4b481a",

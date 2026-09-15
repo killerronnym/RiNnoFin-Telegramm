@@ -253,31 +253,46 @@ public class RiNnoFinPublicController : ControllerBase
         }
 
         var userLink = config.TelegramUserLinks?.FirstOrDefault(l => 
-            string.Equals(l.EmailAddress, request.Email, StringComparison.OrdinalIgnoreCase) && 
-            string.Equals(l.JellyfinUsername, request.Username, StringComparison.OrdinalIgnoreCase));
+            !string.IsNullOrEmpty(l.EmailAddress) && string.Equals(l.EmailAddress.Trim(), request.Email.Trim(), StringComparison.OrdinalIgnoreCase) && 
+            !string.IsNullOrEmpty(l.JellyfinUsername) && string.Equals(l.JellyfinUsername.Trim(), request.Username.Trim(), StringComparison.OrdinalIgnoreCase));
 
-        if (userLink == null || userLink.JellyfinUserId == Guid.Empty)
+        if (userLink == null && config.TelegramUserLinks != null)
         {
-            return BadRequest(new { message = "Die E-Mail-Adresse stimmt nicht mit dem Benutzernamen überein oder es ist keine E-Mail hinterlegt. Bitte wenden Sie sich an einen Administrator." });
+            userLink = config.TelegramUserLinks.FirstOrDefault(l => 
+                !string.IsNullOrEmpty(l.JellyfinUsername) && string.Equals(l.JellyfinUsername.Trim(), request.Username.Trim(), StringComparison.OrdinalIgnoreCase));
         }
+
+        if (userLink == null && config.TelegramUserLinks != null)
+        {
+            userLink = config.TelegramUserLinks.FirstOrDefault(l => 
+                !string.IsNullOrEmpty(l.EmailAddress) && string.Equals(l.EmailAddress.Trim(), request.Email.Trim(), StringComparison.OrdinalIgnoreCase));
+        }
+
+        var activeUser = RiNnoFinPlugin.UserManager.GetUserByNameSafe(request.Username.Trim());
+        if (activeUser == null && userLink != null && !string.IsNullOrEmpty(userLink.JellyfinUsername))
+        {
+            activeUser = RiNnoFinPlugin.UserManager.GetUserByNameSafe(userLink.JellyfinUsername.Trim());
+        }
+
+        if (activeUser == null)
+        {
+            return BadRequest(new { message = "Benutzer existiert nicht mehr." });
+        }
+
+        string targetEmail = !string.IsNullOrWhiteSpace(userLink?.EmailAddress) ? userLink.EmailAddress : request.Email.Trim();
+        string displayUsername = userLink?.JellyfinUsername ?? (activeUser != null ? Convert.ToString(((dynamic)activeUser).Username) ?? request.Username : request.Username);
 
         try
         {
             var token = Guid.NewGuid().ToString("N");
-            var activeUser = RiNnoFinPlugin.UserManager.GetUserByNameSafe(userLink.JellyfinUsername.Trim());
-            PluginLog.Info($"[PublicAPI] RequestPasswordReset: GetUserByName('{userLink.JellyfinUsername.Trim()}') returned {(activeUser != null ? activeUser.Id.ToString() : "null")}");
-            if (activeUser == null)
-            {
-                PluginLog.Warn($"[PublicAPI] RequestPasswordReset: Benutzer '{userLink.JellyfinUsername}' existiert in Jellyfin nicht mehr.");
-                return BadRequest(new { message = "Benutzer existiert nicht mehr." });
-            }
+            PluginLog.Info($"[PublicAPI] RequestPasswordReset: User '{displayUsername}' found for password reset. Sending email to '{targetEmail}'.");
             ResetTokenManager.AddResetToken(token, activeUser.Id);
 
             var baseUrl = config.LoginBaseUrl?.TrimEnd('/') ?? "http://localhost:8096";
             var resetLink = $"{baseUrl}/sso/Telegram/reset?token={token}";
 
             string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplatePasswordReset)
-                ? config.EmailTemplatePasswordReset.Replace("{resetLink}", resetLink).Replace("{username}", userLink.JellyfinUsername ?? "")
+                ? config.EmailTemplatePasswordReset.Replace("{resetLink}", resetLink).Replace("{username}", displayUsername)
                 : $@"
 <div style='font-family: Arial, sans-serif; background-color: #060b14; padding: 40px 20px; color: #f8fafc;'>
     <div style='max-width: 520px; margin: 0 auto; background-color: #0d1623; border-radius: 16px; overflow: hidden; border: 1px solid #1e3a5f;'>
@@ -286,7 +301,7 @@ public class RiNnoFinPublicController : ControllerBase
             <h1 style='font-size: 24px; font-weight: 800; color: #f8fafc; margin: 0;'>Passwort <span style='color: #f59e0b;'>zurücksetzen</span></h1>
         </div>
         <div style='padding: 32px 36px;'>
-            <p style='font-size: 15px; color: #94a3b8; line-height: 1.6; margin-top: 0;'>Hallo <strong style='color: #e2e8f0;'>{userLink.JellyfinUsername}</strong>,</p>
+            <p style='font-size: 15px; color: #94a3b8; line-height: 1.6; margin-top: 0;'>Hallo <strong style='color: #e2e8f0;'>{displayUsername}</strong>,</p>
             <p style='font-size: 15px; color: #94a3b8; line-height: 1.6;'>Jemand (vermutlich du) hat das Zurücksetzen des Passworts für deinen <strong>RiNnoFin Media</strong>-Account angefordert.</p>
             
             <div style='text-align: center; margin: 35px 0;'>
@@ -312,7 +327,7 @@ public class RiNnoFinPublicController : ControllerBase
 </div>";
 
             var subject = !string.IsNullOrWhiteSpace(config.EmailSubjectPasswordReset) ? config.EmailSubjectPasswordReset : "Passwort zurücksetzen - RiNnoFin Media";
-            await emailService.SendEmailAsync(config, userLink.EmailAddress, subject, htmlBody);
+            await emailService.SendEmailAsync(config, targetEmail, subject, htmlBody);
             return Ok();
         }
         catch (Exception ex)
