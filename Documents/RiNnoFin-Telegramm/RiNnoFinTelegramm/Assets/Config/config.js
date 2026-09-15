@@ -434,7 +434,7 @@ const tgConfigPage = {
             
             const checkboxTd = document.createElement("td");
             checkboxTd.style.padding = "10px";
-            const tgId = u.TelegramUserId || u.telegramUserId || 0;
+            const tgId = user.TelegramUserId || user.telegramUserId || 0;
             checkboxTd.innerHTML = `<input type="checkbox" class="user-checkbox" data-userid="${uId}" data-botadmin="${isBotAdmin ? 'true' : 'false'}" data-isadmin="${isAdmin ? 'true' : 'false'}" data-subemail="${subscribeEmailNewsletter ? 'true' : 'false'}" data-subtg="${subscribeTelegramNewsletter ? 'true' : 'false'}" data-tgid="${tgId}" style="width: 18px; height: 18px; cursor: pointer; accent-color: #3b82f6;"/>`;
             
             const nameTd = document.createElement("td");
