@@ -369,16 +369,46 @@ public class PluginConfiguration : BasePluginConfiguration
 </div>";
 
     public string EmailTemplateAnnounce { get; set; } = @"
-<div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
-    <div style='background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;'>
-        <h2 style='color: #f59e0b;'>Wichtige Ankündigung 📢</h2>
-        <p>Hallo <strong>{username}</strong>,</p>
-        <div style='background: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0; color: #92400e; font-size: 15px; line-height: 1.5;'>
-            {message}
-        </div>
-        <p style='color: #9ca3af; font-size: 12px; text-align: center;'>Dein RiNnoFin-Team</p>
+<!DOCTYPE html>
+<html lang=""de"">
+<head>
+<meta charset=""UTF-8"">
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #060b14; margin: 0; padding: 40px 20px; color: #f8fafc; }
+  .wrapper { max-width: 650px; margin: 0 auto; background: #0d1623; border-radius: 16px; overflow: hidden; border: 1px solid #1e3a5f; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+  .header { background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 50%, #0d1623 100%); padding: 36px 30px; text-align: center; border-bottom: 1px solid #1e3a5f; }
+  .header h1 { font-size: 26px; font-weight: 800; color: #38bdf8; margin: 0 0 8px 0; letter-spacing: -0.5px; }
+  .header p { color: #94a3b8; font-size: 14px; margin: 0; }
+  .content { padding: 35px 30px; line-height: 1.6; color: #e2e8f0; font-size: 15px; }
+  .greeting { font-size: 17px; font-weight: 600; color: #f8fafc; margin-bottom: 20px; }
+  .message-box { background: rgba(30, 58, 95, 0.4); border-left: 4px solid #38bdf8; padding: 20px; border-radius: 8px; margin: 25px 0; color: #f1f5f9; font-size: 15px; }
+  .btn-container { text-align: center; margin: 35px 0 15px 0; }
+  .btn { display: inline-block; background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); color: #ffffff !important; text-decoration: none; padding: 14px 32px; border-radius: 10px; font-weight: 700; font-size: 15px; box-shadow: 0 4px 15px rgba(14, 165, 233, 0.4); }
+  .footer { text-align: center; padding: 25px 30px; background: #0a1019; border-top: 1px solid #1e3a5f; color: #64748b; font-size: 12px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class=""wrapper"">
+  <div class=""header"">
+    <h1>📢 Ankündigung</h1>
+    <p>{serverName}</p>
+  </div>
+  <div class=""content"">
+    <div class=""greeting"">Hallo {username},</div>
+    <div class=""message-box"">
+      {message}
     </div>
-</div>";
+    <div class=""btn-container"">
+      <a href=""{platformLink}"" class=""btn"" target=""_blank"">🍿 Jetzt bei {serverName} reinschauen</a>
+    </div>
+  </div>
+  <div class=""footer"">
+    Diese Nachricht wurde automatisch von <strong>{serverName}</strong> versendet.<br/>
+    Viel Spaß mit den Inhalten!
+  </div>
+</div>
+</body>
+</html>";
 
     [XmlArray("TelegramGroups")]
     [XmlArrayItem(typeof(TelegramGroup), ElementName = "TelegramGroups")]

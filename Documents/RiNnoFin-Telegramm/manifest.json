@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "changelog": "Fix multi-stage user link resolution for message delivery and add modern dark HTML email template (v1.0.4.79)",
+        "version": "1.0.4.79",
+        "checksum": "8205499cec395b3010aed4fd3102083b",
+        "timestamp": "2026-09-15 15:57:00",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.79.zip"
+      },
+      {
         "changelog": "Fix user link indicators (GetUsers endpoint) and dark mode dropdown select styling (v1.0.4.78)",
         "version": "1.0.4.78",
         "checksum": "8a153c8fd35a460cb7eb4f1c78092996",
