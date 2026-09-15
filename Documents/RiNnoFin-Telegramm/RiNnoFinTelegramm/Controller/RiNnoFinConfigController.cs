@@ -715,8 +715,15 @@ public class RiNnoFinConfigController : ControllerBase
             var config = RiNnoFinPlugin.Instance?.Configuration;
             var emailService = new EmailService(_logger);
             
-            var botWrapper = (HttpContext.RequestServices.GetService(typeof(TelegramBotClientWrapper)) as TelegramBotClientWrapper) 
-                             ?? RiNnoFinPlugin.Instance?.GetBotClientWrapper();
+            var botWrapper = RiNnoFinPlugin.Instance?.GetBotClientWrapper();
+            if (botWrapper?.Client == null)
+            {
+                var diWrapper = HttpContext.RequestServices.GetService(typeof(TelegramBotClientWrapper)) as TelegramBotClientWrapper;
+                if (diWrapper?.Client != null)
+                {
+                    botWrapper = diWrapper;
+                }
+            }
 
             int telegramSentCount = 0;
             int emailSentCount = 0;
@@ -758,7 +765,37 @@ public class RiNnoFinConfigController : ControllerBase
                     }
 
                     string targetEmail = userLink?.EmailAddress ?? "";
+                    if (string.IsNullOrEmpty(targetEmail) && config.TelegramUserLinks != null)
+                    {
+                        var altEmailLink = config.TelegramUserLinks.FirstOrDefault(l => !string.IsNullOrEmpty(l.EmailAddress) &&
+                            ((!string.IsNullOrEmpty(usernameStr) && string.Equals(l.JellyfinUsername, usernameStr, StringComparison.OrdinalIgnoreCase)) ||
+                             (!string.IsNullOrEmpty(usernameStr) && string.Equals(l.TelegramUsername, usernameStr, StringComparison.OrdinalIgnoreCase))));
+                        if (altEmailLink != null)
+                        {
+                            targetEmail = altEmailLink.EmailAddress;
+                        }
+                    }
+
                     long tgUserId = userLink?.TelegramUserId ?? 0;
+                    if (tgUserId == 0 && userLink != null && !string.IsNullOrEmpty(userLink.TelegramUsername))
+                    {
+                        if (long.TryParse(userLink.TelegramUsername.TrimStart('@'), out long parsedId))
+                        {
+                            tgUserId = parsedId;
+                            userLink.TelegramUserId = parsedId;
+                        }
+                    }
+
+                    if (tgUserId == 0 && config.TelegramUserLinks != null)
+                    {
+                        var altLink = config.TelegramUserLinks.FirstOrDefault(l => l.TelegramUserId != 0 &&
+                            ((!string.IsNullOrEmpty(usernameStr) && string.Equals(l.JellyfinUsername, usernameStr, StringComparison.OrdinalIgnoreCase)) ||
+                             (!string.IsNullOrEmpty(usernameStr) && string.Equals(l.TelegramUsername, usernameStr, StringComparison.OrdinalIgnoreCase))));
+                        if (altLink != null)
+                        {
+                            tgUserId = altLink.TelegramUserId;
+                        }
+                    }
 
                     PluginLog.Info($"[SendAnnouncement] Empfänger '{usernameStr}' (Id={id}): TelegramUserLink={(userLink != null ? "Gefunden" : "NICHT GEFUNDEN")}, TgUserId={tgUserId}, Email='{targetEmail}'");
 

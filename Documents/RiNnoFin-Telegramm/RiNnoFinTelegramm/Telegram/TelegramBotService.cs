@@ -88,6 +88,8 @@ internal sealed class TelegramBotService : ITelegramBotService
         BotClientWrapper = botClientWrapper;
         Commands = commands;
 
+        RiNnoFinPlugin.Instance?.SetBotClientWrapper(botClientWrapper);
+
         logger.LogInformation("{PluginName}-Dienst: {ServiceName} initialisiert.", nameof(RiNnoFinPlugin), nameof(TelegramBotService));
     }
 
@@ -118,6 +120,7 @@ internal sealed class TelegramBotService : ITelegramBotService
         try
         {
             BotClientWrapper.Client = new TelegramBotClient(_botToken);
+            RiNnoFinPlugin.Instance?.SetBotClientWrapper(BotClientWrapper);
 
             BotClientWrapper.Client.StartReceiving(
                 HandleUpdateAsync,

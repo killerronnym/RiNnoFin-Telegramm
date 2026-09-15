@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "changelog": "Fix active TelegramBotClientWrapper registration in TelegramBotService and fallback botWrapper resolution for announcements (v1.0.4.81)",
+        "version": "1.0.4.81",
+        "checksum": "b3dc461cf1bc3d04ef0cabc3ade98265",
+        "timestamp": "2026-09-15 16:32:00",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.81.zip"
+      },
+      {
         "changelog": "Fix botWrapper DI resolution in SendAnnouncement/SendGroupAnnouncement and add detailed recipient diagnostic logging (v1.0.4.80)",
         "version": "1.0.4.80",
         "checksum": "1ebde003e2e67bd6408b7175e21bba30",

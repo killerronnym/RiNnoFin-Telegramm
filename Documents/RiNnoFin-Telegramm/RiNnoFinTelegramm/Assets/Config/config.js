@@ -1468,10 +1468,7 @@ export default function rinnofinController(view, params) {
             return;
         }
 
-        if (viaEmail && !subject && targetType !== 'group') {
-            window.Dashboard.alert('Bitte gib einen Betreff für die E-Mail ein.');
-            return;
-        }
+
 
         let imageBase64 = '';
         if (imageInput && imageInput.files && imageInput.files[0]) {
