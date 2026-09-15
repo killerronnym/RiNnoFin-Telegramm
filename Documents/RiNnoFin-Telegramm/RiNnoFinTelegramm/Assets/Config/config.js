@@ -153,25 +153,43 @@ const tgConfigPage = {
 
     populateAnnouncementsTab: (page, config) => {
         if (!page) return;
+        const currentConfig = config || tgConfigPage.config || {};
+
         // Populate Groups
         const groupSelect = page.querySelector('#GlobalAnnounceGroup');
         if (groupSelect) {
-            const groups = config?.TelegramGroups || tgConfigPage.config?.TelegramGroups || [];
+            const groups = currentConfig.TelegramGroups || [];
             groupSelect.innerHTML = groups.map(g => `<option value="${g.GroupName}">${g.GroupName}</option>`).join('');
         }
         
-        // Populate Users
-        const userSelect = page.querySelector('#GlobalAnnounceUsers');
-        if (userSelect) {
+        // Populate User Cards Grid
+        const userListContainer = page.querySelector('#GlobalAnnounceUserList');
+        if (userListContainer) {
             const apiClient = getApiClient();
             if (apiClient && apiClient.getUsers) {
                 apiClient.getUsers().then(users => {
                     if (users && users.length > 0) {
+                        const links = currentConfig.TelegramUserLinks || [];
                         let html = '';
                         for (const u of users) {
-                            html += `<option value="${u.Id}">${u.Name}</option>`;
+                            const link = links.find(l => l.JellyfinUserId === u.Id);
+                            const hasTg = link && link.TelegramUserId !== 0;
+                            const hasMail = link && link.EmailAddress;
+
+                            html += `
+                            <label class="announce-user-card" data-username="${u.Name.toLowerCase()}" style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 6px; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); user-select: none;">
+                                <input type="checkbox" class="announce-user-checkbox" value="${u.Id}" style="width: 16px; height: 16px; accent-color: #3b82f6;" checked />
+                                <div style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    <div style="font-weight: bold; font-size: 13px; color: #f8fafc;">${u.Name}</div>
+                                    <div style="font-size: 11px; color: #94a3b8; display: flex; gap: 6px; margin-top: 2px;">
+                                        ${hasTg ? '<span style="color: #60a5fa;">📱 Telegram</span>' : ''}
+                                        ${hasMail ? '<span style="color: #4ade80;">📧 E-Mail</span>' : ''}
+                                        ${!hasTg && !hasMail ? '<span style="color: #f87171;">⚠️ Nicht verknüpft</span>' : ''}
+                                    </div>
+                                </div>
+                            </label>`;
                         }
-                        userSelect.innerHTML = html;
+                        userListContainer.innerHTML = html;
                     }
                 }).catch(err => {
                     console.error("Failed to load users for announcement tab", err);
@@ -1313,6 +1331,8 @@ export default function rinnofinController(view, params) {
     const userSelectContainer = view.querySelector('#GlobalAnnounceUserSelectContainer');
     const viaEmailCheckbox = view.querySelector('#GlobalAnnounceViaEmail');
     const subjectContainer = view.querySelector('#GlobalAnnounceSubjectContainer');
+    const messageTextarea = view.querySelector('#GlobalAnnounceMessage');
+    const livePreviewBox = view.querySelector('#GlobalAnnounceLivePreview');
 
     if (targetTypeSelect) {
         targetTypeSelect.addEventListener('change', (e) => {
@@ -1328,19 +1348,126 @@ export default function rinnofinController(view, params) {
         });
     }
 
+    // User Search Filter
+    view.querySelector('#GlobalAnnounceUserSearch')?.addEventListener('input', (e) => {
+        const query = (e.target.value || '').toLowerCase().trim();
+        const cards = view.querySelectorAll('.announce-user-card');
+        cards.forEach(card => {
+            const username = card.getAttribute('data-username') || '';
+            card.style.display = username.includes(query) ? 'flex' : 'none';
+        });
+    });
+
+    // Select All / Deselect All
+    view.querySelector('#GlobalAnnounceSelectAllUsers')?.addEventListener('click', () => {
+        view.querySelectorAll('.announce-user-checkbox').forEach(cb => cb.checked = true);
+    });
+
+    view.querySelector('#GlobalAnnounceDeselectAllUsers')?.addEventListener('click', () => {
+        view.querySelectorAll('.announce-user-checkbox').forEach(cb => cb.checked = false);
+    });
+
+    // Helper: Insert text at cursor position in textarea
+    const insertTextAtCursor = (textarea, beforeText, afterText = '') => {
+        if (!textarea) return;
+        textarea.focus();
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const selected = textarea.value.substring(start, end);
+        const replacement = beforeText + selected + afterText;
+        textarea.value = textarea.value.substring(0, start) + replacement + textarea.value.substring(end);
+        textarea.selectionStart = start + beforeText.length;
+        textarea.selectionEnd = start + beforeText.length + selected.length;
+        updateLivePreview();
+    };
+
+    // Format & Emoji toolbar
+    view.querySelectorAll('.btnFormat').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const before = btn.getAttribute('data-before') || '';
+            const after = btn.getAttribute('data-after') || '';
+            insertTextAtCursor(messageTextarea, before, after);
+        });
+    });
+
+    view.querySelectorAll('.btnEmoji').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const emoji = btn.getAttribute('data-emoji') || '';
+            insertTextAtCursor(messageTextarea, emoji);
+        });
+    });
+
+    // Live Preview
+    const updateLivePreview = () => {
+        if (!livePreviewBox || !messageTextarea) return;
+        const val = messageTextarea.value || '';
+        if (!val.trim()) {
+            livePreviewBox.innerHTML = '<i style="color: #64748b;">(Schreibe eine Nachricht oben, um die Live-Vorschau zu sehen...)</i>';
+            return;
+        }
+        let formatted = val
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/\{username\}/g, '<b>MaxMustermann</b>')
+            .replace(/\{email\}/g, 'max@example.com')
+            .replace(/\*(.*?)\*/g, '<b>$1</b>')
+            .replace(/_(.*?)_/g, '<i>$1</i>')
+            .replace(/`(.*?)`/g, '<code style="background:rgba(255,255,255,0.1);padding:2px 5px;border-radius:4px;">$1</code>')
+            .replace(/\|\|(.*?)\|\|/g, '<span style="background:#334155;color:#334155;padding:2px 4px;border-radius:4px;" onclick="this.style.color=\'#fff\'">$1</span>')
+            .replace(/\n/g, '<br/>');
+        livePreviewBox.innerHTML = formatted;
+    };
+
+    messageTextarea?.addEventListener('input', updateLivePreview);
+
+    // Media attachment preview
+    const imageInput = view.querySelector('#GlobalAnnounceImage');
+    const mediaPreviewContainer = view.querySelector('#GlobalAnnounceMediaPreviewContainer');
+    const mediaPreviewImg = view.querySelector('#GlobalAnnounceMediaPreview');
+
+    imageInput?.addEventListener('change', (e) => {
+        if (imageInput.files && imageInput.files[0]) {
+            const file = imageInput.files[0];
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                if (mediaPreviewImg) mediaPreviewImg.src = evt.target.result;
+                if (mediaPreviewContainer) mediaPreviewContainer.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    view.querySelector('#GlobalAnnounceRemoveMedia')?.addEventListener('click', () => {
+        if (imageInput) imageInput.value = '';
+        if (mediaPreviewImg) mediaPreviewImg.src = '';
+        if (mediaPreviewContainer) mediaPreviewContainer.style.display = 'none';
+    });
+
+    // Send Button
     view.querySelector('#SendGlobalAnnounceBtn')?.addEventListener('click', async (e) => {
         e.preventDefault();
         
         const targetType = view.querySelector('#GlobalAnnounceTargetType')?.value || 'all';
-        const message = (view.querySelector('#GlobalAnnounceMessage')?.value || '').trim();
+        const message = (messageTextarea?.value || '').trim();
         const subject = (view.querySelector('#GlobalAnnounceSubject')?.value || '').trim();
         const viaTelegram = view.querySelector('#GlobalAnnounceViaTelegram')?.checked ?? false;
         const viaEmail = view.querySelector('#GlobalAnnounceViaEmail')?.checked ?? false;
         const isSpoiler = view.querySelector('#GlobalAnnounceIsSpoiler')?.checked ?? false;
-        const imageInput = view.querySelector('#GlobalAnnounceImage');
+        const statusResult = view.querySelector('#GlobalAnnounceStatusResult');
 
         if (!message) {
             window.Dashboard.alert('Bitte gib eine Nachricht ein.');
+            return;
+        }
+
+        if (!viaEmail && !viaTelegram) {
+            window.Dashboard.alert('Bitte wähle mindestens einen Kanal (E-Mail oder Telegram) aus.');
+            return;
+        }
+
+        if (viaEmail && !subject && targetType !== 'group') {
+            window.Dashboard.alert('Bitte gib einen Betreff für die E-Mail ein.');
             return;
         }
 
@@ -1355,7 +1482,7 @@ export default function rinnofinController(view, params) {
             try {
                 imageBase64 = await getBase64(imageInput.files[0]);
             } catch (err) {
-                window.Dashboard.alert('Fehler beim Lesen des Bildes.');
+                window.Dashboard.alert('Fehler beim Lesen der Mediendatei.');
                 return;
             }
         }
@@ -1363,6 +1490,7 @@ export default function rinnofinController(view, params) {
         const sendBtn = view.querySelector('#SendGlobalAnnounceBtn');
         if (sendBtn) sendBtn.disabled = true;
         window.Dashboard.showLoadingMsg();
+        if (statusResult) statusResult.style.display = 'none';
 
         try {
             if (targetType === 'group') {
@@ -1372,7 +1500,7 @@ export default function rinnofinController(view, params) {
                     return;
                 }
                 const url = window.ApiClient.getUrl('/api/RiNnoFinConfig/SendGroupAnnouncement?groupName=' + encodeURIComponent(groupName));
-                await window.ApiClient.ajax({
+                const res = await window.ApiClient.ajax({
                     url: url,
                     type: 'POST',
                     data: JSON.stringify({ 
@@ -1380,24 +1508,26 @@ export default function rinnofinController(view, params) {
                         ImageBase64: imageBase64,
                         IsSpoiler: isSpoiler
                     }),
-                    contentType: 'application/json'
+                    contentType: 'application/json',
+                    dataType: 'json'
                 });
-                window.Dashboard.alert('Gruppen-Ankündigung erfolgreich gesendet.');
+                
+                if (statusResult) {
+                    statusResult.style.display = 'block';
+                    statusResult.style.background = 'rgba(16, 185, 129, 0.2)';
+                    statusResult.style.border = '1px solid rgba(16, 185, 129, 0.4)';
+                    statusResult.style.color = '#34d399';
+                    statusResult.innerHTML = `✅ ${res.message || 'Gruppen-Ankündigung erfolgreich gesendet.'}`;
+                }
+                window.Dashboard.alert(res.message || 'Gruppen-Ankündigung erfolgreich gesendet.');
             } else {
                 let userIds = [];
-                const userSelect = view.querySelector('#GlobalAnnounceUsers');
                 if (targetType === 'all') {
-                    if (userSelect && userSelect.options) {
-                        for (let i = 0; i < userSelect.options.length; i++) {
-                            userIds.push(userSelect.options[i].value);
-                        }
-                    }
+                    const checkboxes = view.querySelectorAll('.announce-user-checkbox');
+                    checkboxes.forEach(cb => userIds.push(cb.value));
                 } else if (targetType === 'specific') {
-                    if (userSelect && userSelect.selectedOptions) {
-                        for (let i = 0; i < userSelect.selectedOptions.length; i++) {
-                            userIds.push(userSelect.selectedOptions[i].value);
-                        }
-                    }
+                    const checkedBoxes = view.querySelectorAll('.announce-user-checkbox:checked');
+                    checkedBoxes.forEach(cb => userIds.push(cb.value));
                 }
 
                 if (userIds.length === 0) {
@@ -1405,17 +1535,7 @@ export default function rinnofinController(view, params) {
                     return;
                 }
 
-                if (!viaEmail && !viaTelegram) {
-                    window.Dashboard.alert('Bitte wähle mindestens einen Kanal (E-Mail oder Telegram) aus.');
-                    return;
-                }
-
-                if (viaEmail && !subject) {
-                    window.Dashboard.alert('Bitte gib einen Betreff für die E-Mail ein.');
-                    return;
-                }
-
-                await window.ApiClient.ajax({
+                const res = await window.ApiClient.ajax({
                     url: window.ApiClient.getUrl('/api/RiNnoFinConfig/SendAnnouncement'),
                     type: 'POST',
                     data: JSON.stringify({ 
@@ -1427,19 +1547,37 @@ export default function rinnofinController(view, params) {
                         ImageBase64: imageBase64,
                         IsSpoiler: isSpoiler
                     }),
-                    contentType: 'application/json'
+                    contentType: 'application/json',
+                    dataType: 'json'
                 });
-                window.Dashboard.alert('Ankündigung erfolgreich an Benutzer gesendet.');
+
+                if (statusResult) {
+                    statusResult.style.display = 'block';
+                    statusResult.style.background = 'rgba(16, 185, 129, 0.2)';
+                    statusResult.style.border = '1px solid rgba(16, 185, 129, 0.4)';
+                    statusResult.style.color = '#34d399';
+                    statusResult.innerHTML = `✅ ${res.message || 'Ankündigung erfolgreich gesendet.'}`;
+                }
+                window.Dashboard.alert(res.message || 'Ankündigung erfolgreich gesendet.');
             }
             
-            const msgEl = view.querySelector('#GlobalAnnounceMessage');
-            if (msgEl) msgEl.value = '';
+            if (messageTextarea) messageTextarea.value = '';
             const subjEl = view.querySelector('#GlobalAnnounceSubject');
             if (subjEl) subjEl.value = '';
             if (imageInput) imageInput.value = '';
+            if (mediaPreviewImg) mediaPreviewImg.src = '';
+            if (mediaPreviewContainer) mediaPreviewContainer.style.display = 'none';
+            updateLivePreview();
             
         } catch (err) {
             const msg = err?.responseJSON?.message || err?.responseText || err?.message || "Unbekannter Fehler";
+            if (statusResult) {
+                statusResult.style.display = 'block';
+                statusResult.style.background = 'rgba(239, 68, 68, 0.2)';
+                statusResult.style.border = '1px solid rgba(239, 68, 68, 0.4)';
+                statusResult.style.color = '#f87171';
+                statusResult.innerHTML = `❌ Fehler beim Senden: ${msg}`;
+            }
             window.Dashboard.alert('Fehler: ' + msg);
         } finally {
             window.Dashboard.hideLoadingMsg();

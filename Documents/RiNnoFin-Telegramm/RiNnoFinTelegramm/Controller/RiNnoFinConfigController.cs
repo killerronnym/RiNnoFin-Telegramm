@@ -712,76 +712,140 @@ public class RiNnoFinConfigController : ControllerBase
             
             var botWrapper = HttpContext.RequestServices.GetService(typeof(TelegramBotClientWrapper)) as TelegramBotClientWrapper;
 
-            int sentCount = 0;
+            int telegramSentCount = 0;
+            int emailSentCount = 0;
 
-            foreach (var id in request.UserIds)
+            if (request.UserIds != null)
             {
-                var user = userManager.GetUserByIdSafe(id);
-                if (user != null && config != null)
+                foreach (var id in request.UserIds)
                 {
-                    var userLink = config.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == id);
-                    if (userLink != null)
+                    var userObj = userManager.GetUserByIdSafe(id);
+                    if (userObj != null && config != null)
                     {
-                        var personalMessage = request.Message
-                            .Replace("{username}", user.Username)
-                            .Replace("{email}", userLink.EmailAddress ?? "");
-
-                        bool sentToUser = false;
-
-                        // Sende Email
-                        if (request.ViaEmail && !string.IsNullOrEmpty(userLink.EmailAddress))
+                        string usernameStr = Convert.ToString(userObj.Username) ?? "";
+                        var userLink = config.TelegramUserLinks?.FirstOrDefault(l => l.JellyfinUserId == id);
+                        if (userLink != null)
                         {
-                            try {
-                                var subject = string.IsNullOrWhiteSpace(request.Subject) 
-                                    ? (!string.IsNullOrWhiteSpace(config.EmailSubjectAnnounce) ? config.EmailSubjectAnnounce : "Ankündigung") 
-                                    : request.Subject;
+                            string personalMessage = request.Message
+                                .Replace("{username}", usernameStr)
+                                .Replace("{email}", userLink.EmailAddress ?? "");
 
-                                string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplateAnnounce)
-                                    ? config.EmailTemplateAnnounce.Replace("{username}", user.Username)
-                                        .Replace("{message}", personalMessage.Replace("\n", "<br/>"))
-                                        .Replace("{serverName}", config.EmailSenderName ?? "Dein Media-Server")
-                                        .Replace("{platformLink}", config.LoginBaseUrl?.TrimEnd('/') ?? "http://localhost:8096")
-                                    : $"<p>{personalMessage.Replace("\n", "<br/>")}</p>";
+                            // Sende Email
+                            if (request.ViaEmail && !string.IsNullOrEmpty(userLink.EmailAddress))
+                            {
+                                try {
+                                    var subject = string.IsNullOrWhiteSpace(request.Subject) 
+                                        ? (!string.IsNullOrWhiteSpace(config.EmailSubjectAnnounce) ? config.EmailSubjectAnnounce : "Ankündigung") 
+                                        : request.Subject;
 
-                                await emailService.SendEmailAsync(config, userLink.EmailAddress, subject, htmlBody);
-                                sentToUser = true;
-                            } catch { /* Ignore */ }
-                        }
+                                    string htmlBody = !string.IsNullOrWhiteSpace(config.EmailTemplateAnnounce)
+                                        ? config.EmailTemplateAnnounce.Replace("{username}", usernameStr)
+                                            .Replace("{message}", personalMessage.Replace("\n", "<br/>"))
+                                            .Replace("{serverName}", config.EmailSenderName ?? "Dein Media-Server")
+                                            .Replace("{platformLink}", config.LoginBaseUrl?.TrimEnd('/') ?? "http://localhost:8096")
+                                        : $"<p>{personalMessage.Replace("\n", "<br/>")}</p>";
 
-                        // Sende Telegram
-                        if (request.ViaTelegram && userLink.TelegramUserId != 0 && botWrapper?.Client != null)
-                        {
-                            try {
-                                if (!string.IsNullOrEmpty(request.ImageBase64))
-                                {
-                                    byte[] imageBytes = Convert.FromBase64String(request.ImageBase64.Contains(",") ? request.ImageBase64.Split(',').Last() : request.ImageBase64);
-                                    using var stream = new System.IO.MemoryStream(imageBytes);
-                                    await global::Telegram.Bot.TelegramBotClientExtensions.SendPhoto(
-                                        botWrapper.Client,
-                                        chatId: userLink.TelegramUserId,
-                                        photo: global::Telegram.Bot.Types.InputFile.FromStream(stream, "image.jpg"),
-                                        caption: personalMessage,
-                                        parseMode: global::Telegram.Bot.Types.Enums.ParseMode.Markdown,
-                                        hasSpoiler: request.IsSpoiler);
+                                    await emailService.SendEmailAsync(config, userLink.EmailAddress, subject, htmlBody);
+                                    emailSentCount++;
+                                } catch (Exception ex) {
+                                    _logger.LogWarning(ex, "Fehler beim E-Mail Versand an {Email}", userLink.EmailAddress);
                                 }
-                                else
-                                {
-                                    await global::Telegram.Bot.TelegramBotClientExtensions.SendMessage(
-                                        botWrapper.Client,
-                                        chatId: userLink.TelegramUserId,
-                                        text: personalMessage,
-                                        parseMode: global::Telegram.Bot.Types.Enums.ParseMode.Markdown);
-                                }
-                                sentToUser = true;
-                            } catch { /* Ignore */ }
-                        }
+                            }
 
-                        if (sentToUser) sentCount++;
+                            // Sende Telegram
+                            long tgUserId = userLink.TelegramUserId;
+                            if (request.ViaTelegram && tgUserId != 0 && botWrapper?.Client != null)
+                            {
+                                var botClient = botWrapper.Client;
+                                try {
+                                    bool isGif = !string.IsNullOrEmpty(request.ImageBase64) && 
+                                                 (request.ImageBase64.StartsWith("data:image/gif", StringComparison.OrdinalIgnoreCase) || 
+                                                  request.ImageBase64.StartsWith("data:video/", StringComparison.OrdinalIgnoreCase));
+
+                                    if (!string.IsNullOrEmpty(request.ImageBase64))
+                                    {
+                                        byte[] mediaBytes = Convert.FromBase64String(request.ImageBase64.Contains(",") ? request.ImageBase64.Split(',').Last() : request.ImageBase64);
+                                        using var stream = new System.IO.MemoryStream(mediaBytes);
+                                        string fileName = isGif ? "animation.gif" : "image.jpg";
+
+                                        try
+                                        {
+                                            if (isGif)
+                                            {
+                                                await botClient.SendAnimation(
+                                                    chatId: tgUserId,
+                                                    animation: global::Telegram.Bot.Types.InputFile.FromStream(stream, fileName),
+                                                    caption: personalMessage,
+                                                    parseMode: global::Telegram.Bot.Types.Enums.ParseMode.Markdown,
+                                                    hasSpoiler: request.IsSpoiler);
+                                            }
+                                            else
+                                            {
+                                                await botClient.SendPhoto(
+                                                    chatId: tgUserId,
+                                                    photo: global::Telegram.Bot.Types.InputFile.FromStream(stream, fileName),
+                                                    caption: personalMessage,
+                                                    parseMode: global::Telegram.Bot.Types.Enums.ParseMode.Markdown,
+                                                    hasSpoiler: request.IsSpoiler);
+                                            }
+                                        }
+                                        catch
+                                        {
+                                            // Fallback ohne Markdown-Parsing (ParseMode.None)
+                                            stream.Position = 0;
+                                            if (isGif)
+                                            {
+                                                await botClient.SendAnimation(
+                                                    chatId: tgUserId,
+                                                    animation: global::Telegram.Bot.Types.InputFile.FromStream(stream, fileName),
+                                                    caption: personalMessage,
+                                                    parseMode: global::Telegram.Bot.Types.Enums.ParseMode.None,
+                                                    hasSpoiler: request.IsSpoiler);
+                                            }
+                                            else
+                                            {
+                                                await botClient.SendPhoto(
+                                                    chatId: tgUserId,
+                                                    photo: global::Telegram.Bot.Types.InputFile.FromStream(stream, fileName),
+                                                    caption: personalMessage,
+                                                    parseMode: global::Telegram.Bot.Types.Enums.ParseMode.None,
+                                                    hasSpoiler: request.IsSpoiler);
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        try
+                                        {
+                                            await botClient.SendMessage(
+                                                chatId: tgUserId,
+                                                text: personalMessage,
+                                                parseMode: global::Telegram.Bot.Types.Enums.ParseMode.Markdown);
+                                        }
+                                        catch
+                                        {
+                                            // Fallback ohne Markdown-Parsing
+                                            await botClient.SendMessage(
+                                                chatId: tgUserId,
+                                                text: personalMessage,
+                                                parseMode: global::Telegram.Bot.Types.Enums.ParseMode.None);
+                                        }
+                                    }
+                                    telegramSentCount++;
+                                } catch (Exception ex) {
+                                    _logger.LogWarning(ex, "Fehler beim Telegram Versand an ChatId {ChatId}", tgUserId);
+                                }
+                            }
+                        }
                     }
                 }
             }
 
-            return Ok(new { message = $"Ankündigung erfolgreich an {sentCount} Benutzer gesendet." });
+            var logMsg = $"Ankündigung gesendet: {telegramSentCount} via Telegram, {emailSentCount} via E-Mail.";
+            _logger.LogInformation(logMsg);
+            PluginLog.Info($"📢 {logMsg}");
+
+            return Ok(new { message = $"Ankündigung erfolgreich zugestellt!\n📱 Telegram: {telegramSentCount} Empfänger\n📧 E-Mail: {emailSentCount} Empfänger", telegramSentCount, emailSentCount });
         }
 
         [HttpPost("SendGroupAnnouncement")]
@@ -798,29 +862,94 @@ public class RiNnoFinConfigController : ControllerBase
             if (group == null || group.TelegramGroupChat == null || group.TelegramGroupChat.TelegramChatId == 0) 
                 return BadRequest("Gruppe nicht gefunden oder nicht mit einem Telegram Chat verknüpft.");
 
+            var botClient = botWrapper.Client;
+            long groupChatId = group.TelegramGroupChat.TelegramChatId;
+            int? topicId = group.TelegramGroupChat.ContentTopicId;
+            string groupMessage = request.Message ?? "";
+
             try
             {
+                bool isGif = !string.IsNullOrEmpty(request.ImageBase64) && 
+                             (request.ImageBase64.StartsWith("data:image/gif", StringComparison.OrdinalIgnoreCase) || 
+                              request.ImageBase64.StartsWith("data:video/", StringComparison.OrdinalIgnoreCase));
+
                 if (!string.IsNullOrEmpty(request.ImageBase64))
                 {
-                    byte[] imageBytes = Convert.FromBase64String(request.ImageBase64.Contains(",") ? request.ImageBase64.Split(',').Last() : request.ImageBase64);
-                    using var stream = new System.IO.MemoryStream(imageBytes);
-                    await botWrapper.Client.SendPhoto(
-                        chatId: group.TelegramGroupChat.TelegramChatId,
-                        photo: global::Telegram.Bot.Types.InputFile.FromStream(stream, "image.jpg"),
-                        caption: request.Message,
-                        parseMode: global::Telegram.Bot.Types.Enums.ParseMode.Markdown,
-                        messageThreadId: group.TelegramGroupChat.ContentTopicId,
-                        hasSpoiler: request.IsSpoiler);
+                    byte[] mediaBytes = Convert.FromBase64String(request.ImageBase64.Contains(",") ? request.ImageBase64.Split(',').Last() : request.ImageBase64);
+                    using var stream = new System.IO.MemoryStream(mediaBytes);
+                    string fileName = isGif ? "animation.gif" : "image.jpg";
+
+                    try
+                    {
+                        if (isGif)
+                        {
+                            await botClient.SendAnimation(
+                                chatId: groupChatId,
+                                animation: global::Telegram.Bot.Types.InputFile.FromStream(stream, fileName),
+                                caption: groupMessage,
+                                parseMode: global::Telegram.Bot.Types.Enums.ParseMode.Markdown,
+                                messageThreadId: topicId,
+                                hasSpoiler: request.IsSpoiler);
+                        }
+                        else
+                        {
+                            await botClient.SendPhoto(
+                                chatId: groupChatId,
+                                photo: global::Telegram.Bot.Types.InputFile.FromStream(stream, fileName),
+                                caption: groupMessage,
+                                parseMode: global::Telegram.Bot.Types.Enums.ParseMode.Markdown,
+                                messageThreadId: topicId,
+                                hasSpoiler: request.IsSpoiler);
+                        }
+                    }
+                    catch
+                    {
+                        stream.Position = 0;
+                        if (isGif)
+                        {
+                            await botClient.SendAnimation(
+                                chatId: groupChatId,
+                                animation: global::Telegram.Bot.Types.InputFile.FromStream(stream, fileName),
+                                caption: groupMessage,
+                                parseMode: global::Telegram.Bot.Types.Enums.ParseMode.None,
+                                messageThreadId: topicId,
+                                hasSpoiler: request.IsSpoiler);
+                        }
+                        else
+                        {
+                            await botClient.SendPhoto(
+                                chatId: groupChatId,
+                                photo: global::Telegram.Bot.Types.InputFile.FromStream(stream, fileName),
+                                caption: groupMessage,
+                                parseMode: global::Telegram.Bot.Types.Enums.ParseMode.None,
+                                messageThreadId: topicId,
+                                hasSpoiler: request.IsSpoiler);
+                        }
+                    }
                 }
                 else
                 {
-                    await botWrapper.Client.SendMessage(
-                        chatId: group.TelegramGroupChat.TelegramChatId,
-                        text: request.Message,
-                        parseMode: global::Telegram.Bot.Types.Enums.ParseMode.Markdown,
-                        messageThreadId: group.TelegramGroupChat.ContentTopicId);
+                    try
+                    {
+                        await botClient.SendMessage(
+                            chatId: groupChatId,
+                            text: groupMessage,
+                            parseMode: global::Telegram.Bot.Types.Enums.ParseMode.Markdown,
+                            messageThreadId: topicId);
+                    }
+                    catch
+                    {
+                        await botClient.SendMessage(
+                            chatId: groupChatId,
+                            text: groupMessage,
+                            parseMode: global::Telegram.Bot.Types.Enums.ParseMode.None,
+                            messageThreadId: topicId);
+                    }
                 }
-                return Ok(new { message = "Ankündigung erfolgreich an Gruppe gesendet." });
+
+                PluginLog.Info($"📢 Gruppen-Ankündigung an '{groupName}' gesendet.");
+
+                return Ok(new { message = $"Ankündigung erfolgreich an Gruppe '{groupName}' gesendet." });
             }
             catch (Exception ex)
             {

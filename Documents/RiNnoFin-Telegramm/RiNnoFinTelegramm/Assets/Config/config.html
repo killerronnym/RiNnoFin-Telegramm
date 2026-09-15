@@ -6,7 +6,7 @@
 </head>
 <body>
 <div class="page type-interior pluginConfigurationPage rinnofin-page"
-     data-controller="__plugin/RiNnoFinTelegramm_v10476.js"
+     data-controller="__plugin/RiNnoFinTelegramm_v10477.js"
      data-require="emby-input,emby-button,emby-select,emby-checkbox,listViewStyle,paper-icon-button"
      data-role="page"
      id="rinnofin-config-page">
@@ -15,7 +15,7 @@
             <!-- Header Section -->
             <div class="sectionTitleContainer flex align-items-center" style="flex-wrap: wrap; gap: 10px;">
                 <h2 class="sectionTitle" style="margin: 0;">RiNnoFin Telegramm</h2>
-                <h3 style="margin: 0; opacity: 0.8; font-size: 1.1em;">Version: <b id="RiNnoFinVersion">1.0.4.76</b></h3>
+                <h3 style="margin: 0; opacity: 0.8; font-size: 1.1em;">Version: <b id="RiNnoFinVersion">1.0.4.77</b></h3>
             </div>
 
             
@@ -1238,66 +1238,126 @@
         <!-- ========== START ANKÜNDIGUNGEN TAB ========== -->
         <div id="tab-announcements" class="rinnofin-tab">
             <div class="rinnofin-info-banner">
-                <h4>📢 Ankündigungen senden</h4>
-                <p>Versende Nachrichten inkl. Bildern an deine Telegram-Benutzer oder Gruppen.</p>
+                <h4>📢 Ankündigungen & Messages Center</h4>
+                <p>Versende formatierte Nachrichten, Bilder und GIFs direkt an deine Telegram-Benutzer, Gruppen oder per E-Mail. Nutzen Emojis, Formatierungen und Platzhalter für eine persönliche Ansprache.</p>
             </div>
             
-            <div class="block" style="background: rgba(0,0,0,0.1); padding: 15px; border-radius: 6px;">
-                <div style="margin-bottom: 20px;">
-                    <label class="inputLabel">Zielgruppe auswählen:</label>
-                    <select id="GlobalAnnounceTargetType" class="emby-input" style="padding: 10px; margin-bottom: 10px;">
-                        <option value="all">Alle verknüpften Benutzer</option>
-                        <option value="group">Spezifische Gruppe</option>
-                        <option value="specific">Einzelne Benutzer</option>
+            <div class="block" style="background: rgba(0,0,0,0.15); padding: 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
+                <!-- 1. ZIELGRUPPE -->
+                <div style="margin-bottom: 24px;">
+                    <label class="inputLabel" style="font-weight: bold; font-size: 1.05em; display: block; margin-bottom: 8px;">1. Zielgruppe auswählen:</label>
+                    <select id="GlobalAnnounceTargetType" class="emby-input" style="padding: 10px; font-size: 15px; width: 100%; border-radius: 6px;">
+                        <option value="all">👥 Alle verknüpften Benutzer (Telegram / E-Mail)</option>
+                        <option value="group">💬 Spezifische Telegram-Gruppe</option>
+                        <option value="specific">👤 Einzelne Benutzer auswählen (Mehrfachauswahl)</option>
                     </select>
 
-                    <div id="GlobalAnnounceGroupSelectContainer" style="display:none; margin-top:10px;">
+                    <!-- GRUPPEN-AUSWAHL -->
+                    <div id="GlobalAnnounceGroupSelectContainer" style="display:none; margin-top: 15px;">
                         <label class="inputLabel">Gruppe wählen:</label>
-                        <select id="GlobalAnnounceGroup" class="emby-input" style="padding: 10px;"></select>
+                        <select id="GlobalAnnounceGroup" class="emby-input" style="padding: 10px; width: 100%; font-size: 14px; border-radius: 6px;"></select>
                     </div>
 
-                    <div id="GlobalAnnounceUserSelectContainer" style="display:none; margin-top:10px;">
-                        <label class="inputLabel">Benutzer wählen (Mehrfachauswahl):</label>
-                        <select id="GlobalAnnounceUsers" class="emby-input" multiple style="padding: 10px; height: 120px;"></select>
-                        <p style="font-size: 12px; color:#aaa;">(STRG gedrückt halten für Mehrfachauswahl)</p>
+                    <!-- MODERNER USER PICKER (CHECKBOX GRID) -->
+                    <div id="GlobalAnnounceUserSelectContainer" style="display:none; margin-top: 15px; background: rgba(0,0,0,0.25); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+                        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px; flex-wrap: wrap;">
+                            <input type="text" id="GlobalAnnounceUserSearch" class="emby-input" placeholder="🔍 Benutzer suchen..." style="flex: 1; min-width: 180px; padding: 8px 12px; font-size: 13px; border-radius: 6px;" />
+                            <button id="GlobalAnnounceSelectAllUsers" type="button" class="action-btn" style="padding: 6px 12px; font-size: 12px; background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; color: #60a5fa;">✓ Alle auswählen</button>
+                            <button id="GlobalAnnounceDeselectAllUsers" type="button" class="action-btn" style="padding: 6px 12px; font-size: 12px; background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #f87171;">✕ Auswahl aufheben</button>
+                        </div>
+                        <div id="GlobalAnnounceUserList" style="max-height: 220px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; padding-right: 5px;">
+                            <!-- Dynamische Benutzer-Cards -->
+                        </div>
                     </div>
                 </div>
 
-                <div id="GlobalAnnounceChannelContainer" style="margin-bottom: 20px; display: flex; gap: 20px;">
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                        <input type="checkbox" id="GlobalAnnounceViaTelegram" style="width: 16px; height: 16px; accent-color: #3b82f6;" checked />
-                        <span>Per Telegram senden</span>
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                        <input type="checkbox" id="GlobalAnnounceViaEmail" style="width: 16px; height: 16px; accent-color: #3b82f6;" checked />
-                        <span>Per E-Mail senden</span>
-                    </label>
+                <!-- 2. KANÄLE & BETREFF -->
+                <div style="margin-bottom: 24px; background: rgba(0,0,0,0.15); padding: 15px; border-radius: 8px;">
+                    <label class="inputLabel" style="font-weight: bold; font-size: 1.05em; display: block; margin-bottom: 10px;">2. Versandkanäle:</label>
+                    <div id="GlobalAnnounceChannelContainer" style="display: flex; gap: 24px; flex-wrap: wrap;">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; user-select: none;">
+                            <input type="checkbox" id="GlobalAnnounceViaTelegram" style="width: 18px; height: 18px; accent-color: #3b82f6;" checked />
+                            <span>📱 Per Telegram senden</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; user-select: none;">
+                            <input type="checkbox" id="GlobalAnnounceViaEmail" style="width: 18px; height: 18px; accent-color: #3b82f6;" checked />
+                            <span>📧 Per E-Mail senden</span>
+                        </label>
+                    </div>
+
+                    <div id="GlobalAnnounceSubjectContainer" style="margin-top: 15px;">
+                        <label class="inputLabel" for="GlobalAnnounceSubject" style="font-size: 13px;">E-Mail Betreff:</label>
+                        <input class="sso-text" id="GlobalAnnounceSubject" is="emby-input" type="text" placeholder="Wichtige Neuigkeiten vom Server!" style="width: 100%; font-size: 14px;" />
+                    </div>
                 </div>
 
-                <div id="GlobalAnnounceSubjectContainer" style="margin-bottom: 15px;">
-                    <label class="inputLabel" for="GlobalAnnounceSubject">Betreff (nur E-Mail):</label>
-                    <input class="sso-text" id="GlobalAnnounceSubject" is="emby-input" type="text" placeholder="Wichtige Neuigkeiten!"/>
+                <!-- 3. NACHRICHTEN COMPOSER MIT FORMATIERUNG & EMOJIS -->
+                <div style="margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+                        <label class="inputLabel" for="GlobalAnnounceMessage" style="font-weight: bold; font-size: 1.05em; margin: 0;">3. Nachricht verfassen:</label>
+                        <span style="font-size: 12px; color: #94a3b8;">Platzhalter: <code>{username}</code>, <code>{email}</code></span>
+                    </div>
+
+                    <!-- FORMATIERUNGS & EMOJI TOOLBAR -->
+                    <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.1); border-bottom: none; border-top-left-radius: 8px; border-top-right-radius: 8px; padding: 8px 12px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                        <div style="display: flex; gap: 4px;">
+                            <button type="button" class="btnFormat" data-before="*" data-after="*" title="Fett (*Text*)" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 4px; padding: 4px 10px; font-weight: bold; cursor: pointer;"><b>B</b></button>
+                            <button type="button" class="btnFormat" data-before="_" data-after="_" title="Kursiv (_Text_)" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 4px; padding: 4px 10px; font-style: italic; cursor: pointer;"><i>I</i></button>
+                            <button type="button" class="btnFormat" data-before="`" data-after="`" title="Code (`Code`)" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 4px; padding: 4px 10px; font-family: monospace; cursor: pointer;">&lt;&gt;</button>
+                            <button type="button" class="btnFormat" data-before="[" data-after="](https://)" title="Link ([Titel](Url))" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 4px; padding: 4px 10px; cursor: pointer;">🔗 Link</button>
+                            <button type="button" class="btnFormat" data-before="||" data-after="||" title="Spoiler (||Spoiler||)" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 4px; padding: 4px 10px; cursor: pointer;">👁️ Spoiler</button>
+                        </div>
+                        <div style="height: 18px; width: 1px; background: rgba(255,255,255,0.2); margin: 0 4px;"></div>
+                        <!-- SCHNELL-EMOJIS -->
+                        <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                            <button type="button" class="btnEmoji" data-emoji="🎉" style="background: transparent; border: none; font-size: 16px; cursor: pointer; padding: 2px 4px;">🎉</button>
+                            <button type="button" class="btnEmoji" data-emoji="📢" style="background: transparent; border: none; font-size: 16px; cursor: pointer; padding: 2px 4px;">📢</button>
+                            <button type="button" class="btnEmoji" data-emoji="🍿" style="background: transparent; border: none; font-size: 16px; cursor: pointer; padding: 2px 4px;">🍿</button>
+                            <button type="button" class="btnEmoji" data-emoji="🚀" style="background: transparent; border: none; font-size: 16px; cursor: pointer; padding: 2px 4px;">🚀</button>
+                            <button type="button" class="btnEmoji" data-emoji="⚠️" style="background: transparent; border: none; font-size: 16px; cursor: pointer; padding: 2px 4px;">⚠️</button>
+                            <button type="button" class="btnEmoji" data-emoji="ℹ️" style="background: transparent; border: none; font-size: 16px; cursor: pointer; padding: 2px 4px;">ℹ️</button>
+                            <button type="button" class="btnEmoji" data-emoji="🎬" style="background: transparent; border: none; font-size: 16px; cursor: pointer; padding: 2px 4px;">🎬</button>
+                            <button type="button" class="btnEmoji" data-emoji="🔥" style="background: transparent; border: none; font-size: 16px; cursor: pointer; padding: 2px 4px;">🔥</button>
+                            <button type="button" class="btnEmoji" data-emoji="💡" style="background: transparent; border: none; font-size: 16px; cursor: pointer; padding: 2px 4px;">💡</button>
+                            <button type="button" class="btnEmoji" data-emoji="👍" style="background: transparent; border: none; font-size: 16px; cursor: pointer; padding: 2px 4px;">👍</button>
+                            <button type="button" class="btnEmoji" data-emoji="❤️" style="background: transparent; border: none; font-size: 16px; cursor: pointer; padding: 2px 4px;">❤️</button>
+                            <button type="button" class="btnEmoji" data-emoji="📺" style="background: transparent; border: none; font-size: 16px; cursor: pointer; padding: 2px 4px;">📺</button>
+                        </div>
+                    </div>
+
+                    <textarea id="GlobalAnnounceMessage" class="emby-input" rows="7" style="width: 100%; border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; padding: 12px; background: rgba(0,0,0,0.25); color: #fff; font-size: 14px; line-height: 1.5; resize: vertical;" placeholder="Hallo {username}! &#10;&#10;Wir haben heute *neue Inhalte* auf den Server hochgeladen... 🎉"></textarea>
                 </div>
 
-                <div style="margin-bottom: 15px;">
-                    <label class="inputLabel" for="GlobalAnnounceMessage">Nachricht:</label>
-                    <textarea id="GlobalAnnounceMessage" class="emby-input" rows="6" style="width: 100%; border-radius: 6px; padding: 10px; background: rgba(0,0,0,0.2); color: #fff;" placeholder="Hallo ..."></textarea>
-                    <p style="font-size: 12px; color:#aaa; margin-top:5px;">Unterstützt Markdown für Telegram und HTML für E-Mails. Platzhalter: {username}, {email} (nur bei Benutzer-Ankündigungen).</p>
-                </div>
+                <!-- 4. MEDIEN & GIF ANHANG -->
+                <div style="margin-bottom: 24px; background: rgba(0,0,0,0.15); padding: 15px; border-radius: 8px;">
+                    <label class="inputLabel" style="font-weight: bold; font-size: 1.05em; display: block; margin-bottom: 8px;">4. Bild oder GIF anhängen (Optional):</label>
+                    <input type="file" id="GlobalAnnounceImage" accept="image/*,image/gif,video/mp4" class="emby-input" style="padding: 10px; width: 100%;" />
+                    
+                    <div id="GlobalAnnounceMediaPreviewContainer" style="display:none; margin-top: 12px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; position: relative;">
+                        <img id="GlobalAnnounceMediaPreview" style="max-height: 180px; max-width: 100%; border-radius: 6px; object-fit: contain; display: block;" />
+                        <button id="GlobalAnnounceRemoveMedia" type="button" style="margin-top: 8px; background: rgba(239,68,68,0.2); border: 1px solid #ef4444; color: #f87171; padding: 4px 10px; border-radius: 4px; font-size: 12px; cursor: pointer;">✕ Anhang entfernen</button>
+                    </div>
 
-                <div style="margin-bottom: 15px;">
-                    <label class="inputLabel" for="GlobalAnnounceImage">Optionales Bild anhängen:</label>
-                    <input type="file" id="GlobalAnnounceImage" accept="image/*" class="emby-input" style="padding: 10px;" />
+                    <div style="margin-top: 12px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                            <input type="checkbox" id="GlobalAnnounceIsSpoiler" style="width: 16px; height: 16px; accent-color: #3b82f6;" />
+                            <span>👁️ Bild/GIF als Spoiler senden (verschwommen/abgedeckt)</span>
+                        </label>
+                    </div>
                 </div>
                 
+                <!-- 5. VORSCHAU & SENDEN -->
                 <div style="margin-bottom: 20px;">
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                        <input type="checkbox" id="GlobalAnnounceIsSpoiler" style="width: 16px; height: 16px; accent-color: #3b82f6;" />
-                        <span>Bild als Spoiler senden (verschwommen)</span>
-                    </label>
+                    <label class="inputLabel" style="font-weight: bold; font-size: 1.05em; display: block; margin-bottom: 8px;">5. Nachrichten-Vorschau:</label>
+                    <div id="GlobalAnnounceLivePreview" style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(59, 130, 246, 0.3); padding: 15px; border-radius: 8px; min-height: 50px; font-size: 14px; line-height: 1.5; white-space: pre-wrap; color: #e2e8f0; margin-bottom: 15px;">
+                        <i style="color: #64748b;">(Schreibe eine Nachricht oben, um die Live-Vorschau zu sehen...)</i>
+                    </div>
+
+                    <button class="action-btn btn-blue" id="SendGlobalAnnounceBtn" type="button" style="width:100%; padding: 14px; font-size: 16px; font-weight: bold; border-radius: 8px; background: linear-gradient(135deg, #2563eb, #1d4ed8); border: none; cursor: pointer;">🚀 Nachricht an alle Empfänger senden</button>
                 </div>
-                
-                <button class="action-btn btn-blue" id="SendGlobalAnnounceBtn" type="button" style="width:100%; padding: 12px; font-size: 16px;">🚀 Nachricht Senden</button>
+
+                <!-- SENDE-STATUS ERGEBNIS BANNER -->
+                <div id="GlobalAnnounceStatusResult" style="display:none; margin-top: 15px; padding: 15px; border-radius: 8px; font-weight: bold; font-size: 14px;"></div>
             </div>
         </div>
         <!-- ========== ENDE ANKÜNDIGUNGEN TAB ========== -->
