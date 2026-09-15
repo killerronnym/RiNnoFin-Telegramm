@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "changelog": "Add support for non-slash command inputs (start, verbinden, ping, hilfe, staat) in Telegram private chat (v1.0.4.89)",
+        "version": "1.0.4.89",
+        "checksum": "ab564e53a9fab77f29478d229a4b481a",
+        "timestamp": "2026-09-15 17:36:00",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.89.zip"
+      },
+      {
         "changelog": "Enhance auto-linking for Telegram Admin user links and fix TgUserId announcement fallback (v1.0.4.88)",
         "version": "1.0.4.88",
         "checksum": "e1df4d55ad8d88d1bdb54f27381f0200",

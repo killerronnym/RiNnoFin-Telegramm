@@ -375,10 +375,12 @@ internal sealed class TelegramBotService : ITelegramBotService
             }
         }
 
-        if (string.IsNullOrEmpty(message.Text) || (!message.Text.StartsWith('/') && message.ReplyToMessage == null))
+        if (string.IsNullOrEmpty(message.Text))
         {
             return;
         }
+
+        var isPrivateChat = message.Chat.Type == ChatType.Private;
 
         if (message.ReplyToMessage != null)
         {
@@ -400,10 +402,11 @@ internal sealed class TelegramBotService : ITelegramBotService
         }
 
         string? commandText = null;
+        var cleanText = message.Text.Trim();
 
-        if (message.Text!.StartsWith('/'))
+        if (cleanText.StartsWith('/'))
         {
-            commandText = GetCommandText(message.Text, BotInfo.Username);
+            commandText = GetCommandText(cleanText, BotInfo?.Username ?? "");
         }
         else if (message.ReplyToMessage != null)
         {
@@ -414,6 +417,11 @@ internal sealed class TelegramBotService : ITelegramBotService
                 commandText = "neubenutzer_step2";
             else if (replyText.Contains("Geben Sie bitte das neue Passwort ein"))
                 commandText = "passwort_step2";
+        }
+        else if (isPrivateChat)
+        {
+            var firstWord = cleanText.Split(' ')[0].TrimStart('/');
+            commandText = GetCommandText("/" + firstWord, BotInfo?.Username ?? "");
         }
 
         if (commandText == null)
@@ -893,6 +901,14 @@ internal sealed class TelegramBotService : ITelegramBotService
     {
         try
         {
+            var normalizedCmd = commandText.ToLowerInvariant() switch
+            {
+                "staat" or "starten" => "start",
+                "hilfe" => "help",
+                "verbindung" => "verbinden",
+                _ => commandText.ToLowerInvariant()
+            };
+
             var username = message.From?.Username;
             var isAdmin = username != null && (
                 Config.AdminUserNames.Any(admin => string.Equals(admin, username, StringComparison.CurrentCultureIgnoreCase))
@@ -903,7 +919,7 @@ internal sealed class TelegramBotService : ITelegramBotService
             var commandFound = false;
             foreach (var command in Commands)
             {
-                if (!command.Command.Equals(commandText, StringComparison.CurrentCultureIgnoreCase))
+                if (!command.Command.Equals(normalizedCmd, StringComparison.CurrentCultureIgnoreCase))
                 {
                     continue;
                 }
