@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "changelog": "Add direct TelegramBotClient fallback and Telegram Chat-ID editing in user management (v1.0.4.82)",
+        "version": "1.0.4.82",
+        "checksum": "ebeec8f5a4781ed8a34220c288dd4aa0",
+        "timestamp": "2026-09-15 16:41:00",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.82.zip"
+      },
+      {
         "changelog": "Fix active TelegramBotClientWrapper registration in TelegramBotService and fallback botWrapper resolution for announcements (v1.0.4.81)",
         "version": "1.0.4.81",
         "checksum": "b3dc461cf1bc3d04ef0cabc3ade98265",

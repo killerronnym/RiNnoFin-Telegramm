@@ -434,7 +434,8 @@ const tgConfigPage = {
             
             const checkboxTd = document.createElement("td");
             checkboxTd.style.padding = "10px";
-            checkboxTd.innerHTML = `<input type="checkbox" class="user-checkbox" data-userid="${uId}" data-botadmin="${isBotAdmin ? 'true' : 'false'}" data-isadmin="${isAdmin ? 'true' : 'false'}" data-subemail="${subscribeEmailNewsletter ? 'true' : 'false'}" data-subtg="${subscribeTelegramNewsletter ? 'true' : 'false'}" style="width: 18px; height: 18px; cursor: pointer; accent-color: #3b82f6;"/>`;
+            const tgId = u.TelegramUserId || u.telegramUserId || 0;
+            checkboxTd.innerHTML = `<input type="checkbox" class="user-checkbox" data-userid="${uId}" data-botadmin="${isBotAdmin ? 'true' : 'false'}" data-isadmin="${isAdmin ? 'true' : 'false'}" data-subemail="${subscribeEmailNewsletter ? 'true' : 'false'}" data-subtg="${subscribeTelegramNewsletter ? 'true' : 'false'}" data-tgid="${tgId}" style="width: 18px; height: 18px; cursor: pointer; accent-color: #3b82f6;"/>`;
             
             const nameTd = document.createElement("td");
             nameTd.style.padding = "10px";
@@ -1912,6 +1913,8 @@ view.querySelector("#SaveConfigEmail")?.addEventListener("click", async (e) => {
         view.querySelector("#EditUserId").value = userId;
         view.querySelector("#EditUserEmail").value = email === 'Nein' ? '' : email;
         view.querySelector("#EditUserTelegram").value = telegram === 'Nein' ? '' : telegram;
+        const tgIdEl = view.querySelector("#EditUserTelegramId");
+        if (tgIdEl) tgIdEl.value = (cb.dataset.tgid && cb.dataset.tgid !== '0') ? cb.dataset.tgid : '';
         
         if (expirationStr && expirationStr !== '-' && expirationStr !== 'Niemals') {
             const parts = expirationStr.split(',')[0].trim().split('.');
@@ -1941,6 +1944,8 @@ view.querySelector("#SaveConfigEmail")?.addEventListener("click", async (e) => {
         const userId = view.querySelector("#EditUserId").value;
         const email = view.querySelector("#EditUserEmail").value.trim();
         const telegram = view.querySelector("#EditUserTelegram").value.trim();
+        const telegramIdStr = view.querySelector("#EditUserTelegramId")?.value.trim() || '';
+        const telegramId = parseInt(telegramIdStr, 10) || 0;
         const expiration = view.querySelector("#EditUserExpiration").value; // YYYY-MM-DD
         const isBotAdmin = view.querySelector("#EditUserIsBotAdmin").checked;
         const subEmail = view.querySelector("#EditUserSubscribeEmailNewsletter").checked;
@@ -1954,6 +1959,7 @@ view.querySelector("#SaveConfigEmail")?.addEventListener("click", async (e) => {
                     UserId: userId,
                     Email: email,
                     TelegramUsername: telegram,
+                    TelegramUserId: telegramId,
                     ExpirationDate: expiration ? new Date(expiration).toISOString() : null,
                     IsBotAdmin: isBotAdmin,
                     SubscribeEmailNewsletter: subEmail,

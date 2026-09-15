@@ -66,7 +66,7 @@ public class RiNnoFinPlugin : BasePlugin<PluginConfiguration>, IPlugin, IHasWebP
                 EmbeddedResourcePath = $"{typeof(RiNnoFinPlugin).Namespace}.Assets.Config.config.html",
                 EnableInMainMenu = false
             },
-            new PluginPageInfo { Name = "RiNnoFinTelegramm_v10481.js", EmbeddedResourcePath = $"{typeof(RiNnoFinPlugin).Namespace}.Assets.Config.config.js" },
+            new PluginPageInfo { Name = "RiNnoFinTelegramm_v10482.js", EmbeddedResourcePath = $"{typeof(RiNnoFinPlugin).Namespace}.Assets.Config.config.js" },
             new PluginPageInfo { Name = "RiNnoFinTelegramm.css", EmbeddedResourcePath = $"{typeof(RiNnoFinPlugin).Namespace}.Assets.Config.config.css" }
         ];
     }

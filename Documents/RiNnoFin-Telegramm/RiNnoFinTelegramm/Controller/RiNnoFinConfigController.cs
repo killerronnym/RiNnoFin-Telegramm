@@ -363,6 +363,7 @@ public class RiNnoFinConfigController : ControllerBase
                             Username = uUsername,
                             Email = link?.EmailAddress ?? "",
                             TelegramUsername = link?.TelegramUsername ?? "",
+                            TelegramUserId = link?.TelegramUserId ?? 0,
                             IsDisabled = userManager.IsDisabledSafe(uObj),
                             IsAdmin = userManager.IsAdminSafe(uObj),
                             IsBotAdmin = isBotAdmin,
@@ -679,6 +680,14 @@ public class RiNnoFinConfigController : ControllerBase
             var oldTelegramUsername = userLink.TelegramUsername ?? "";
             userLink.EmailAddress = request.Email ?? "";
             userLink.TelegramUsername = request.TelegramUsername ?? "";
+            if (request.TelegramUserId != 0)
+            {
+                userLink.TelegramUserId = request.TelegramUserId;
+            }
+            else if (!string.IsNullOrEmpty(userLink.TelegramUsername) && long.TryParse(userLink.TelegramUsername.TrimStart('@'), out long parsedTgId))
+            {
+                userLink.TelegramUserId = parsedTgId;
+            }
             userLink.ExpirationDate = request.ExpirationDate;
             userLink.SubscribeEmailNewsletter = request.SubscribeEmailNewsletter;
             userLink.SubscribeTelegramNewsletter = request.SubscribeTelegramNewsletter;
@@ -843,17 +852,30 @@ public class RiNnoFinConfigController : ControllerBase
                     // Sende Telegram
                     if (request.ViaTelegram)
                     {
-                        if (botWrapper?.Client == null)
+                        global::Telegram.Bot.ITelegramBotClient? botClient = botWrapper?.Client;
+                        if (botClient == null && !string.IsNullOrWhiteSpace(config.BotToken) && !config.BotToken.Equals(Constants.DefaultBotToken))
                         {
-                            PluginLog.Info($"[SendAnnouncement] 📱 Telegram an '{usernameStr}' übersprungen: Telegram-Bot ist nicht verbunden.");
+                            try
+                            {
+                                botClient = new global::Telegram.Bot.TelegramBotClient(config.BotToken.Trim());
+                                PluginLog.Info("[SendAnnouncement] 📱 Direkte TelegramBotClient-Instanz mit BotToken erstellt.");
+                            }
+                            catch (Exception ex)
+                            {
+                                PluginLog.Error(ex, "[SendAnnouncement] 📱 Fehler beim Erstellen der Fallback-TelegramBotClient-Instanz.");
+                            }
+                        }
+
+                        if (botClient == null)
+                        {
+                            PluginLog.Info($"[SendAnnouncement] 📱 Telegram an '{usernameStr}' übersprungen: Telegram-Bot Token ist nicht konfiguriert oder ungültig.");
                         }
                         else if (tgUserId == 0)
                         {
-                            PluginLog.Info($"[SendAnnouncement] 📱 Telegram an '{usernameStr}' übersprungen: Keine TelegramUserId für '{usernameStr}' verknüpft.");
+                            PluginLog.Info($"[SendAnnouncement] 📱 Telegram an '{usernameStr}' übersprungen: Keine Telegram Chat-ID (User-ID) für '{usernameStr}' verknüpft (TgUserId = 0). Bitte Chat-ID in der Benutzerverwaltung eintragen.");
                         }
                         else
                         {
-                            var botClient = botWrapper.Client;
                             try {
                                 bool isGif = !string.IsNullOrEmpty(request.ImageBase64) && 
                                              (request.ImageBase64.StartsWith("data:image/gif", StringComparison.OrdinalIgnoreCase) || 
@@ -1388,6 +1410,7 @@ public class UpdateUserLinkRequest
     public Guid UserId { get; set; }
     public string Email { get; set; } = string.Empty;
     public string TelegramUsername { get; set; } = string.Empty;
+    public long TelegramUserId { get; set; }
     public DateTime? ExpirationDate { get; set; }
     public bool IsBotAdmin { get; set; }
     public bool SubscribeEmailNewsletter { get; set; }
@@ -1400,6 +1423,7 @@ public class UserDto
     public string Username { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string TelegramUsername { get; set; } = string.Empty;
+    public long TelegramUserId { get; set; }
     public bool IsDisabled { get; set; }
     public bool IsAdmin { get; set; }
     public bool IsBotAdmin { get; set; }
