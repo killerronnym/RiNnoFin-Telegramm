@@ -6,7 +6,7 @@
 </head>
 <body>
 <div class="page type-interior pluginConfigurationPage rinnofin-page"
-     data-controller="__plugin/RiNnoFinTelegramm_v10477.js"
+     data-controller="__plugin/RiNnoFinTelegramm_v10478.js"
      data-require="emby-input,emby-button,emby-select,emby-checkbox,listViewStyle,paper-icon-button"
      data-role="page"
      id="rinnofin-config-page">
@@ -15,7 +15,7 @@
             <!-- Header Section -->
             <div class="sectionTitleContainer flex align-items-center" style="flex-wrap: wrap; gap: 10px;">
                 <h2 class="sectionTitle" style="margin: 0;">RiNnoFin Telegramm</h2>
-                <h3 style="margin: 0; opacity: 0.8; font-size: 1.1em;">Version: <b id="RiNnoFinVersion">1.0.4.77</b></h3>
+                <h3 style="margin: 0; opacity: 0.8; font-size: 1.1em;">Version: <b id="RiNnoFinVersion">1.0.4.78</b></h3>
             </div>
 
             
@@ -73,6 +73,15 @@
       opacity: 1 !important;
       font-size: 16px !important; /* Prevents auto-zoom on mobile iOS/Android */
       box-sizing: border-box !important;
+  }
+
+  .rinnofin-page select,
+  .rinnofin-page select option,
+  .rinnofin-page option,
+  select.emby-input,
+  select.emby-input option {
+      background-color: #1e293b !important;
+      color: #f8fafc !important;
   }
 
   /* Mobile Layout Rules (< 850px) */
@@ -1246,10 +1255,10 @@
                 <!-- 1. ZIELGRUPPE -->
                 <div style="margin-bottom: 24px;">
                     <label class="inputLabel" style="font-weight: bold; font-size: 1.05em; display: block; margin-bottom: 8px;">1. Zielgruppe auswählen:</label>
-                    <select id="GlobalAnnounceTargetType" class="emby-input" style="padding: 10px; font-size: 15px; width: 100%; border-radius: 6px;">
-                        <option value="all">👥 Alle verknüpften Benutzer (Telegram / E-Mail)</option>
-                        <option value="group">💬 Spezifische Telegram-Gruppe</option>
-                        <option value="specific">👤 Einzelne Benutzer auswählen (Mehrfachauswahl)</option>
+                    <select id="GlobalAnnounceTargetType" class="emby-input" style="padding: 10px; font-size: 15px; width: 100%; border-radius: 6px; background-color: #1e293b; color: #f8fafc;">
+                        <option value="all" style="background-color: #1e293b; color: #f8fafc;">👥 Alle verknüpften Benutzer (Telegram / E-Mail)</option>
+                        <option value="group" style="background-color: #1e293b; color: #f8fafc;">💬 Spezifische Telegram-Gruppe</option>
+                        <option value="specific" style="background-color: #1e293b; color: #f8fafc;">👤 Einzelne Benutzer auswählen (Mehrfachauswahl)</option>
                     </select>
 
                     <!-- GRUPPEN-AUSWAHL -->

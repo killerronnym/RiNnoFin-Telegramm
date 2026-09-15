@@ -159,42 +159,44 @@ const tgConfigPage = {
         const groupSelect = page.querySelector('#GlobalAnnounceGroup');
         if (groupSelect) {
             const groups = currentConfig.TelegramGroups || [];
-            groupSelect.innerHTML = groups.map(g => `<option value="${g.GroupName}">${g.GroupName}</option>`).join('');
+            groupSelect.innerHTML = groups.map(g => `<option value="${g.GroupName}" style="background-color: #1c2430; color: #f1f5f9;">${g.GroupName}</option>`).join('');
         }
         
-        // Populate User Cards Grid
+        // Populate User Cards Grid via Plugin API
         const userListContainer = page.querySelector('#GlobalAnnounceUserList');
         if (userListContainer) {
-            const apiClient = getApiClient();
-            if (apiClient && apiClient.getUsers) {
-                apiClient.getUsers().then(users => {
-                    if (users && users.length > 0) {
-                        const links = currentConfig.TelegramUserLinks || [];
-                        let html = '';
-                        for (const u of users) {
-                            const link = links.find(l => l.JellyfinUserId === u.Id);
-                            const hasTg = link && link.TelegramUserId !== 0;
-                            const hasMail = link && link.EmailAddress;
+            window.ApiClient.ajax({
+                url: window.ApiClient.getUrl("/api/RiNnoFinConfig/GetUsers"),
+                type: "GET",
+                dataType: "json"
+            }).then(users => {
+                if (users && users.length > 0) {
+                    let html = '';
+                    for (const u of users) {
+                        const uId = u.Id || u.id;
+                        const uName = u.Username || u.username || u.Name || u.name || 'Unbekannt';
+                        const hasTg = Boolean(u.IsTelegramLinked || u.isTelegramLinked || (u.TelegramUsername && u.TelegramUsername.length > 0));
+                        const mailAddr = u.Email || u.email || '';
+                        const hasMail = Boolean(mailAddr && mailAddr.trim().length > 0);
 
-                            html += `
-                            <label class="announce-user-card" data-username="${u.Name.toLowerCase()}" style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 6px; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); user-select: none;">
-                                <input type="checkbox" class="announce-user-checkbox" value="${u.Id}" style="width: 16px; height: 16px; accent-color: #3b82f6;" checked />
-                                <div style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                    <div style="font-weight: bold; font-size: 13px; color: #f8fafc;">${u.Name}</div>
-                                    <div style="font-size: 11px; color: #94a3b8; display: flex; gap: 6px; margin-top: 2px;">
-                                        ${hasTg ? '<span style="color: #60a5fa;">📱 Telegram</span>' : ''}
-                                        ${hasMail ? '<span style="color: #4ade80;">📧 E-Mail</span>' : ''}
-                                        ${!hasTg && !hasMail ? '<span style="color: #f87171;">⚠️ Nicht verknüpft</span>' : ''}
-                                    </div>
+                        html += `
+                        <label class="announce-user-card" data-username="${uName.toLowerCase()}" style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 6px; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); user-select: none;">
+                            <input type="checkbox" class="announce-user-checkbox" value="${uId}" style="width: 16px; height: 16px; accent-color: #3b82f6;" checked />
+                            <div style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <div style="font-weight: bold; font-size: 13px; color: #f8fafc;">${uName}</div>
+                                <div style="font-size: 11px; color: #94a3b8; display: flex; gap: 6px; margin-top: 2px;">
+                                    ${hasTg ? '<span style="color: #60a5fa;">📱 Telegram</span>' : ''}
+                                    ${hasMail ? `<span style="color: #4ade80;" title="${mailAddr}">📧 E-Mail</span>` : ''}
+                                    ${!hasTg && !hasMail ? '<span style="color: #f87171;">⚠️ Nicht verknüpft</span>' : ''}
                                 </div>
-                            </label>`;
-                        }
-                        userListContainer.innerHTML = html;
+                            </div>
+                        </label>`;
                     }
-                }).catch(err => {
-                    console.error("Failed to load users for announcement tab", err);
-                });
-            }
+                    userListContainer.innerHTML = html;
+                }
+            }).catch(err => {
+                console.error("Failed to load users for announcement tab via GetUsers API", err);
+            });
         }
     },
 

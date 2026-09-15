@@ -349,7 +349,12 @@ public class RiNnoFinConfigController : ControllerBase
                         DateTime? uLastActivityDate = null;
                         try { uLastActivityDate = uEntity.LastActivityDate; } catch { }
 
-                        var link = config?.TelegramUserLinks != null ? config.TelegramUserLinks.FirstOrDefault(l => l.JellyfinUserId == uId) : null;
+                        var link = config?.TelegramUserLinks != null 
+                            ? config.TelegramUserLinks.FirstOrDefault(l => 
+                                (l.JellyfinUserId != Guid.Empty && l.JellyfinUserId == uId) ||
+                                (!string.IsNullOrEmpty(l.JellyfinUsername) && string.Equals(l.JellyfinUsername, uUsername, StringComparison.OrdinalIgnoreCase)) ||
+                                (!string.IsNullOrEmpty(l.TelegramUsername) && string.Equals(l.TelegramUsername, uUsername, StringComparison.OrdinalIgnoreCase))) 
+                            : null;
                         var isBotAdmin = link != null && !string.IsNullOrEmpty(link.TelegramUsername) && config?.AdminUserNames != null && config.AdminUserNames.Any(a => a.Equals(link.TelegramUsername, StringComparison.OrdinalIgnoreCase));
 
                         dtos.Add(new UserDto

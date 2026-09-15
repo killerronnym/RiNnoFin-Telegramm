@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "changelog": "Fix user link indicators (GetUsers endpoint) and dark mode dropdown select styling (v1.0.4.78)",
+        "version": "1.0.4.78",
+        "checksum": "8a153c8fd35a460cb7eb4f1c78092996",
+        "timestamp": "2026-09-15 15:49:00",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.78.zip"
+      },
+      {
         "changelog": "Rich Telegram Composer with Multi-User picker, Emojis, GIFs/Media, live formatting preview, and fallback delivery (v1.0.4.77)",
         "version": "1.0.4.77",
         "checksum": "3ebe1f63aa125306ed6edb54af723249",
