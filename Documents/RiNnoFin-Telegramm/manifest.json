@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/rinnofin_plugin_cover.png",
     "versions": [
       {
+        "changelog": "Ensure TelegramBackgroundService is explicitly started on plugin load and fix PluginLog path (v1.0.4.87)",
+        "version": "1.0.4.87",
+        "checksum": "a6f90d327473aa30ab386feadd1c0764",
+        "timestamp": "2026-09-15 17:12:00",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/killerronnym/RiNnoFin-Telegramm/master/publish_release/RiNnoFinTelegramm_1.0.4.87.zip"
+      },
+      {
         "changelog": "Add DeleteWebhook, PluginLog reporting and fix UpdateType.Message matching in TelegramBotService (v1.0.4.86)",
         "version": "1.0.4.86",
         "checksum": "b557c6ffc9b51648de49f681ed5cd0fe",

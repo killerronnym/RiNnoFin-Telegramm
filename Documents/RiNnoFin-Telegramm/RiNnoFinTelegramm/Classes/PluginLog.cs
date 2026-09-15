@@ -19,7 +19,7 @@ namespace Jellyfin.Plugin.RiNnoFinTelegramm.Classes
                     try
                     {
                         var plugin = RiNnoFinPlugin.Instance;
-                        if (plugin != null)
+                        if (plugin?.ApplicationPaths?.LogDirectoryPath != null)
                         {
                             var logDir = plugin.ApplicationPaths.LogDirectoryPath;
                             if (!Directory.Exists(logDir))
@@ -28,10 +28,17 @@ namespace Jellyfin.Plugin.RiNnoFinTelegramm.Classes
                             }
                             _logFilePath = Path.Combine(logDir, "rinnofin_telegramm.log");
                         }
+                        else if (Directory.Exists("/volume1/@appdata/jellyfin/log"))
+                        {
+                            _logFilePath = "/volume1/@appdata/jellyfin/log/rinnofin_telegramm.log";
+                        }
                     }
                     catch
                     {
-                        // Fallback
+                        if (Directory.Exists("/volume1/@appdata/jellyfin/log"))
+                        {
+                            _logFilePath = "/volume1/@appdata/jellyfin/log/rinnofin_telegramm.log";
+                        }
                     }
                 }
                 return _logFilePath;

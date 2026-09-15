@@ -39,8 +39,42 @@ public class RiNnoFinPlugin : BasePlugin<PluginConfiguration>, IPlugin, IHasWebP
 
             CryptoProvider = serviceProvider.GetService(typeof(MediaBrowser.Model.Cryptography.ICryptoProvider)) as MediaBrowser.Model.Cryptography.ICryptoProvider;
             LibraryManager = serviceProvider.GetService(typeof(ILibraryManager)) as ILibraryManager;
+            
+            EnsureBotStarted(serviceProvider);
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Classes.PluginLog.Error(ex, "[RiNnoFinPlugin] Fehler bei der Plugin-Initialisierung");
+        }
+    }
+
+    private static Telegram.TelegramBackgroundService? _botBackgroundService;
+    private static readonly object _botLock = new();
+
+    public static void EnsureBotStarted(IServiceProvider serviceProvider)
+    {
+        if (_botBackgroundService != null) return;
+        lock (_botLock)
+        {
+            if (_botBackgroundService != null) return;
+            try
+            {
+                var logger = serviceProvider.GetService(typeof(Microsoft.Extensions.Logging.ILogger<Telegram.TelegramBackgroundService>)) as Microsoft.Extensions.Logging.ILogger<Telegram.TelegramBackgroundService>
+                             ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<Telegram.TelegramBackgroundService>.Instance;
+                var botWrapper = serviceProvider.GetService(typeof(Services.TelegramBotClientWrapper)) as Services.TelegramBotClientWrapper
+                                 ?? new Services.TelegramBotClientWrapper();
+                var commandProvider = serviceProvider.GetService(typeof(Telegram.ICommandProvider)) as Telegram.ICommandProvider
+                                      ?? new Telegram.DefaultCommandProvider();
+
+                _botBackgroundService = new Telegram.TelegramBackgroundService(serviceProvider, logger, botWrapper, commandProvider);
+                _botBackgroundService.StartAsync(System.Threading.CancellationToken.None).ConfigureAwait(false);
+                Classes.PluginLog.Info("[RiNnoFinPlugin] TelegramBackgroundService erfolgreich gestartet.");
+            }
+            catch (Exception ex)
+            {
+                Classes.PluginLog.Error(ex, "[RiNnoFinPlugin] Fehler beim Starten des TelegramBackgroundService");
+            }
+        }
     }
 
     private Jellyfin.Plugin.RiNnoFinTelegramm.Services.TelegramBotClientWrapper? _botWrapper;
@@ -66,7 +100,7 @@ public class RiNnoFinPlugin : BasePlugin<PluginConfiguration>, IPlugin, IHasWebP
                 EmbeddedResourcePath = $"{typeof(RiNnoFinPlugin).Namespace}.Assets.Config.config.html",
                 EnableInMainMenu = false
             },
-            new PluginPageInfo { Name = "RiNnoFinTelegramm_v10486.js", EmbeddedResourcePath = $"{typeof(RiNnoFinPlugin).Namespace}.Assets.Config.config.js" },
+            new PluginPageInfo { Name = "RiNnoFinTelegramm_v10487.js", EmbeddedResourcePath = $"{typeof(RiNnoFinPlugin).Namespace}.Assets.Config.config.js" },
             new PluginPageInfo { Name = "RiNnoFinTelegramm.css", EmbeddedResourcePath = $"{typeof(RiNnoFinPlugin).Namespace}.Assets.Config.config.css" }
         ];
     }
