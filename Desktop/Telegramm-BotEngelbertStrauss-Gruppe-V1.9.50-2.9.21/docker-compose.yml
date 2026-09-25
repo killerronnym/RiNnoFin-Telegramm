@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  bot-system:
+    build: .
+    container_name: Puppy-Event-BOT
+    restart: always
+    network_mode: host
+    # ports:
+    #   - "9003:9003"
+    volumes:
+      # Empfohlen fǬr In-App Updates & Legacy-Configs: Den gesamten Projekt-Ordner mounten.
+      - .:/app
+      # WICHTIG: Die folgenden Ordner muessen auf dem Host existieren und beschreibbar sein.
+      - ./instance:/app/instance
+      - ./logs:/app/logs
+      - ./data:/app/data
+      - ./backups_archive:/app/backups_archive
+      # === SYNOLOGY NAS BACKUP MOUNT ===
+      # Ändere den linken Teil auf deinen Synology-Pfad (z.B. /volume1/Bots)
+      # - "/volume1/Bots:/app/nas_storage"
+      # =================================
+      - ./.env:/app/.env
+    environment:
+      - PORT=9003
+      - PYTHONUNBUFFERED=1
+      - TZ=Europe/Berlin
+      - FLASK_ENV=production
+      # - TELEGRAM_BOT_TOKEN=dein_token_hier (Optional, falls .env nicht genutzt wird)
+
+      # === Externe Datenbank Anbindung ===
+      # (Nutze diese separaten Variablen, damit Sonderzeichen im Passwort keine Probleme machen)
+      # - DB_DRIVER=mysql+pymysql
+      # - DB_USER=dein_db_user
+      # - DB_PASSWORD=dein_db_passwort
+      # - DB_HOST=dein_host.myds.me
+      # - DB_PORT=3306
+      # - DB_NAME=deine_datenbank
+      # ===================================
+      # networks:
+      #   - bot-network
+
+      # networks:
+      #   bot-network:
+      #     driver: bridge

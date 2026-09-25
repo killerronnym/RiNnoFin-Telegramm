@@ -1,0 +1,17 @@
+{
+  "name": "Bot Steuerung",
+  "short_name": "BotAdmin",
+  "description": "Premium Dashboard for Telegram Bot Management",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#0b141d",
+  "theme_color": "#34b7f1",
+  "icons": [
+    {
+      "src": "/static/img/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

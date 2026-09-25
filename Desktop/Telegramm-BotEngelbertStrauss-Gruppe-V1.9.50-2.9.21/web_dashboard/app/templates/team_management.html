@@ -1,0 +1,449 @@
+{% extends "base.html" %}
+
+{% block title %}Teamverwaltung | Bot Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="mb-0 text-white"><i class="bi bi-people-fill text-blue me-2"></i>Teamverwaltung</h3>
+            <p class="text-muted mb-0">Verwalte Admins und Moderatoren für das Dashboard.</p>
+        </div>
+        <button class="btn btn-blue-action" data-bs-toggle="modal" data-bs-target="#createUserModal">
+            <i class="bi bi-person-plus-fill me-2"></i>Neuen Benutzer anlegen
+        </button>
+    </div>
+
+    <div class="card bg-black bg-opacity-25 border-0 shadow-lg">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-dark table-hover mb-0 align-middle">
+                    <thead>
+                        <tr class="text-muted small text-uppercase">
+                            <th class="ps-4">Benutzername</th>
+                            <th>Rolle</th>
+                            <th>Sicherheit</th>
+                            <th>Erstellt am</th>
+                            <th class="text-end pe-4">Aktionen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    {% if user.profile_picture and user.profile_picture != 'default_avatar.png' %}
+                                        <img src="{{ url_for('static', filename='uploads/profiles/' + user.profile_picture) }}" class="rounded-circle shadow-sm border border-secondary border-opacity-50" style="width: 40px; height: 40px; object-fit: cover;">
+                                    {% else %}
+                                        <div class="bg-dark rounded-circle d-flex align-items-center justify-content-center shadow-sm border border-secondary border-opacity-50" style="width: 40px; height: 40px;">
+                                            <i class="bi bi-person-fill fs-5 text-secondary"></i>
+                                        </div>
+                                    {% endif %}
+                                    <strong class="text-white user-name">{{ user.username }}</strong>
+                                </div>
+                            </td>
+                            <td>
+                                {% if user.role == 'admin' %}
+                                    <span class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-50 px-3 py-2 rounded-pill"><i class="bi bi-shield-lock-fill me-1"></i> Admin</span>
+                                {% else %}
+                                    <span class="badge bg-info bg-opacity-25 text-info border border-info border-opacity-50 px-3 py-2 rounded-pill"><i class="bi bi-shield-check me-1"></i> Moderator</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    {% if user.two_factor_enabled %}
+                                        <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 py-1 px-2 rounded-2" title="2FA Aktiviert"><i class="bi bi-phone-vibrate"></i> 2FA</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary bg-opacity-25 text-secondary border border-secondary border-opacity-25 py-1 px-2 rounded-2" title="Kein 2FA"><i class="bi bi-phone"></i></span>
+                                    {% endif %}
+                                    
+                                    {% set pk_count = user_passkey_counts.get(user.id, 0) %}
+                                    {% if pk_count > 0 %}
+                                        <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-50 py-1 px-2 rounded-2" title="{{ pk_count }} Passkey(s) hinterlegt"><i class="bi bi-fingerprint"></i> {{ pk_count }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary bg-opacity-25 text-secondary border border-secondary border-opacity-25 py-1 px-2 rounded-2" title="Kein Passkey"><i class="bi bi-fingerprint"></i></span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="text-muted small">
+                                {{ user.created_at.strftime('%d.%m.%Y %H:%M') if user.created_at else '-' }}
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-outline-info" title="Aktivitätsverlauf anzeigen" type="button" data-bs-toggle="collapse" data-bs-target="#userActivity-{{ user.id }}" aria-expanded="false">
+                                        <i class="bi bi-clock-history"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-warning" title="Passwort ändern" onclick="openPasswordModal({{ user.id }}, '{{ user.username }}')">
+                                        <i class="bi bi-key"></i>
+                                    </button>
+                                    {% if user.role in ('moderator', 'user') %}
+                                    <button class="btn btn-sm btn-outline-success" title="Berechtigungen anpassen" onclick="openPermissionsModal({{ user.id }}, '{{ user.username }}', {{ user.permissions_json | safe }})">
+                                        <i class="bi bi-shield-lock-fill"></i>
+                                    </button>
+                                    {% else %}
+                                    <button class="btn btn-sm btn-dark text-muted disabled" disabled title="Admins haben Vollzugriff">
+                                        <i class="bi bi-shield-lock-fill"></i>
+                                    </button>
+                                    {% endif %}
+                                    {% if current_user.id != user.id %}
+                                    <form action="{{ url_for('dashboard.team_management') }}" method="POST" class="d-inline" onsubmit="return confirm('Benutzer {{ user.username }} wirklich löschen?');">
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="user_id" value="{{ user.id }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Benutzer löschen">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <button class="btn btn-sm btn-dark text-muted disabled" disabled title="Das bist du">
+                                        <i class="bi bi-person-check-fill"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="5" class="p-0 border-0">
+                                <div class="collapse" id="userActivity-{{ user.id }}">
+                                    <div class="px-4 py-3 bg-dark bg-opacity-25 border-top border-bottom border-secondary border-opacity-20">
+                                        <h6 class="text-warning small fw-bold mb-3"><i class="bi bi-clock-history me-1"></i> Letzte Aktivitäten von "{{ user.username }}"</h6>
+                                        {% set user_logs = audit_logs | selectattr("username", "equalto", user.username) | list %}
+                                        {% if user_logs %}
+                                        <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                                            <table class="table table-sm table-dark table-hover mb-0" style="font-size: 0.85rem; background: transparent;">
+                                                <thead>
+                                                    <tr class="text-muted">
+                                                        <th class="py-2">IP-Adresse</th>
+                                                        <th class="py-2">Aktion</th>
+                                                        <th class="py-2">Details / Beschreibung</th>
+                                                        <th class="py-2 text-end">Zeitpunkt</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for log in user_logs[:30] %}
+                                                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                                        <td class="py-2 text-muted fw-mono small"><i class="bi bi-globe me-1"></i>{{ log.ip_address or '-' }}</td>
+                                                        <td class="py-2">
+                                                            <span class="badge bg-warning text-dark small rounded-pill px-2 py-0.5 fw-bold">
+                                                                {{ log.action }}
+                                                            </span>
+                                                        </td>
+                                                        <td class="py-2 text-white-50">{{ log.details or '-' }}</td>
+                                                        <td class="py-2 text-end text-muted small"><i class="bi bi-calendar3 me-1"></i>{{ log.timestamp.strftime('%d.%m.%Y %H:%M:%S') if log.timestamp else '-' }}</td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        {% else %}
+                                        <p class="text-muted small mb-0"><i class="bi bi-info-circle me-1"></i> Keine aufgezeichneten Aktivitäten für diesen Benutzer gefunden.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Benutzer erstellen -->
+<div class="modal fade" id="createUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark">
+            <form action="{{ url_for('dashboard.team_management') }}" method="POST">
+                <input type="hidden" name="action" value="create">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title text-white">Neuen Benutzer anlegen</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Benutzername</label>
+                        <input type="text" name="username" class="form-control" required autocomplete="off">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Passwort</label>
+                        <input type="password" name="password" class="form-control" required autocomplete="new-password">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Rolle</label>
+                        <select name="role" class="form-select">
+                            <option value="user">Moderator (Eingeschränkt)</option>
+                            <option value="admin">Admin (Vollzugriff)</option>
+                        </select>
+                        <div class="form-text text-secondary mt-2">
+                            <i class="bi bi-info-circle me-1"></i>
+                            <strong>Moderatoren</strong> haben Zugriff auf Live-Moderation, Broadcasts und Analytics, können aber keine System-Einstellungen verändern.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-blue-action">Benutzer erstellen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Passwort ändern -->
+<div class="modal fade" id="passwordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark">
+            <form action="{{ url_for('dashboard.team_management') }}" method="POST">
+                <input type="hidden" name="action" value="change_password">
+                <input type="hidden" name="user_id" id="pwd_user_id">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title text-white">Passwort für <span id="pwd_username_display"></span> ändern</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Neues Passwort</label>
+                        <input type="password" name="new_password" class="form-control" required autocomplete="new-password">
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-warning">Passwort speichern</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Berechtigungen anpassen -->
+<div class="modal fade" id="permissionsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content bg-dark border-secondary">
+            <form action="{{ url_for('dashboard.team_management') }}" method="POST">
+                <input type="hidden" name="action" value="save_permissions">
+                <input type="hidden" name="user_id" id="perm_user_id">
+                
+                <div class="modal-header border-secondary border-opacity-25 py-3">
+                    <h5 class="modal-title text-white fw-bold fs-5">
+                        <i class="bi bi-shield-lock-fill text-success me-2"></i>Berechtigungen für <span id="perm_username_display" class="text-info"></span> anpassen
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                
+                <div class="modal-body p-4" style="max-height: 70vh; overflow-y: auto;">
+                    <div class="alert alert-info border-0 small mb-4" style="background: rgba(13, 202, 240, 0.1); color: #0dcaf0;">
+                        <i class="bi bi-info-circle-fill me-2"></i> 
+                        Wähle aus, welche Aktionen und Sektionen dieser Moderator verwalten oder konfigurieren darf. Nicht ausgewählte Rechte sind automatisch gesperrt.
+                    </div>
+
+                    <!-- Gruppe 1: ID-Finder -->
+                    <div class="mb-4">
+                        <h6 class="text-primary fw-bold small text-uppercase mb-3 pb-2 border-bottom border-white border-opacity-10">
+                            <i class="bi bi-search me-2"></i>ID-Finder Bot
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-check form-switch p-3 rounded bg-black bg-opacity-20 border border-white border-opacity-5">
+                                    <input class="form-check-input ms-0 me-2" type="checkbox" id="perm_view_id_finder_registry" name="perm_view_id_finder_registry">
+                                    <label class="form-check-label fw-bold text-white small" for="perm_view_id_finder_registry">Befehle & Registry ansehen</label>
+                                    <p class="text-muted small mb-0 mt-1" style="font-size: 0.75rem;">Erlaubt Zugriff auf die Befehlsliste und User-Historie.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch p-3 rounded bg-black bg-opacity-20 border border-white border-opacity-5">
+                                    <input class="form-check-input ms-0 me-2" type="checkbox" id="perm_edit_id_finder_registry" name="perm_edit_id_finder_registry">
+                                    <label class="form-check-label fw-bold text-white small" for="perm_edit_id_finder_registry">Registry bearbeiten / löschen</label>
+                                    <p class="text-muted small mb-0 mt-1" style="font-size: 0.75rem;">Erlaubt das Löschen oder Ändern von Usern im ID-Finder.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gruppe 2: Module & Analytics -->
+                    <div class="mb-4">
+                        <h6 class="text-warning fw-bold small text-uppercase mb-3 pb-2 border-bottom border-white border-opacity-10">
+                            <i class="bi bi-grid-fill me-2"></i>Module & Steuerung
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-check form-switch p-3 rounded bg-black bg-opacity-20 border border-white border-opacity-5">
+                                    <input class="form-check-input ms-0 me-2" type="checkbox" id="perm_view_analytics" name="perm_view_analytics">
+                                    <label class="form-check-label fw-bold text-white small" for="perm_view_analytics">Analytics einsehen</label>
+                                    <p class="text-muted small mb-0 mt-1" style="font-size: 0.75rem;">Ermöglicht den Zugriff auf Statistiken und Diagramme.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch p-3 rounded bg-black bg-opacity-20 border border-white border-opacity-5">
+                                    <input class="form-check-input ms-0 me-2" type="checkbox" id="perm_manage_users" name="perm_manage_users">
+                                    <label class="form-check-label fw-bold text-white small" for="perm_manage_users">Nutzer-Steuerung verwalten</label>
+                                    <p class="text-muted small mb-0 mt-1" style="font-size: 0.75rem;">Erlaubt das Verwarnen, Stummschalten oder Kicken von Usern.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch p-3 rounded bg-black bg-opacity-20 border border-white border-opacity-5">
+                                    <input class="form-check-input ms-0 me-2" type="checkbox" id="perm_use_live_moderation" name="perm_use_live_moderation">
+                                    <label class="form-check-label fw-bold text-white small" for="perm_use_live_moderation">Live Moderation nutzen</label>
+                                    <p class="text-muted small mb-0 mt-1" style="font-size: 0.75rem;">Zugang zum Live-Moderations-Cockpit (Echtzeit-Nachrichten).</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gruppe 3: Umfragen & Quiz -->
+                    <div class="mb-4">
+                        <h6 class="text-info fw-bold small text-uppercase mb-3 pb-2 border-bottom border-white border-opacity-10">
+                            <i class="bi bi-patch-question-fill me-2"></i>Interaktions-Bots (Quiz & Umfrage)
+                        </h6>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <div class="form-check form-switch p-3 rounded bg-black bg-opacity-20 border border-white border-opacity-5">
+                                    <input class="form-check-input ms-0 me-2" type="checkbox" id="perm_manage_polls" name="perm_manage_polls">
+                                    <label class="form-check-label fw-bold text-white small" for="perm_manage_polls">Umfrage-Bot verwalten</label>
+                                    <p class="text-muted small mb-0 mt-1" style="font-size: 0.75rem;">Erlaubt das Starten, Erstellen und Verwalten von Umfragen.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch p-3 rounded bg-black bg-opacity-20 border border-white border-opacity-5">
+                                    <input class="form-check-input ms-0 me-2" type="checkbox" id="perm_edit_poll_config" name="perm_edit_poll_config">
+                                    <label class="form-check-label fw-bold text-white small" for="perm_edit_poll_config">Umfrage-Verbindung ändern</label>
+                                    <p class="text-muted small mb-0 mt-1" style="font-size: 0.75rem;">Erlaubt die Eingabe von Bot-Token und Channel-/Topic-ID.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-check form-switch p-3 rounded bg-black bg-opacity-20 border border-white border-opacity-5">
+                                    <input class="form-check-input ms-0 me-2" type="checkbox" id="perm_manage_quizzes" name="perm_manage_quizzes">
+                                    <label class="form-check-label fw-bold text-white small" for="perm_manage_quizzes">Quiz-Bot verwalten</label>
+                                    <p class="text-muted small mb-0 mt-1" style="font-size: 0.75rem;">Erlaubt das Starten, Erstellen und Verwalten von Quizzes.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch p-3 rounded bg-black bg-opacity-20 border border-white border-opacity-5">
+                                    <input class="form-check-input ms-0 me-2" type="checkbox" id="perm_edit_quiz_config" name="perm_edit_quiz_config">
+                                    <label class="form-check-label fw-bold text-white small" for="perm_edit_quiz_config">Quiz-Verbindung ändern</label>
+                                    <p class="text-muted small mb-0 mt-1" style="font-size: 0.75rem;">Erlaubt die Eingabe von Bot-Token und Channel-/Topic-ID.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gruppe 4: Planer & Hilfs-Bots -->
+                    <div class="mb-2">
+                        <h6 class="text-success fw-bold small text-uppercase mb-3 pb-2 border-bottom border-white border-opacity-10">
+                            <i class="bi bi-calendar-event me-2"></i>Hilfs-Bots & Planer
+                        </h6>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <div class="form-check form-switch p-3 rounded bg-black bg-opacity-20 border border-white border-opacity-5">
+                                    <input class="form-check-input ms-0 me-2" type="checkbox" id="perm_manage_events" name="perm_manage_events">
+                                    <label class="form-check-label fw-bold text-white small" for="perm_manage_events">Event-Planer verwalten</label>
+                                    <p class="text-muted small mb-0 mt-1" style="font-size: 0.75rem;">Erlaubt das Anlegen und Ändern von Gruppen-Events.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch p-3 rounded bg-black bg-opacity-20 border border-white border-opacity-5">
+                                    <input class="form-check-input ms-0 me-2" type="checkbox" id="perm_edit_event_chat_id" name="perm_edit_event_chat_id">
+                                    <label class="form-check-label fw-bold text-white small" for="perm_edit_event_chat_id">Event Ziel-Gruppe ändern</label>
+                                    <p class="text-muted small mb-0 mt-1" style="font-size: 0.75rem;">Erlaubt das Ändern der Chat-ID / Gruppe für Events.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <div class="form-check form-switch p-3 rounded bg-black bg-opacity-20 border border-white border-opacity-5">
+                                    <input class="form-check-input ms-0 me-2" type="checkbox" id="perm_manage_reports" name="perm_manage_reports">
+                                    <label class="form-check-label fw-bold text-white small" for="perm_manage_reports">Report-Bot verwalten</label>
+                                    <p class="text-muted small mb-0 mt-1" style="font-size: 0.75rem;">Erlaubt die Ansicht und Bearbeitung eingegangener Reports.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch p-3 rounded bg-black bg-opacity-20 border border-white border-opacity-5">
+                                    <input class="form-check-input ms-0 me-2" type="checkbox" id="perm_edit_report_chat_id" name="perm_edit_report_chat_id">
+                                    <label class="form-check-label fw-bold text-white small" for="perm_edit_report_chat_id">Report Ziel-Gruppe ändern</label>
+                                    <p class="text-muted small mb-0 mt-1" style="font-size: 0.75rem;">Erlaubt das Ändern der Chat-ID / Gruppe für Reports.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-check form-switch p-3 rounded bg-black bg-opacity-20 border border-white border-opacity-5">
+                                    <input class="form-check-input ms-0 me-2" type="checkbox" id="perm_manage_broadcasts" name="perm_manage_broadcasts">
+                                    <label class="form-check-label fw-bold text-white small" for="perm_manage_broadcasts">Nachrichten-Planer verwalten</label>
+                                    <p class="text-muted small mb-0 mt-1" style="font-size: 0.75rem;">Erlaubt das Planen und Senden von Broadcasts.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch p-3 rounded bg-black bg-opacity-20 border border-white border-opacity-5">
+                                    <input class="form-check-input ms-0 me-2" type="checkbox" id="perm_edit_broadcast_chat_id" name="perm_edit_broadcast_chat_id">
+                                    <label class="form-check-label fw-bold text-white small" for="perm_edit_broadcast_chat_id">Nachrichten Ziel-Gruppe ändern</label>
+                                    <p class="text-muted small mb-0 mt-1" style="font-size: 0.75rem;">Erlaubt das Ändern der Chat-ID / Gruppe für Broadcasts.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                
+                <div class="modal-footer border-secondary border-opacity-25 py-3">
+                    <button type="button" class="btn btn-outline-secondary fw-bold px-4" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-success fw-bold px-4"><i class="bi bi-save2-fill me-1"></i>Speichern</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function openPasswordModal(userId, username) {
+        document.getElementById('pwd_user_id').value = userId;
+        document.getElementById('pwd_username_display').textContent = username;
+        new bootstrap.Modal(document.getElementById('passwordModal')).show();
+    }
+
+    function openPermissionsModal(userId, username, perms) {
+        document.getElementById('perm_user_id').value = userId;
+        document.getElementById('perm_username_display').textContent = username;
+        
+        const permsList = [
+            'view_analytics', 'manage_users', 'use_live_moderation',
+            'manage_polls', 'edit_poll_config', 'manage_quizzes', 'edit_quiz_config',
+            'manage_events', 'edit_event_chat_id', 'manage_reports', 'edit_report_chat_id',
+            'manage_broadcasts', 'edit_broadcast_chat_id', 'view_id_finder_registry', 'edit_id_finder_registry'
+        ];
+        
+        const defaults = {
+            'view_analytics': true,
+            'manage_users': true,
+            'use_live_moderation': true,
+            'manage_polls': true,
+            'manage_quizzes': true,
+            'manage_events': true,
+            'manage_reports': true,
+            'manage_broadcasts': true,
+            'view_id_finder_registry': true,
+            'edit_poll_config': false,
+            'edit_quiz_config': false,
+            'edit_event_chat_id': false,
+            'edit_report_chat_id': false,
+            'edit_broadcast_chat_id': false,
+            'edit_id_finder_registry': false
+        };
+        
+        permsList.forEach(perm => {
+            const el = document.getElementById('perm_' + perm);
+            if (el) {
+                if (perms && perms.hasOwnProperty(perm)) {
+                    el.checked = !!perms[perm];
+                } else {
+                    el.checked = !!defaults[perm];
+                }
+            }
+        });
+        
+        new bootstrap.Modal(document.getElementById('permissionsModal')).show();
+    }
+</script>
+{% endblock %}

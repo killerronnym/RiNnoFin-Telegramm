@@ -1,0 +1,282 @@
+{% extends 'base.html' %}
+
+{% block title %}Sicherheit & Login-Protokoll - Bot Steuerung{% endblock %}
+
+{% block content %}
+<style>
+    .nav-tabs .nav-link {
+        color: rgba(255, 255, 255, 0.6) !important;
+        background: transparent !important;
+        border: none !important;
+    }
+    .nav-tabs .nav-link:hover {
+        color: #fff !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+    }
+    .nav-tabs .nav-link.active {
+        color: #fff !important;
+        background: var(--bg-card) !important;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25) !important;
+        border-radius: 8px !important;
+    }
+    .glowing-dot {
+        width: 8px;
+        height: 8px;
+        background-color: #2ec4b6;
+        border-radius: 50%;
+        display: inline-block;
+        box-shadow: 0 0 8px #2ec4b6;
+        animation: pulse-glow 1.5s infinite ease-in-out;
+    }
+    @keyframes pulse-glow {
+        0%, 100% { opacity: 0.5; transform: scale(0.9); }
+        50% { opacity: 1; transform: scale(1.1); }
+    }
+</style>
+
+<div class="container dashboard-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h3 fw-bold text-white mb-1"><i class="bi bi-shield-lock text-blue me-2"></i>Sicherheits-Center</h2>
+            <p class="text-muted small mb-0">Überwache Login-Aktivitäten und verwalte IP-Sperren (Brute-Force-Schutz).</p>
+        </div>
+        <a href="{{ url_for('dashboard.index') }}" class="btn btn-sm btn-outline-secondary rounded-pill">
+            <i class="bi bi-arrow-left me-1"></i> Zurück zum Dashboard
+        </a>
+    </div>
+
+    <!-- Tabs Navigation -->
+    <ul class="nav nav-tabs mb-4 border-0 p-1 rounded-3" id="securityTabs" role="tablist" style="background: rgba(30, 30, 40, 0.5);">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold border-0 px-4 py-2.5 rounded-3" id="ip-locks-tab" data-bs-toggle="tab" data-bs-target="#ip-locks-pane" type="button" role="tab" aria-controls="ip-locks-pane" aria-selected="true" style="transition: all 0.3s ease;">
+                <i class="bi bi-shield-slash me-2 text-blue"></i>IP-Sperren & Brute-Force
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold border-0 px-4 py-2.5 rounded-3" id="login-history-tab" data-bs-toggle="tab" data-bs-target="#login-history-pane" type="button" role="tab" aria-controls="login-history-pane" aria-selected="false" style="transition: all 0.3s ease;">
+                <i class="bi bi-journal-text me-2 text-success"></i>Login-Protokoll
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold border-0 px-4 py-2.5 rounded-3" id="audit-log-tab" data-bs-toggle="tab" data-bs-target="#audit-log-pane" type="button" role="tab" aria-controls="audit-log-pane" aria-selected="false" style="transition: all 0.3s ease;">
+                <i class="bi bi-clock-history me-2 text-warning"></i>Aktivitäts-Log
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tabs Content -->
+    <div class="tab-content" id="securityTabsContent">
+        <!-- TAB 1: IP LOCKS -->
+        <div class="tab-pane fade show active" id="ip-locks-pane" role="tabpanel" aria-labelledby="ip-locks-tab">
+            <div class="card shadow-lg">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="fw-bold text-white"><i class="bi bi-list-check me-2 text-blue"></i>Erkannte IP-Adressen & Angriffs-Tracker</span>
+                    <span class="badge bg-secondary rounded-pill px-3">{{ trackers|length }} Einträge</span>
+                </div>
+                <div class="card-body p-0">
+                    {% if trackers %}
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover align-middle mb-0" style="background-color: transparent;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--border-muted);">
+                                    <th class="py-3 px-4 text-blue">IP-Adresse</th>
+                                    <th class="py-3">Status</th>
+                                    <th class="py-3 text-center">Fehlversuche</th>
+                                    <th class="py-3">Letzter Versuch</th>
+                                    <th class="py-3">Gesperrt bis</th>
+                                    <th class="py-3 text-end px-4">Aktion</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for tracker in trackers %}
+                                <tr style="border-bottom: 1px solid var(--border-muted);">
+                                    <td class="py-3 px-4 fw-semibold text-white">
+                                        <i class="bi bi-globe me-2 text-muted"></i>{{ tracker.ip_address }}
+                                    </td>
+                                    <td class="py-3">
+                                        {% if tracker.is_permanently_blocked %}
+                                        <span class="badge bg-danger border border-danger border-opacity-50 text-white rounded-pill px-3 py-2">
+                                            <i class="bi bi-x-circle-fill me-1"></i> Dauerhaft Gesperrt
+                                        </span>
+                                        {% elif tracker.blocked_until and tracker.blocked_until > now %}
+                                        <span class="badge bg-warning text-dark rounded-pill px-3 py-2">
+                                            <i class="bi bi-clock-fill me-1"></i> Temporär gesperrt
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-success border border-success border-opacity-50 text-white rounded-pill px-3 py-2">
+                                            <i class="bi bi-check-circle-fill me-1"></i> Aktiv / Keine Sperre
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="py-3 text-center fw-bold text-white fs-5">
+                                        {{ tracker.attempts }} / 5
+                                    </td>
+                                    <td class="py-3 text-muted">
+                                        <i class="bi bi-calendar3 me-1"></i>
+                                        {{ tracker.last_attempt.strftime('%d.%m.%Y %H:%M:%S') if tracker.last_attempt else '-' }}
+                                    </td>
+                                    <td class="py-3">
+                                        {% if tracker.is_permanently_blocked %}
+                                        <span class="text-danger fw-bold"><i class="bi bi-infinity me-1"></i>Unbegrenzt</span>
+                                        {% elif tracker.blocked_until and tracker.blocked_until > now %}
+                                        <span class="text-warning fw-semibold">
+                                            <i class="bi bi-hourglass-split me-1"></i>
+                                            {{ tracker.blocked_until.strftime('%d.%m.%Y %H:%M:%S') }}
+                                        </span>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="py-3 text-end px-4">
+                                        <form action="{{ url_for('dashboard.delete_ip_lock', tracker_id=tracker.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Möchtest du diese IP-Adresse wirklich entsperren und alle Fehlversuche zurücksetzen?');">
+                                            <button type="submit" class="btn btn-sm btn-outline-success rounded-pill px-3">
+                                                <i class="bi bi-unlock-fill me-1"></i> Entsperren / Unban
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5 px-4">
+                        <i class="bi bi-shield-check text-success fs-1 mb-3"></i>
+                        <h5 class="fw-bold text-white">Alles sauber!</h5>
+                        <p class="text-muted mb-0">Es gibt aktuell keine gesperrten oder verdächtigen IP-Adressen in der Datenbank.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: LOGIN HISTORY -->
+        <div class="tab-pane fade" id="login-history-pane" role="tabpanel" aria-labelledby="login-history-tab">
+            <div class="card shadow-lg">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="fw-bold text-white"><i class="bi bi-journal-text me-2 text-success"></i>Erfolgreiche Logins (Audit)</span>
+                    <span class="badge bg-secondary rounded-pill px-3">{{ login_audits|length }} Einträge</span>
+                </div>
+                <div class="card-body p-0">
+                    {% if login_audits %}
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover align-middle mb-0" style="background-color: transparent;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--border-muted);">
+                                    <th class="py-3 px-4 text-success">Benutzer</th>
+                                    <th class="py-3">IP-Adresse</th>
+                                    <th class="py-3">Login-Uhrzeit</th>
+                                    <th class="py-3">Letzte Aktivität</th>
+                                    <th class="py-3 px-4">Status / Dauer</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for audit in login_audits %}
+                                <tr style="border-bottom: 1px solid var(--border-muted);">
+                                    <td class="py-3 px-4 fw-semibold text-white">
+                                        <i class="bi bi-person-circle me-2 text-muted"></i>{{ audit.username }}
+                                    </td>
+                                    <td class="py-3 fw-mono text-white-50">
+                                        <i class="bi bi-globe me-2 text-muted"></i>{{ audit.ip_address }}
+                                    </td>
+                                    <td class="py-3 text-muted">
+                                        <i class="bi bi-box-arrow-in-right me-1"></i>
+                                        {{ audit.login_time.strftime('%d.%m.%Y %H:%M:%S') if audit.login_time else '-' }}
+                                    </td>
+                                    <td class="py-3 text-muted">
+                                        <i class="bi bi-clock me-1"></i>
+                                        {{ audit.last_activity.strftime('%d.%m.%Y %H:%M:%S') if audit.last_activity else '-' }}
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        {% if audit.logout_time %}
+                                        <span class="badge bg-secondary border border-secondary border-opacity-50 text-white rounded-pill px-3 py-2 me-2">
+                                            <i class="bi bi-door-closed-fill me-1"></i> Abgemeldet
+                                        </span>
+                                        <span class="text-muted small">⏱️ {{ audit.duration_string }}</span>
+                                        {% elif (now - audit.last_activity).total_seconds() < 900 %}
+                                        <span class="badge bg-success border border-success border-opacity-50 text-white rounded-pill px-3 py-2 me-2">
+                                            <span class="glowing-dot me-1"></span> Aktiv
+                                        </span>
+                                        <span class="text-success small fw-semibold">⏱️ {{ audit.duration_string }}</span>
+                                        {% else %}
+                                        <span class="badge bg-dark border border-secondary border-opacity-50 text-muted rounded-pill px-3 py-2 me-2">
+                                            <i class="bi bi-hourglass-bottom me-1"></i> Sitzung beendet
+                                        </span>
+                                        <span class="text-muted small">⏱️ {{ audit.duration_string }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5 px-4">
+                        <i class="bi bi-journal-x text-muted fs-1 mb-3"></i>
+                        <h5 class="fw-bold text-white">Keine Einträge</h5>
+                        <p class="text-muted mb-0">Es wurden bisher keine erfolgreichen Logins dokumentiert.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: ACTIVITY AUDIT LOG -->
+        <div class="tab-pane fade" id="audit-log-pane" role="tabpanel" aria-labelledby="audit-log-tab">
+            <div class="card shadow-lg">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="fw-bold text-white"><i class="bi bi-clock-history me-2 text-warning"></i>System-Aktivitäts-Log (Letzte 150 Aktionen)</span>
+                    <span class="badge bg-secondary rounded-pill px-3">{{ audit_logs|length }} Einträge</span>
+                </div>
+                <div class="card-body p-0">
+                    {% if audit_logs %}
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover align-middle mb-0" style="background-color: transparent;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--border-muted);">
+                                    <th class="py-3 px-4 text-warning">Benutzer</th>
+                                    <th class="py-3">IP-Adresse</th>
+                                    <th class="py-3">Aktion</th>
+                                    <th class="py-3">Details / Beschreibung</th>
+                                    <th class="py-3 px-4 text-end">Uhrzeit</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in audit_logs[:150] %}
+                                <tr style="border-bottom: 1px solid var(--border-muted);">
+                                    <td class="py-3 px-4 fw-semibold text-white">
+                                        <i class="bi bi-person-badge me-2 text-muted"></i>{{ log.username or 'System' }}
+                                    </td>
+                                    <td class="py-3 fw-mono text-white-50">
+                                        <i class="bi bi-globe me-2 text-muted"></i>{{ log.ip_address or '-' }}
+                                    </td>
+                                    <td class="py-3">
+                                        <span class="badge bg-warning border border-warning border-opacity-50 text-dark rounded-pill px-3 py-1.5 fw-bold">
+                                            {{ log.action }}
+                                        </span>
+                                    </td>
+                                    <td class="py-3 text-muted text-white-50">
+                                        {{ log.details or '-' }}
+                                    </td>
+                                    <td class="py-3 px-4 text-muted text-end small">
+                                        <i class="bi bi-calendar3 me-1"></i>
+                                        {{ log.timestamp.strftime('%d.%m.%Y %H:%M:%S') if log.timestamp else '-' }}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5 px-4">
+                        <i class="bi bi-clipboard-x text-muted fs-1 mb-3"></i>
+                        <h5 class="fw-bold text-white">Keine Aktivitäten</h5>
+                        <p class="text-muted mb-0">Es wurden bisher keine System-Aktivitäten protokolliert.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

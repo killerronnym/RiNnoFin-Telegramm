@@ -1,0 +1,851 @@
+{% extends "base.html" %}
+
+{% block title %}Umfrage Bot | Einstellungen{% endblock %}
+
+{% block content %}
+<style>
+    .dashboard-container {
+        padding: 2.5rem;
+    }
+    @media (max-width: 768px) {
+        .dashboard-container {
+            padding: 1rem;
+        }
+    }
+    
+    .visual-list-container {
+        max-height: 500px;
+        overflow-y: auto;
+        padding-right: 5px;
+    }
+    
+    @media (max-width: 768px) {
+        .visual-list-container {
+            max-height: none;
+            overflow-y: visible;
+        }
+    }
+
+    .btn-back {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border-muted);
+        color: var(--text-secondary);
+        font-weight: 500;
+        border-radius: 8px;
+        padding: 0.6rem 1.25rem;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-size: 0.85rem;
+    }
+
+    .btn-back:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: #fff;
+        border-color: var(--blue-accent);
+    }
+
+    .status-badge-container {
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid var(--border-muted);
+        padding: 0.4rem 1.2rem;
+        border-radius: 30px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    .log-display {
+        background: #000;
+        color: #a5b4fc;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.75rem;
+        padding: 1rem;
+        border-radius: 8px;
+        border: 1px solid #1e293b;
+        line-height: 1.5;
+    }
+
+    .stat-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border-muted);
+    }
+
+    .stat-item:last-child {
+        border-bottom: none;
+    }
+
+    .stat-label {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .stat-value {
+        font-weight: bold;
+        color: #fff;
+        font-size: 1rem;
+    }
+
+    .json-editor {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.8rem;
+    }
+</style>
+
+{% set umfrage_running = bot_status.umfrage.running %}
+
+<div class="dashboard-container">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+        <div>
+            <a href="/" class="btn-back mb-4"><i class="bi bi-chevron-left"></i> ZURÜCK ZUR ÜBERSICHT</a>
+            <h1 class="fw-bold mb-1 h3 text-white">Umfrage <span class="text-blue">Einstellungen</span></h1>
+            <p class="text-secondary small">Konfiguration, Statistiken und Umfragen für den Umfrage Bot.</p>
+        </div>
+        <div class="status-badge-container mt-2">
+            {% if umfrage_running %}
+            <span class="rounded-circle bg-success"
+                style="width: 8px; height: 8px; box-shadow: 0 0 8px #10b981;"></span>
+            <span class="small fw-bold text-success tracking-wider">AKTIV</span>
+            {% else %}
+            <span class="rounded-circle bg-danger" style="width: 8px; height: 8px;"></span>
+            <span class="small fw-bold text-danger tracking-wider">OFFLINE</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6>Prozess-Steuerung</h6>
+                </div>
+                <div class="card-body">
+                    <form action="/bot-action/umfrage/{{ 'stop' if umfrage_running else 'start' }}" method="POST"
+                        class="m-0">
+                        <button type="submit"
+                            class="btn btn-{{ 'danger' if umfrage_running else 'success' }} w-100 py-3 fw-bold">
+                            {{ '⏹️ BOT STOPPEN' if umfrage_running else '▶️ BOT STARTEN' }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6>Zeitplan</h6>
+                </div>
+                <div class="card-body">
+                    <form action="/umfrage-settings" method="POST">
+                        <input type="hidden" name="action" value="save_schedule">
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" role="switch" id="schedule_enabled"
+                                name="schedule_enabled" {% if schedule.enabled %}checked{% endif %}>
+                            <label class="form-check-label" for="schedule_enabled">Zeitplan aktiv</label>
+                        </div>
+                        <div class="mb-3">
+                            <label class="small text-secondary fw-bold mb-1">Uhrzeit</label>
+                            <input type="time" class="form-control" name="schedule_time"
+                                value="{{ schedule.time or '12:00' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="small text-secondary fw-bold mb-1">Tage</label>
+                            <div class="d-flex flex-wrap gap-1" role="group">
+                                {% set week_days = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'] %}
+                                {% for i in range(7) %}
+                                <input type="checkbox" class="btn-check" id="day_{{ i }}" name="schedule_days"
+                                    value="{{ i }}" {% if i in schedule.days %}checked{% endif %}>
+                                <label class="btn btn-sm btn-outline-primary flex-grow-1 px-1" style="min-width: 35px;" for="day_{{ i }}">{{ week_days[i] }}</label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 mt-2">ZEITPLAN SPEICHERN</button>
+                    </form>
+                </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6>Statistiken</h6>
+                </div>
+                <div class="card-body">
+                    <div class="stat-item">
+                        <span class="stat-label">Gesamte Umfragen</span>
+                        <span class="stat-value text-primary">{{ stats.total }}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Gestellte Umfragen</span>
+                        <span class="stat-value text-warning">{{ stats.asked }}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Verbleibende Umfragen</span>
+                        <span class="stat-value text-success">{{ stats.remaining }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h6>Sofort-Aktionen</h6>
+                </div>
+                <div class="card-body">
+                    <form action="/umfrage/send-now" method="POST">
+                        <button type="submit" class="btn btn-primary w-100" {% if not umfrage_running %}disabled{% endif
+                            %}>JETZT UMFRAGE SENDEN</button>
+                    </form>
+                    {% if not umfrage_running %}
+                    <p class="text-danger small mt-2 mb-0">Bot muss laufen, um Aktionen zu senden.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            {% if current_user.role == 'admin' %}
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center cursor-pointer collapsed" 
+                    data-bs-toggle="collapse" data-bs-target="#pollConfigCollapse" 
+                    aria-expanded="false" aria-controls="pollConfigCollapse" style="cursor: pointer;">
+                    <h6><i class="bi bi-gear-fill me-2 text-warning"></i> Konfiguration</h6>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-warning text-dark"><i class="bi bi-lock-fill me-1"></i> Admin-Bereich</span>
+                        <i class="bi bi-chevron-down"></i>
+                    </div>
+                </div>
+                <div class="collapse" id="pollConfigCollapse">
+                    <div class="card-body">
+                        {% set can_edit_config = current_user.is_admin or current_user.has_permission('edit_poll_config') %}
+                        <form action="/umfrage-settings" method="POST">
+                            <input type="hidden" name="action" value="save_settings">
+                            <div class="mb-3">
+                                <label class="small text-secondary fw-bold mb-1">TELEGRAM BOT TOKEN</label>
+                                <input type="text" class="form-control text-muted bg-light"
+                                    value="Gesperrt (Siehe ID-Finder Bot)" disabled readonly>
+                                <small class="text-muted" style="font-size: 0.75rem;">Alle Module teilen sich den Token des ID-Finder Bots.</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="small text-secondary fw-bold mb-1">CHANNEL ID</label>
+                                <input type="text" class="form-control" name="channel_id"
+                                    value="{{ config.channel_id or '' }}" {% if not can_edit_config %}disabled{% endif %}>
+                            </div>
+                            <div class="mb-3">
+                                <label class="small text-secondary fw-bold mb-1">TOPIC ID (OPTIONAL)</label>
+                                <input type="text" class="form-control" name="topic_id" value="{{ config.topic_id or '' }}"
+                                    {% if not can_edit_config %}disabled{% endif %}>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 mt-2" {% if not can_edit_config %}disabled
+                                style="opacity: 0.5; cursor: not-allowed;" {% endif %}>KONFIGURATION SPEICHERN</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="row mt-4">
+                <div class="col-md-12 mb-4">
+                    <!-- Formular für neue Umfrage -->
+                    <div class="card border-primary" style="background: rgba(13, 110, 253, 0.05);">
+                        <div class="card-header bg-primary bg-opacity-10 text-primary border-primary">
+                            <h6 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Neue Umfrage erstellen (Mighty Poll)
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label class="form-label small fw-bold">Frage</label>
+                                    <input type="text" id="new_poll_frage" class="form-control"
+                                        placeholder="z.B. Welches Outfit ist besser?">
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label small fw-bold">Antwortmöglichkeiten (mind. 2)</label>
+                                    <div id="new_poll_options">
+                                        <!-- Wird von JS befüllt -->
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary mt-2"
+                                        onclick="addPollOption()"><i class="bi bi-plus"></i> Weitere Antwort
+                                        hinzufügen</button>
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label small fw-bold">Bild/Video hochladen (Optional)</label>
+                                    <input type="file" id="new_poll_media_file" class="form-control"
+                                        accept="image/*,video/*">
+                                    <div class="form-text text-muted">Lade ein Bild oder Video hoch, um es der Umfrage
+                                        hinzuzufügen.</div>
+                                </div>
+
+                                <div class="col-md-12 bg-dark bg-opacity-25 p-3 rounded border border-secondary">
+                                    <label class="form-label small fw-bold d-block mb-3 text-blue"><i
+                                            class="bi bi-gear-fill me-2"></i>Erweiterte Einstellungen</label>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" role="switch"
+                                                    id="poll_is_anonymous" checked>
+                                                <label class="form-check-label small" for="poll_is_anonymous">Anonyme
+                                                    Abstimmung</label>
+                                                <div class="form-text" style="font-size: 0.65rem;">Namen der Teilnehmer
+                                                    nicht anzeigen.</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" role="switch"
+                                                    id="poll_allows_multiple_answers">
+                                                <label class="form-check-label small"
+                                                    for="poll_allows_multiple_answers">Mehrfachantwort erlauben</label>
+                                                <div class="form-text" style="font-size: 0.65rem;">Teilnehmer dürfen
+                                                    mehr als eine Option wählen.</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" role="switch"
+                                                    id="poll_shuffle_options">
+                                                <label class="form-check-label small"
+                                                    for="poll_shuffle_options">Optionen mischen</label>
+                                                <div class="form-text" style="font-size: 0.65rem;">Antworten in
+                                                    zufälliger Reihenfolge anzeigen.</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="small fw-bold mb-1 d-block">Dauer begrenzen (Sekunden)</label>
+                                            <input type="number" id="poll_open_period"
+                                                class="form-control form-control-sm bg-dark text-light border-secondary"
+                                                placeholder="0 = Unbegrenzt" min="0">
+                                            <div class="form-text" style="font-size: 0.65rem;">Wie lange die Umfrage
+                                                aktiv ist (z.B. 3600 für 1 Std).</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-12 mt-3 d-flex gap-2">
+                                    <button type="button" id="btn_generate_poll"
+                                        class="btn btn-primary flex-grow-1 fw-bold"
+                                        onclick="generatePollJson(false)">Zur Liste hinzufügen</button>
+                                    <button type="button" id="btn_send_poll_now" class="btn btn-warning fw-bold"
+                                        onclick="generatePollJson(true)">Jetzt abschicken <i
+                                            class="bi bi-send ms-1"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-lg-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+                            <h6 class="mb-0">Alle Umfragen (Verfügbar)</h6>
+                            <ul class="nav nav-pills card-header-pills mb-0" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active btn-sm py-1" data-bs-toggle="tab"
+                                        data-bs-target="#poll-visual-view" type="button" role="tab">Visuelle
+                                        Liste</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link btn-sm py-1" data-bs-toggle="tab"
+                                        data-bs-target="#poll-json-view" type="button" role="tab">JSON
+                                        (Experten)</button>
+                                </li>
+                            </ul>
+                                 <div class="card-body">
+                            <form action="/umfrage-settings" method="POST">
+                                <input type="hidden" name="action" value="save_polls">
+                                <div class="tab-content">
+                                    <div class="tab-pane fade show active" id="poll-visual-view" role="tabpanel">
+                                        <!-- Filter Buttons -->
+                                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 border-bottom border-secondary pb-2">
+                                            <span class="text-secondary small">Status-Filter:</span>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button type="button" class="btn btn-outline-info active" id="filter-poll-all" onclick="setPollFilter('all')">Alle</button>
+                                                <button type="button" class="btn btn-outline-success" id="filter-poll-remaining" onclick="setPollFilter('remaining')">Verbleibend</button>
+                                                <button type="button" class="btn btn-outline-warning" id="filter-poll-asked" onclick="setPollFilter('asked')">Gestellt</button>
+                                            </div>
+                                        </div>
+                                        <div id="polls_visual_list" class="visual-list-container"></div>
+                                    </div>
+                                    <div class="tab-pane fade" id="poll-json-view" role="tabpanel">
+                                        <div class="alert alert-info py-2 small mb-2"><i class="bi bi-info-circle"></i>
+                                            Füge hier deinen JSON-Code ein, um viele Umfragen auf einmal per Copy/Paste
+                                            (z.B. aus ChatGPT) hinzuzufügen.</div>
+
+                                        <!-- Hilfe-Sektion für JSON -->
+                                        <div
+                                            class="bg-dark bg-opacity-50 p-3 rounded mb-3 border border-secondary small">
+                                            <h7 class="text-info d-block mb-2 fw-bold"><i
+                                                    class="bi bi-code-square me-2"></i>JSON Format Guide</h7>
+                                            <ul class="text-secondary ps-3 mb-2" style="font-size: 0.75rem;">
+                                                <li><code class="text-info">"frage"</code>: (String, Pflicht) Die
+                                                    Umfragefrage.</li>
+                                                <li><code class="text-info">"optionen"</code>: (Array, Pflicht) Liste
+                                                    der Antworten (Strings).</li>
+                                                <li><code class="text-info">"is_anonymous"</code>: (Bool, Optional)
+                                                    <code class="text-light">true</code> oder <code
+                                                        class="text-light">false</code>.</li>
+                                                <li><code class="text-info">"allows_multiple_answers"</code>: (Bool,
+                                                    Optional) Erlaubt Mehrfachwahl.</li>
+                                                <li><code class="text-info">"shuffle_options"</code>: (Bool, Optional)
+                                                    Mischt die Antworten.</li>
+                                                <li><code class="text-info">"open_period"</code>: (Zahl, Optional) Dauer
+                                                    in Sekunden (z.B. 3600).</li>
+                                            </ul>
+                                            <button type="button" class="btn btn-sm btn-outline-info w-100 mt-2"
+                                                onclick="copyPollTemplate()">
+                                                <i class="bi bi-clipboard me-1"></i> Beispiel-Template kopieren
+                                            </button>
+
+                                            <!-- KI-Prompt Generator -->
+                                            <div class="mt-3 border-top border-secondary pt-3">
+                                                <h7 class="text-warning d-block mb-2 fw-bold"><i class="bi bi-robot me-2"></i>KI-Prompt Generator (für ChatGPT/Claude)</h7>
+                                                <div class="row g-2 mb-2">
+                                                    <div class="col-8">
+                                                        <div class="input-group input-group-sm">
+                                                            <span class="input-group-text bg-dark border-secondary text-secondary" style="font-size: 0.7rem;">Thema</span>
+                                                            <input type="text" id="ai_poll_theme" class="form-control bg-dark border-secondary text-light" placeholder="z.B. Feedback, Interessen" value="Allgemeines Feedback" style="font-size: 0.75rem;">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <div class="input-group input-group-sm">
+                                                            <span class="input-group-text bg-dark border-secondary text-secondary" style="font-size: 0.7rem;">Anzahl</span>
+                                                            <input type="number" id="ai_poll_count" class="form-control bg-dark border-secondary text-light" value="10" min="1" max="100" style="font-size: 0.75rem;">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <button type="button" class="btn btn-sm btn-outline-warning w-100" onclick="copyAiPollPrompt()">
+                                                    <i class="bi bi-clipboard-check me-1"></i> KI-Prompt generieren & kopieren
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <textarea id="polls_json_textarea"
+                                            class="form-control text-monospace bg-dark text-light" name="polls_json"
+                                            rows="15" style="font-size: 13px;"
+                                            oninput="renderPollsList()">{{ polls_json }}</textarea>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 mt-3">Verfügbare Umfragen speichern</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h6>Gestellte Umfragen (Protokoll)</h6>
+                        </div>
+                        <div class="card-body">
+                            <form action="/umfrage-settings" method="POST">
+                                <input type="hidden" name="action" value="save_asked_polls">
+                                <textarea id="asked_polls_json_textarea" class="form-control json-editor"
+                                    name="asked_polls_json" rows="15">{{ asked_polls_json }}</textarea>
+                                <div class="form-text mt-2">Entfernen Sie Umfragen hier, um sie wieder in den Pool
+                                    zurückzuverschieben.</div>
+                                <button type="submit" class="btn btn-warning w-100 mt-3">Protokoll der gestellten
+                                    Umfragen speichern</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card bg-black border-0 mt-4">
+                <div class="card-header border-0 pb-0">
+                    <h6 class="text-secondary small font-monospace">System Console</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="log-display rounded-0 border-0" style="height: 200px; overflow-y: auto;">
+                        {% if logs %}
+                        {% for line in logs %}
+                        {% if 'ERROR' in line or 'CRITICAL' in line %}
+                        <div class="py-1 px-2 text-wrap bg-danger text-white fw-bold" style="font-size: 0.75rem;">{{
+                            line }}</div>
+                        {% elif 'WARNING' in line %}
+                        <div class="py-1 px-2 text-wrap text-warning fw-bold" style="font-size: 0.75rem;">{{ line }}
+                        </div>
+                        {% else %}
+                        <div class="py-1 px-2 text-wrap" style="font-size: 0.75rem;">{{ line }}</div>
+                        {% endif %}
+                        {% endfor %}
+                        {% else %}
+                        <div class="text-success p-4 text-center fw-bold"><i
+                                class="bi bi-check-circle fs-4 d-block mb-2"></i> Keine Fehler / Logs verfügbar.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentPollFilter = 'all';
+
+    function setPollFilter(filter) {
+        currentPollFilter = filter;
+        document.querySelectorAll('[id^="filter-poll-"]').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(`filter-poll-${filter}`).classList.add('active');
+        renderPollsList();
+    }
+
+    function createOptionHTML(index) {
+        return `
+        <div class="option-container mb-3 border border-secondary rounded p-3 bg-dark bg-opacity-25">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge bg-secondary">Option ${index}</span>
+                ${index > 2 ? `<button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('.option-container').remove()"><i class="bi bi-trash"></i></button>` : ''}
+            </div>
+            <input type="text" class="form-control mb-2 poll-option-text" placeholder="Antwort Text">
+            <div class="input-group input-group-sm">
+                <span class="input-group-text" title="Optionales Bild für diese Antwort"><i class="bi bi-image"></i></span>
+                <input type="file" class="form-control poll-option-media" accept="image/*,video/*">
+            </div>
+        </div>
+    `;
+    }
+
+    function initPollOptions() {
+        const container = document.getElementById('new_poll_options');
+        container.innerHTML = createOptionHTML(1) + createOptionHTML(2);
+    }
+
+    function renderPollsList() {
+        const jsonStr = document.getElementById('polls_json_textarea').value;
+        let data = [];
+        try {
+            if (jsonStr.trim() !== '') data = JSON.parse(jsonStr);
+        } catch (e) { return; }
+
+        const container = document.getElementById('polls_visual_list');
+        container.innerHTML = '';
+
+        if (data.length === 0) {
+            container.innerHTML = '<div class="text-muted small">Keine Umfragen vorhanden.</div>';
+            return;
+        }
+
+        const askedJsonStr = document.getElementById('asked_polls_json_textarea').value;
+        let askedData = [];
+        try { if (askedJsonStr.trim() !== '') askedData = JSON.parse(askedJsonStr); } catch (e) { }
+
+        let visibleCount = 0;
+
+        data.forEach((item, index) => {
+            const wasAsked = askedData.some(a => a.frage === item.frage);
+
+            // Filter logic
+            if (currentPollFilter === 'remaining' && wasAsked) return;
+            if (currentPollFilter === 'asked' && !wasAsked) return;
+
+            visibleCount++;
+            const div = document.createElement('div');
+            div.className = 'card mb-2 bg-dark bg-opacity-25 border-secondary';
+
+            let mediaBadge = '';
+            if (item.frage_media_url) {
+                mediaBadge = `<span class="badge bg-info ms-2"><i class="bi bi-image"></i> Medien</span>`;
+            }
+
+            let settingsBadge = '';
+            if (item.allows_multiple_answers || item.is_anonymous === false || item.shuffle_options || item.open_period) {
+                settingsBadge = `<span class="badge bg-secondary ms-1" title="Erweiterte Einstellungen aktiv"><i class="bi bi-gear-fill"></i></span>`;
+            }
+
+            let askedBadge = '';
+            // wasAsked is already defined above
+            if (wasAsked) {
+                askedBadge = `<span class="badge bg-success ms-1" title="Diese Frage wurde laut Protokoll schon einmal gestellt"><i class="bi bi-check-all"></i> Gestellt</span>`;
+            } else {
+                askedBadge = `<span class="badge bg-primary ms-1" title="Diese Frage wurde noch nicht gestellt"><i class="bi bi-star"></i> Neu (Offen)</span>`;
+            }
+
+            let optionsHtml = '';
+            if (Array.isArray(item.optionen)) {
+                optionsHtml = '<ul class="mb-0 small text-muted ps-3">';
+                item.optionen.forEach(opt => {
+                    const text = typeof opt === 'string' ? opt : opt.text;
+                    const optMedia = (typeof opt === 'object' && opt.media_url) ? '<i class="bi bi-image ms-1 text-info"></i>' : '';
+                    optionsHtml += `<li>${text} ${optMedia}</li>`;
+                });
+                optionsHtml += '</ul>';
+            }
+
+            div.innerHTML = `
+            <div class="card-body p-3">
+                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-start gap-3">
+                    <div style="min-width: 0; word-break: break-word;">
+                         <strong class="d-block mb-2 text-white">${item.frage} ${mediaBadge} ${settingsBadge} ${askedBadge}</strong>
+                        ${optionsHtml}
+                    </div>
+                    <div class="d-flex gap-2 flex-shrink-0 mt-2 mt-sm-0">
+                        <button type="button" class="btn btn-outline-info flex-grow-1 flex-sm-grow-0" onclick="editPoll(${index})" title="Bearbeiten"><i class="bi bi-pencil me-1"></i> Bearbeiten</button>
+                        <button type="button" class="btn btn-outline-danger flex-grow-1 flex-sm-grow-0" onclick="deletePoll(${index})" title="Löschen"><i class="bi bi-trash"></i></button>
+                    </div>
+                </div>
+            </div>
+        `;
+            container.appendChild(div);
+        });
+
+        if (visibleCount === 0) {
+            container.innerHTML = '<div class="text-muted small p-2">Keine Umfragen entsprechen dem ausgewählten Filter.</div>';
+        }
+    }
+
+    function deletePoll(index) {
+        const jsonStr = document.getElementById('polls_json_textarea').value;
+        let data = [];
+        try {
+            data = JSON.parse(jsonStr);
+            data.splice(index, 1);
+            document.getElementById('polls_json_textarea').value = JSON.stringify(data, null, 2);
+            renderPollsList();
+        } catch (e) { }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        initPollOptions();
+        renderPollsList();
+    });
+
+    function editPoll(index) {
+        const jsonStr = document.getElementById('polls_json_textarea').value;
+        try {
+            const data = JSON.parse(jsonStr);
+            const item = data[index];
+
+            // Fill form
+            document.getElementById('new_poll_frage').value = item.frage;
+
+            // Settings
+            document.getElementById('poll_is_anonymous').checked = item.is_anonymous !== false;
+            document.getElementById('poll_allows_multiple_answers').checked = item.allows_multiple_answers === true;
+            document.getElementById('poll_shuffle_options').checked = item.shuffle_options === true;
+            document.getElementById('poll_open_period').value = item.open_period || '';
+
+            // Options
+            const container = document.getElementById('new_poll_options');
+            container.innerHTML = '';
+            if (Array.isArray(item.optionen)) {
+                item.optionen.forEach((opt, i) => {
+                    const div = document.createElement('div');
+                    div.innerHTML = createOptionHTML(i + 1);
+                    const el = div.firstElementChild;
+                    const text = typeof opt === 'string' ? opt : opt.text;
+                    el.querySelector('.poll-option-text').value = text;
+                    container.appendChild(el);
+                });
+            }
+
+            // Remove from list
+            deletePoll(index);
+
+            // Scroll to editor
+            document.getElementById('new_poll_frage').scrollIntoView({ behavior: 'smooth' });
+
+        } catch (e) { console.error(e); }
+    }
+
+    function addPollOption() {
+        const container = document.getElementById('new_poll_options');
+        const index = container.querySelectorAll('.option-container').length + 1;
+        const div = document.createElement('div');
+        div.innerHTML = createOptionHTML(index);
+        container.appendChild(div.firstElementChild);
+    }
+
+    async function generatePollJson(sendNow = false) {
+        const frage = document.getElementById('new_poll_frage').value.trim();
+        if (!frage) { alert("Bitte eine Frage eingeben."); return; }
+
+        const optionContainers = document.querySelectorAll('.option-container');
+        const optionen = [];
+        const uploadPromises = [];
+
+        for (let i = 0; i < optionContainers.length; i++) {
+            const textInput = optionContainers[i].querySelector('.poll-option-text');
+            const fileInput = optionContainers[i].querySelector('.poll-option-media');
+            const text = textInput.value.trim();
+
+            if (text === '') continue;
+
+            const optionObj = { "text": text };
+
+            if (fileInput.files.length > 0) {
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+                const p = fetch('/api/upload-media', { method: 'POST', body: formData })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            optionObj["media_url"] = data.url;
+                            optionObj["media_type"] = data.type;
+                        }
+                    });
+                uploadPromises.push(p);
+            }
+            optionen.push(optionObj);
+        }
+
+        if (optionen.length < 2) { alert("Bitte mindestens 2 Antworten eingeben."); return; }
+
+        const btnAdd = document.getElementById('btn_generate_poll');
+        const btnSend = document.getElementById('btn_send_poll_now');
+        const oldBtnAddText = btnAdd.innerHTML;
+
+        btnAdd.disabled = true;
+        btnSend.disabled = true;
+        btnAdd.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Lade hoch...';
+
+        await Promise.all(uploadPromises);
+
+        const mediaFile = document.getElementById('new_poll_media_file').files[0];
+        let mainMediaUrl = null;
+        let mainMediaType = null;
+
+        if (mediaFile) {
+            const formData = new FormData();
+            formData.append('file', mediaFile);
+            try {
+                const response = await fetch('/api/upload-media', { method: 'POST', body: formData });
+                const result = await response.json();
+                if (result.success) {
+                    mainMediaUrl = result.url;
+                    mainMediaType = result.type;
+                } else {
+                    alert("Fehler beim Hochladen des Hauptbildes: " + result.error);
+                    btnAdd.disabled = false;
+                    btnSend.disabled = false;
+                    btnAdd.innerHTML = oldBtnAddText;
+                    return;
+                }
+            } catch (e) {
+                alert("Verbindungsfehler beim Hochladen des Hauptbildes.");
+                btnAdd.disabled = false;
+                btnSend.disabled = false;
+                btnAdd.innerHTML = oldBtnAddText;
+                return;
+            }
+        }
+
+        btnAdd.disabled = false;
+        btnSend.disabled = false;
+        btnAdd.innerHTML = oldBtnAddText;
+
+        const newPoll = {
+            "frage": frage,
+            "optionen": optionen,
+            "allows_multiple_answers": document.getElementById('poll_allows_multiple_answers').checked,
+            "is_anonymous": document.getElementById('poll_is_anonymous').checked,
+            "shuffle_options": document.getElementById('poll_shuffle_options').checked
+        };
+
+        const openPeriod = document.getElementById('poll_open_period').value;
+        if (openPeriod && parseInt(openPeriod) > 0) {
+            newPoll["open_period"] = parseInt(openPeriod);
+        }
+
+        if (mainMediaUrl) {
+            newPoll["frage_media_url"] = mainMediaUrl;
+            newPoll["frage_media_type"] = mainMediaType;
+        }
+
+        if (sendNow) {
+            try {
+                const response = await fetch('/api/send-specific-poll', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newPoll)
+                });
+                const resData = await response.json();
+                if (resData.success) {
+                    // Toaster or alert could be better, but alert is easiest
+                    alert("Umfrage wurde an den Bot zum sofortigen Senden übergeben!");
+                } else {
+                    alert("Fehler beim Senden: " + resData.error);
+                }
+            } catch (e) {
+                alert("Fehler beim Kontaktieren der API.");
+            }
+        }
+
+        const jsonEditor = document.getElementById('polls_json_textarea');
+        let existingData = [];
+        try {
+            if (jsonEditor.value.trim() !== '') {
+                existingData = JSON.parse(jsonEditor.value);
+                if (!Array.isArray(existingData)) existingData = [];
+            }
+        } catch (e) {
+            alert("Fehler beim Lesen des aktuellen JSON. Bitte korrigieren Sie das JSON zuerst.");
+            return;
+        }
+
+        existingData.push(newPoll);
+        jsonEditor.value = JSON.stringify(existingData, null, 2);
+
+        renderPollsList();
+
+        document.getElementById('new_poll_frage').value = '';
+        document.getElementById('new_poll_media_file').value = '';
+        initPollOptions();
+
+        document.getElementById('polls_visual_list').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function copyPollTemplate() {
+        const template = [
+            {
+                "frage": "Welches Gear magst du am liebsten?",
+                "optionen": ["Pup Hood", "Collar", "Tail", "Kniepads"],
+                "is_anonymous": true,
+                "allows_multiple_answers": false,
+                "shuffle_options": true,
+                "open_period": 3600
+            }
+        ];
+        const json = JSON.stringify(template, null, 2);
+        navigator.clipboard.writeText(json).then(() => {
+            alert("Beispiel-Template für Umfragen wurde in die Zwischenablage kopiert!");
+        });
+    }
+
+    function copyAiPollPrompt() {
+        const theme = document.getElementById('ai_poll_theme').value.trim() || 'Allgemeines Feedback';
+        const count = document.getElementById('ai_poll_count').value || '10';
+        const prompt = `Erstelle eine Liste von Umfragen im JSON-Format für meinen Telegram-Bot.
+Die Struktur muss genau so aussehen (ohne zusätzliche Erklärungen oder Markdown-Codeblöcke wie \`\`\`json, gib NUR das reine JSON-Array zurück):
+[
+  {
+    "frage": "Wie gefällt euch das neue Feature?",
+    "optionen": ["Sehr gut", "Gut", "Weniger gut", "Schlecht"],
+    "is_anonymous": true,
+    "allows_multiple_answers": false,
+    "shuffle_options": false,
+    "open_period": 3600,
+    "frage_media_url": "",
+    "frage_media_type": "photo"
+  }
+]
+Wichtig:
+- "frage": Die Umfragefrage als Text.
+- "optionen": Eine Liste von 2 bis 10 Antwortmöglichkeiten als einfache Text-Strings.
+- "is_anonymous": true (Standard) oder false (für öffentliche Abstimmung).
+- "allows_multiple_answers": true oder false (ob Benutzer mehrere Antworten wählen können).
+- "shuffle_options": true oder false (ob Telegram die Antworten mischen soll).
+- "open_period": Dauer in Sekunden, nach der die Umfrage geschlossen wird (optional, kann weggelassen werden).
+- "frage_media_url": Optional eine absolute URL zu einem Bild (.jpg/.png) oder Video (.mp4), falls thematisch passend (ansonsten einfach weglassen).
+- "frage_media_type": "photo" oder "video" (nur nötig wenn frage_media_url gesetzt ist).
+
+Bitte generiere mir ${count} abwechslungsreiche Umfragen auf Deutsch zum Thema "${theme}".
+Gib mir nur das reine, valide JSON-Array zurück, damit ich es direkt kopieren und einfügen kann.`;
+
+        navigator.clipboard.writeText(prompt).then(() => {
+            alert("KI-Prompt für Umfragen wurde in die Zwischenablage kopiert! Füge ihn einfach in ChatGPT oder Claude ein.");
+        });
+    }
+</script>
+
+{% endblock %}

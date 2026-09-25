@@ -1,0 +1,218 @@
+<!-- Moderation & Settings Modals for Live Moderation -->
+
+<!-- Settings Modal -->
+<div class="modal fade" id="settingsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header"><h5>⚙️ Einstellungen</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="mb-3"><label class="small text-muted">MAX. VERWARNUNGEN</label><input type="number" id="setMaxWarnings" class="form-control bg-dark text-white border-secondary" value="3"></div>
+                <div class="mb-3"><label class="small text-muted">CLEANUP MELDUNGEN (SEK)</label><input type="number" id="setCleanupSeconds" class="form-control bg-dark text-white border-secondary" value="60"></div>
+                <div class="mb-3">
+                    <label class="small text-muted">PUNISHMENT ACTION</label>
+                    <select id="setPunishmentType" class="form-select bg-dark text-white border-secondary">
+                        <option value="none">Keine</option><option value="mute">Mute</option><option value="kick">Kick</option><option value="ban">Ban</option>
+                    </select>
+                </div>
+                <div id="muteDurationContainer" class="mb-3" style="display:none;"><label class="small text-muted">MUTE DAUER (STUNDEN)</label><input type="number" id="setMuteDuration" class="form-control bg-dark text-white border-secondary" value="24"></div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-primary" id="saveSettingsBtn">Speichern</button></div>
+        </div>
+    </div>
+</div>
+
+<!-- Moderation Modal -->
+<div class="modal fade" id="moderationModal" tabindex="-1">
+    <div class="modal-dialog modal-content bg-dark text-white border-secondary shadow-lg">
+        <div class="modal-header border-secondary"><h5>🚫 Moderieren</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+            <input type="hidden" id="modMsgId" value="">
+            <div class="mb-3">
+                <label class="small text-muted">GRUND FÜR LÖSCHUNG</label>
+                <select class="form-select bg-dark text-white border-secondary mb-3" id="modReasonSelect">
+                    <option value="Beleidigung">Beleidigung</option>
+                    <option value="Spam">Spam</option>
+                    <option value="Offtopic">Offtopic</option>
+                    <option value="Sonstiges">Sonstiges</option>
+                </select>
+                <input type="text" id="modReasonCustom" class="form-control bg-dark text-white border-secondary mb-3" style="display:none;" placeholder="Grund...">
+            </div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" id="modSendPublic" checked><label class="form-check-label">Öffentliche Meldung</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" id="modSendPrivate" checked><label class="form-check-label">Private Nachricht</label></div>
+        </div>
+        <div class="modal-footer border-secondary">
+            <button class="btn btn-danger w-100" id="confirmModBtn">Löschen & Verwarnen</button>
+        </div>
+    </div>
+</div>
+
+<!-- Reset Warning Modal -->
+<div class="modal fade" id="resetWarningModal" tabindex="-1">
+    <div class="modal-dialog modal-content bg-dark text-white border-secondary">
+        <div class="modal-header"><h5>🔄 Verwarnungen verwalten</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+            <input type="hidden" id="resetUserId" value=""><p>Möchtest du die Verwarnungen für diesen Nutzer anpassen?</p>
+            <div class="form-check mb-3"><input class="form-check-input" type="checkbox" id="resetSendPublic" checked><label class="form-check-label">Öffentlich melden</label></div>
+            <div class="form-check mb-3"><input class="form-check-input" type="checkbox" id="resetSendPrivate" checked><label class="form-check-label">Privat melden</label></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary" id="confirmResetBtn">Alle zurücksetzen</button>
+        </div>
+    </div>
+</div>
+
+<!-- Topic Management Modal -->
+<div class="modal fade" id="topicModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header"><h5>📑 Topic verwalten</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <input type="hidden" id="editTopicId">
+                <div class="mb-3"><label class="small text-muted">NAME</label><input type="text" id="editTopicName" class="form-control bg-dark text-white border-secondary"></div>
+                <div class="mb-3">
+                    <label class="small text-muted">KATEGORIE</label>
+                    <select id="editTopicCategory" class="form-select bg-dark text-white border-secondary">
+                        <option value="">Automatisch (nach Name)</option>
+                        <option value="hauptgruppe">Hauptgruppe</option>
+                        <option value="admin">Administratorgruppe</option>
+                        <option value="steckbriefe">Steckbriefe</option>
+                    </select>
+                </div>
+                <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox" id="editTopicActive" checked><label class="form-check-label">Aktiv (Sichtbar im Feed)</label></div>
+                <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox" id="editTopicHidden"><label class="form-check-label">Versteckt (Sidebar ausblenden)</label></div>
+                <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox" id="editTopicArchived"><label class="form-check-label text-danger">Gelöscht / Archiviert (Durchgestrichen)</label></div>
+                <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox" id="editTopicPinned"><label class="form-check-label">Anpinnen (Oben in Sidebar)</label></div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-primary" id="saveTopicBtn">Speichern</button></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Logic for these specific modals
+    document.getElementById('modReasonSelect').onchange = function() {
+        document.getElementById('modReasonCustom').style.display = (this.value === 'Sonstiges') ? 'block' : 'none';
+    };
+
+    document.getElementById('confirmModBtn').onclick = async function() {
+        const id = document.getElementById('modMsgId').value;
+        const reason = document.getElementById('modReasonSelect').value === 'Sonstiges' ? document.getElementById('modReasonCustom').value : document.getElementById('modReasonSelect').value;
+        
+        try {
+            const res = await fetch('/api/moderation/delete', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    id: id,
+                    reason: reason,
+                    send_public: document.getElementById('modSendPublic').checked,
+                    send_private: document.getElementById('modSendPrivate').checked
+                })
+            });
+            if(res.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('moderationModal')).hide();
+                if (typeof fetchFlow === 'function') fetchFlow(); // refresh live feed
+                else if (typeof fetchMessages === 'function') fetchMessages();
+            }
+        } catch(e) { console.error(e); }
+    };
+
+    document.getElementById('confirmResetBtn').onclick = async function() {
+        const uid = document.getElementById('resetUserId').value;
+        try {
+            const res = await fetch(`/api/moderation/warnings/clear/${uid}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    chat_id: topicsData.find(t => t.id == currentTopic)?.chat_id || 0, // Fallback if needed
+                    send_public: document.getElementById('resetSendPublic').checked,
+                    send_private: document.getElementById('resetSendPrivate').checked
+                })
+            });
+            if(res.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('resetWarningModal')).hide();
+                if (typeof fetchFlow === 'function') fetchFlow();
+                else if (typeof fetchMessages === 'function') fetchMessages();
+            }
+        } catch(e) { console.error(e); }
+    };
+
+    document.getElementById('saveTopicBtn').onclick = async function() {
+        const id = document.getElementById('editTopicId').value;
+        const data = {
+            topic_id: id,
+            name: document.getElementById('editTopicName').value,
+            is_active: document.getElementById('editTopicActive').checked,
+            is_hidden: document.getElementById('editTopicHidden').checked,
+            is_archived: document.getElementById('editTopicArchived').checked,
+            is_pinned: document.getElementById('editTopicPinned').checked,
+            category: document.getElementById('editTopicCategory').value
+        };
+        try {
+            const res = await fetch('/api/moderation/topics/update', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            if(res.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('topicModal')).hide();
+                if(typeof loadTopics === 'function') loadTopics(true); // defined in live_moderation.html
+            }
+        } catch(e) { console.error(e); }
+    };
+
+    window.openTopicModal = function(tid) {
+        if(!window.topicsData) return;
+        const t = window.topicsData.find(x => x.id == tid);
+        if(!t) return;
+        
+        const isDM = tid.toString().startsWith('dm_');
+        document.getElementById('editTopicId').value = t.id;
+        document.getElementById('editTopicName').value = t.name;
+        
+        // Hide/Show based on type
+        document.getElementById('editTopicCategory').closest('.mb-3').style.display = isDM ? 'none' : 'block';
+        document.getElementById('editTopicPinned').closest('.mb-3').style.display = isDM ? 'none' : 'block';
+        document.getElementById('editTopicActive').closest('.mb-3').style.display = isDM ? 'none' : 'block';
+        document.getElementById('editTopicHidden').closest('.mb-3').style.display = isDM ? 'none' : 'block';
+
+        document.getElementById('editTopicActive').checked = t.is_active;
+        document.getElementById('editTopicHidden').checked = t.is_hidden;
+        document.getElementById('editTopicArchived').checked = t.is_archived;
+        document.getElementById('editTopicPinned').checked = t.is_pinned;
+        
+        document.querySelector('#topicModal h5').innerText = isDM ? '👤 User verwalten' : '📑 Topic verwalten';
+        
+        new bootstrap.Modal(document.getElementById('topicModal')).show();
+    };
+
+    // Load initial settings
+    async function loadSettings() {
+        const res = await fetch('/api/moderation/get-settings');
+        const s = await res.json();
+        document.getElementById('setMaxWarnings').value = s.max_warnings;
+        document.getElementById('setCleanupSeconds').value = s.cleanup_notification_seconds;
+        document.getElementById('setPunishmentType').value = s.punishment_type;
+        document.getElementById('setMuteDuration').value = s.mute_duration;
+        document.getElementById('muteDurationContainer').style.display = s.punishment_type === 'mute' ? 'block' : 'none';
+    }
+    document.getElementById('setPunishmentType').onchange = function() {
+        document.getElementById('muteDurationContainer').style.display = this.value === 'mute' ? 'block' : 'none';
+    };
+    document.getElementById('saveSettingsBtn').onclick = async function() {
+        const data = {
+            max_warnings: document.getElementById('setMaxWarnings').value,
+            cleanup_notification_seconds: document.getElementById('setCleanupSeconds').value,
+            punishment_type: document.getElementById('setPunishmentType').value,
+            mute_duration: document.getElementById('setMuteDuration').value
+        };
+        const res = await fetch('/api/moderation/settings', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        if(res.ok) bootstrap.Modal.getInstance(document.getElementById('settingsModal')).hide();
+    };
+    
+    document.addEventListener('DOMContentLoaded', loadSettings);
+</script>

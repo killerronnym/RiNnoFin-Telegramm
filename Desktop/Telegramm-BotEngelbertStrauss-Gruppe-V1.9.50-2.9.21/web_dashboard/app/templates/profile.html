@@ -1,0 +1,354 @@
+{% extends 'base.html' %}
+{% block title %}Mein Profil{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="fw-bold text-white mb-2"><i class="bi bi-person-circle text-info me-2"></i>Mein Profil</h2>
+            <p class="text-secondary">Verwalte deine persönlichen Einstellungen, Sicherheit und dein Profilbild.</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Profilbild bearbeiten (Premium Glass Card) -->
+        <div class="col-12 col-md-4">
+            <div class="glass-card h-100 position-relative overflow-hidden">
+                <div class="card-header border-0 pb-0 pt-4 px-4 bg-transparent">
+                    <h5 class="fw-bold text-white mb-0">Profilbild</h5>
+                </div>
+                <div class="card-body text-center p-4">
+                    <div class="mb-4 position-relative d-inline-block avatar-wrapper" style="width: 160px; height: 160px;">
+                        <img id="avatarPreview" src="{{ url_for('static', filename='uploads/profiles/' + (current_user.profile_picture or 'none.png')) }}" 
+                             alt="Avatar" class="rounded-circle object-fit-cover shadow-glow w-100 h-100" 
+                             style="border: 3px solid var(--accent-indigo); transition: all 0.3s ease;" 
+                             onerror="this.onerror=null; this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%3E%3Crect%20width%3D%22256%22%20height%3D%22256%22%20fill%3D%22%232a2d32%22%2F%3E%3Cpath%20d%3D%22M128%2C136a48%2C48%2C0%2C1%2C0-48-48A48.05%2C48.05%2C0%2C0%2C0%2C128%2C136ZM80%2C88a48%2C48%2C0%2C1%2C1%2C48%2C48A48.05%2C48.05%2C0%2C0%2C1%2C80%2C88ZM222.14%2C208.52A104%2C104%2C0%2C0%2C0%2C128%2C152a104%2C104%2C0%2C0%2C0-94.14%2C56.52%2C8%2C8%2C0%2C0%2C0%2C14.28%2C6.96A88%2C88%2C0%2C0%2C1%2C128%2C168a88%2C88%2C0%2C0%2C1%2C79.86%2C47.48%2C8%2C8%2C0%2C0%2C0%2C14.28-6.96Z%22%20fill%3D%22%236c757d%22%2F%3E%3C%2Fsvg%3E';">
+                        
+                        <label for="profileImage" class="position-absolute bottom-0 end-0 bg-indigo text-white rounded-circle p-2 shadow" style="cursor: pointer; background: var(--accent-indigo); border: 2px solid var(--bg-card); transition: transform 0.2s; z-index: 2;">
+                            <i class="bi bi-camera-fill fs-5"></i>
+                        </label>
+                    </div>
+                    
+                    <form id="avatarForm" action="{{ url_for('dashboard.profile_upload') }}" method="POST" enctype="multipart/form-data">
+                        <input class="d-none" type="file" id="profileImage" name="profile_picture" accept=".jpg,.jpeg,.png,.gif,.webp">
+                        <div id="uploadActionArea" class="d-none mt-3">
+                            <p class="small text-info mb-2"><i class="bi bi-check-circle-fill me-1"></i> Bild ausgewählt</p>
+                            <button type="submit" class="btn btn-primary w-100 fw-bold rounded-pill shadow-glow">
+                                <i class="bi bi-cloud-arrow-up-fill me-2"></i>Jetzt hochladen
+                            </button>
+                        </div>
+                    </form>
+                    <p class="text-muted small mt-3 px-2">Erlaubte Formate: JPG, PNG, GIF, WEBP. Andere Formate wie HEIC werden eventuell nicht unterstützt.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Passwort ändern -->
+        <div class="col-12 col-md-8">
+            <div class="glass-card h-100">
+                <div class="card-header border-0 pb-0 pt-4 px-4 bg-transparent">
+                    <h5 class="fw-bold text-white mb-0">Sicherheit & Passwort</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form action="{{ url_for('dashboard.profile_password') }}" method="POST">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label text-secondary small fw-bold text-uppercase letter-spacing-1">Aktuelles Passwort</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-key"></i></span>
+                                    <input type="password" class="form-control" name="current_password" required>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6 mt-4">
+                                <label class="form-label text-secondary small fw-bold text-uppercase letter-spacing-1">Neues Passwort</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-shield-lock"></i></span>
+                                    <input type="password" class="form-control" name="new_password" required minlength="8">
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6 mt-4">
+                                <label class="form-label text-secondary small fw-bold text-uppercase letter-spacing-1">Passwort Bestätigen</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-shield-check"></i></span>
+                                    <input type="password" class="form-control" name="confirm_password" required>
+                                </div>
+                            </div>
+                            <div class="col-12 mt-2">
+                                <div class="form-text text-muted small"><i class="bi bi-info-circle me-1"></i>Mindestens 8 Zeichen, ein Großbuchstabe, eine Zahl und ein Sonderzeichen.</div>
+                            </div>
+                            <div class="col-12 mt-4 text-end">
+                                <button type="submit" class="btn btn-primary px-4 py-2 fw-bold rounded-pill shadow-glow">
+                                    <i class="bi bi-save-fill me-2"></i>Passwort speichern
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 2-Faktor-Authentifizierung (Premium UI) -->
+        <div class="col-12 mt-3" id="2fa">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h3 class="fw-bold text-white mb-1">
+                        <i class="bi bi-shield-lock-fill text-primary me-2"></i>Zwei-Faktor-Authentifizierung (2FA)
+                    </h3>
+                    <p class="text-secondary mb-0">Schütze dein Konto zusätzlich mit zeitbasierten Einmal-Codes (TOTP Authenticator).</p>
+                </div>
+                <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline-secondary rounded-pill px-4">
+                    <i class="bi bi-arrow-left me-2"></i>Dashboard
+                </a>
+            </div>
+
+            <div class="row g-4">
+                {% if current_user.two_factor_enabled %}
+                <!-- Linke Spalte: Einstellungen & Deaktivierung -->
+                <div class="col-12 col-lg-7">
+                    <div class="glass-card h-100 p-4">
+                        <div class="d-inline-block bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-1 mb-4 fw-bold">
+                            <i class="bi bi-check-circle-fill me-1"></i> 2FA ist AKTIV
+                        </div>
+
+                        <h4 class="fw-bold text-white mb-2">Einsatzbereiche & Schutz-Level</h4>
+                        <p class="text-secondary mb-4">Hier kannst du flexibel entscheiden, für welche Vorgänge der zusätzliche 2FA-Sicherheitscode verlangt werden soll.</p>
+
+                        <form action="{{ url_for('dashboard.profile_2fa_settings') }}" method="POST">
+                            <!-- Dashboard-Anmeldung -->
+                            <div class="border border-secondary border-opacity-25 rounded-3 p-3 mb-3 bg-dark bg-opacity-50">
+                                <div class="form-check form-switch d-flex justify-content-between align-items-center p-0 m-0">
+                                    <div>
+                                        <label class="form-check-label fw-bold text-white d-block mb-1" for="2faLogin"><i class="bi bi-box-arrow-in-right text-primary me-2"></i>2FA bei Dashboard-Anmeldung</label>
+                                        <small class="text-secondary">Nach Eingabe von Benutzername und Passwort wird zusätzlich der 6-stellige Code abgefragt.</small>
+                                    </div>
+                                    <input class="form-check-input fs-4 m-0 ms-3" type="checkbox" role="switch" id="2faLogin" name="two_factor_login_enabled" {% if current_user.two_factor_login_enabled %}checked{% endif %}>
+                                </div>
+                            </div>
+
+                            <!-- Passwort-Reset -->
+                            <div class="border border-secondary border-opacity-25 rounded-3 p-3 mb-4 bg-dark bg-opacity-50">
+                                <div class="form-check form-switch d-flex justify-content-between align-items-center p-0 m-0">
+                                    <div>
+                                        <label class="form-check-label fw-bold text-white d-block mb-1" for="2faReset"><i class="bi bi-key text-warning me-2"></i>2FA bei Passwort-Reset</label>
+                                        <small class="text-secondary">Verhindert unbefugtes Zurücksetzen des Passworts, indem zusätzlich der 2FA-Code verlangt wird.</small>
+                                    </div>
+                                    <input class="form-check-input fs-4 m-0 ms-3" type="checkbox" role="switch" id="2faReset" name="two_factor_reset_enabled" {% if current_user.two_factor_reset_enabled %}checked{% endif %} style="{% if current_user.two_factor_reset_enabled %}background-color: #6366f1; border-color: #6366f1;{% endif %}">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold mb-5 shadow-glow" style="background-color: #6366f1; border: none;">
+                                <i class="bi bi-check-circle me-2"></i>Einstellungen speichern
+                            </button>
+                        </form>
+
+                        <!-- Deaktivierung -->
+                        <div class="border border-danger border-opacity-50 rounded-3 p-4 bg-danger bg-opacity-10 mt-2">
+                            <h5 class="fw-bold text-danger mb-2"><i class="bi bi-exclamation-triangle me-2"></i>2FA Vollständig Deaktivieren</h5>
+                            <p class="text-secondary mb-4">Entfernt die 2-Faktor-Authentifizierung für dein Konto. Zur Bestätigung musst du dein aktuelles Passwort eingeben.</p>
+                            <form action="{{ url_for('dashboard.profile_2fa_disable') }}" method="POST" class="d-flex gap-2 align-items-center flex-wrap">
+                                <input type="password" name="password" class="form-control bg-dark text-white border-secondary border-opacity-50" placeholder="Aktuelles Passwort bestätigen" style="max-width: 300px;" required>
+                                <button type="submit" class="btn btn-outline-danger px-4">
+                                    <i class="bi bi-shield-x me-2"></i>2FA Deaktivieren
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rechte Spalte: Info & Apps -->
+                <div class="col-12 col-lg-5">
+                    <div class="glass-card h-100 p-4">
+                        <h5 class="fw-bold text-white mb-4"><i class="bi bi-shield-check text-primary me-2"></i>Vorteile der 2-Faktor-Sicherheit</h5>
+                        <ul class="list-unstyled text-secondary" style="line-height: 1.8;">
+                            <li class="mb-3">
+                                <span class="text-white fw-bold">• Maximaler Schutz:</span> Selbst bei Passwort-Diebstahl bleibt dein Dashboard vor unbefugtem Zugriff geschützt.
+                            </li>
+                            <li class="mb-3">
+                                <span class="text-white fw-bold">• Flexibel steuerbar:</span> Entscheide frei, ob 2FA beim Login, beim Passwort-Reset oder bei beidem aktiv sein soll.
+                            </li>
+                            <li class="mb-3">
+                                <span class="text-white fw-bold">• Offline & Standardisiert:</span> Funktioniert komplett ohne Internetverbindung in deiner Authenticator-App.
+                            </li>
+                            <li class="mb-3">
+                                <span class="text-white fw-bold">• Notfall-Zugang:</span> Du erhältst 8 einmalige Backup-Codes falls du dein Gerät verlegst.
+                            </li>
+                        </ul>
+
+                        <h6 class="fw-bold text-white mt-5 mb-3"><i class="bi bi-phone text-info me-2"></i>Empfohlene Apps</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            <span class="badge bg-dark border border-secondary border-opacity-50 text-white p-2 px-3 rounded-pill"><i class="bi bi-google me-2"></i>Google Authenticator</span>
+                            <span class="badge bg-dark border border-secondary border-opacity-50 text-white p-2 px-3 rounded-pill"><i class="bi bi-key me-2"></i>Bitwarden / 1Password</span>
+                            <span class="badge bg-dark border border-secondary border-opacity-50 text-white p-2 px-3 rounded-pill"><i class="bi bi-shield me-2"></i>2FAS Auth / Authy</span>
+                            <span class="badge bg-dark border border-secondary border-opacity-50 text-white p-2 px-3 rounded-pill"><i class="bi bi-microsoft me-2"></i>MS Authenticator</span>
+                        </div>
+                    </div>
+                </div>
+
+                {% else %}
+                <!-- 2FA ist deaktiviert: Einrichtungs-Screen -->
+                <div class="col-12">
+                    <div class="glass-card p-4 p-md-5 text-center">
+                        <i class="bi bi-shield-lock text-secondary opacity-50" style="font-size: 4rem;"></i>
+                        <h4 class="fw-bold text-white mt-3">2-Faktor-Authentifizierung (2FA) ist inaktiv</h4>
+                        <p class="text-secondary mx-auto mb-4" style="max-width: 600px;">
+                            Sichere dein Konto zusätzlich mit einer App wie <strong>Google Authenticator</strong> oder <strong>Authy</strong> ab. Bei jedem Login wird dann ein zeitlich begrenzter Code (6 Ziffern) abgefragt.
+                        </p>
+                        
+                        <!-- Setup Start Button -->
+                        <button id="startSetupBtn" class="btn btn-primary rounded-pill px-5 py-2 fw-bold shadow-glow" onclick="start2FASetup()" style="background-color: #6366f1; border: none;">
+                            <i class="bi bi-qr-code-scan me-2"></i>Jetzt 2FA Einrichten
+                        </button>
+                        
+                        <!-- Setup Area (Hidden initially) -->
+                        <div id="setup2FaArea" class="d-none mt-4 mx-auto border border-secondary border-opacity-25 p-4 rounded-4 bg-dark bg-opacity-50" style="max-width: 450px;">
+                            <div class="text-center mb-3">
+                                <h5 class="fw-bold text-white mb-3">1. QR-Code scannen</h5>
+                                <div id="qrCodeContainer" class="bg-white p-2 rounded d-inline-block mb-3 shadow">
+                                    <div class="spinner-border text-primary" role="status"></div>
+                                </div>
+                                <p class="small text-secondary mb-0">Oder manueller Code:</p>
+                                <code id="manualSecretCode" class="fs-5 text-info fw-bold user-select-all d-block mt-1">...</code>
+                            </div>
+                            <hr class="border-secondary border-opacity-25 my-4">
+                            <form action="{{ url_for('dashboard.profile_2fa_verify') }}" method="POST">
+                                <h5 class="fw-bold text-white mb-3">2. Code eingeben</h5>
+                                <label class="form-label text-secondary small fw-bold">6-STELLIGEN CODE</label>
+                                <input type="text" class="form-control text-center fs-3 fw-bold letter-spacing-2 mb-3 bg-dark border-secondary text-white" name="totp_code" placeholder="000000" maxlength="6" autocomplete="off" required>
+                                <button type="submit" class="btn btn-success w-100 fw-bold rounded-pill py-2">
+                                    <i class="bi bi-shield-check me-2"></i>Sicherheit aktivieren
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Passkeys -->
+        <div class="col-12 mt-4" id="passkeys">
+            <div class="glass-card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h4 class="fw-bold text-white mb-1"><i class="bi bi-fingerprint text-info me-2"></i>Passkeys (WebAuthn)</h4>
+                        <p class="text-secondary mb-0">Melde dich sicher und passwortlos mit Face ID, Touch ID oder Windows Hello an.</p>
+                    </div>
+                    <button class="btn btn-outline-info rounded-pill px-4 fw-bold" onclick="registerPasskey()" id="addPasskeyBtn">
+                        <i class="bi bi-plus-lg me-2"></i>Passkey hinzufügen
+                    </button>
+                </div>
+                
+                <div class="alert bg-info bg-opacity-10 border border-info border-opacity-25 text-info mb-0">
+                    <i class="bi bi-info-circle-fill me-2"></i>Mit Passkeys kannst du dich in Zukunft per Fingerabdruck oder Gesichtserkennung anmelden, ohne dein Passwort einzugeben.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- WebAuthn Browser Library -->
+<script src="https://unpkg.com/@simplewebauthn/browser/dist/bundle/index.umd.min.js"></script>
+
+<script>
+    // Live Image Preview Fix
+    document.getElementById('profileImage').addEventListener('change', function(e) {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            
+            if(file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif')) {
+                alert("Achtung: HEIC-Bilder (Apple Format) werden im Browser meist nicht direkt angezeigt. Bitte lade wenn möglich ein JPG oder PNG hoch. Das Hochladen kann trotzdem versucht werden.");
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('avatarPreview').src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+            
+            const actionArea = document.getElementById('uploadActionArea');
+            actionArea.classList.remove('d-none');
+            actionArea.classList.add('animate__animated', 'animate__fadeInUp');
+        }
+    });
+
+    // Passkey Setup Script
+    async function registerPasskey() {
+        const { startRegistration } = SimpleWebAuthnBrowser;
+        const btn = document.getElementById('addPasskeyBtn');
+        const originalHtml = btn.innerHTML;
+        
+        try {
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Bitte warten...';
+            btn.disabled = true;
+
+            const resp = await fetch('/webauthn/register/generate', { method: 'POST' });
+            const options = await resp.json();
+
+            if (options.error) {
+                throw new Error(options.error);
+            }
+
+            const attResp = await startRegistration(options);
+
+            const verifyResp = await fetch('/webauthn/register/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(attResp)
+            });
+
+            const verifyData = await verifyResp.json();
+            if (verifyData.success) {
+                alert('Passkey wurde erfolgreich hinzugefügt!');
+                location.reload();
+            } else {
+                throw new Error(verifyData.error || 'Fehler beim Bestätigen des Passkeys');
+            }
+        } catch (err) {
+            console.error('Passkey Fehler:', err);
+            // Fehlermeldungen von SimpleWebAuthn sind oft englisch, wir zeigen eine generische an:
+            if(err.name === 'NotAllowedError') {
+                alert('Vorgang abgebrochen.');
+            } else {
+                alert('Passkey Fehler: ' + (err.message || 'Ein unbekannter Fehler ist aufgetreten.'));
+            }
+        } finally {
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
+        }
+    }
+
+    // 2FA Setup Script
+    async function start2FASetup() {
+        const setupArea = document.getElementById('setup2FaArea');
+        setupArea.classList.remove('d-none');
+        setupArea.classList.add('animate__animated', 'animate__fadeIn');
+        
+        try {
+            const res = await fetch('{{ url_for("dashboard.profile_2fa_generate") }}', {method: 'POST'});
+            const data = await res.json();
+            
+            if(data.success) {
+                document.getElementById('qrCodeContainer').innerHTML = `<img src="${data.qr_code}" alt="QR Code" class="img-fluid" style="width: 200px; height: 200px;">`;
+                document.getElementById('manualSecretCode').innerText = data.secret;
+            } else {
+                alert("Fehler beim Generieren: " + data.error);
+            }
+        } catch (e) {
+            alert("Verbindungsfehler!");
+            console.error(e);
+        }
+    }
+</script>
+
+<style>
+    /* Styling adjustments for profile page */
+    .letter-spacing-1 { letter-spacing: 1px; }
+    .letter-spacing-2 { letter-spacing: 4px; }
+    .text-emerald { color: var(--accent-emerald) !important; }
+    
+    .avatar-wrapper label:hover {
+        transform: scale(1.1);
+        background: #4f46e5 !important;
+    }
+</style>
+{% endblock %}

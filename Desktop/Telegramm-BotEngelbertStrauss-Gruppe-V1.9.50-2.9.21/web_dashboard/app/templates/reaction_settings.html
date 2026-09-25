@@ -1,0 +1,565 @@
+{% extends "base.html" %}
+
+{% block title %}Bot Steuerung | Reaktionen & Effekte{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-stars text-warning me-2"></i> Reaktionen & Effekte</h2>
+        <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline-secondary">Zurück zum Dashboard</a>
+    </div>
+
+    <!-- Modul Aktivierung -->
+    <div class="card mb-4 border-warning shadow-sm" style="background-color: rgba(245, 158, 11, 0.05);">
+        <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="card-title fw-bold mb-1 text-warning"><i class="bi bi-power me-2"></i>Modul-Status</h5>
+                <p class="card-text text-secondary small mb-0">Aktiviere oder deaktiviere automatische Reaktionen und Premium-Effekte.</p>
+            </div>
+            <div class="d-flex gap-2">
+                {% if is_running %}
+                <form action="/bot-action/reaction_bot/stop" method="POST" class="m-0">
+                    <button type="submit" class="btn btn-danger fw-bold"><i class="bi bi-stop-fill me-1"></i>
+                        STOP</button>
+                </form>
+                {% else %}
+                <form action="/bot-action/reaction_bot/start" method="POST" class="m-0">
+                    <button type="submit" class="btn btn-success fw-bold"><i class="bi bi-play-fill me-1"></i>
+                        START</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Add New Rule Column -->
+        <div class="col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0" id="formTitle"><i class="bi bi-plus-circle text-warning me-2"></i> Neue Regel hinzufügen</h5>
+                </div>
+                <div class="card-body">
+                    <form id="addRuleForm">
+                        <input type="hidden" id="editIdx" value="-1">
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small fw-bold">Ziel-Chat</label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check chat-type-radio" name="chatType" id="chatGroup" value="group" checked>
+                                <label class="btn btn-outline-warning" for="chatGroup"><i class="bi bi-people-fill me-1"></i> Gruppen</label>
+
+                                <input type="radio" class="btn-check chat-type-radio" name="chatType" id="chatPrivate" value="private">
+                                <label class="btn btn-outline-info" for="chatPrivate"><i class="bi bi-person-fill me-1"></i> Privat-Chat</label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small fw-bold">Auslöser-Typ</label>
+                            <select class="form-select" id="triggerType" required>
+                                <option value="keyword">Schlüsselwort / Text</option>
+                                <option value="all_text">Jede Textnachricht</option>
+                                <option value="media_image">Bild gesendet</option>
+                                <option value="media_audio">Audio / Sprachnachricht</option>
+                                <option value="media_video">Video / Medien</option>
+                            </select>
+                        </div>
+                        <div class="mb-3" id="keywordContainer">
+                            <label class="form-label text-secondary small fw-bold">Schlüsselwort</label>
+                            <input type="text" class="form-control" id="triggerText" placeholder="z.B. Hallo">
+                        </div>
+                        <div class="mb-3" id="reactionTypeContainer">
+                            <label class="form-label text-secondary small fw-bold">Aktion</label>
+                            <select class="form-select" id="reactionType" required>
+                                <option value="reaction">Normale Chat-Reaktion</option>
+                                <option value="effect" id="premiumOption">Premium-Effekt + Chat-Reaktion</option>
+                            </select>
+                        </div>
+                        <div class="mb-4" id="reactionEmojiContainer">
+                            <label class="form-label text-secondary small fw-bold" id="reactionInputLabel">Emoji auswählen</label>
+                            
+                            <!-- Select for Normal Reaction -->
+                            <select class="form-select" id="reactionEmoji" required>
+                                <option value="👍">👍 Daumen hoch</option>
+                                <option value="👎">👎 Daumen runter</option>
+                                <option value="❤️">❤️ Rotes Herz</option>
+                                <option value="🔥">🔥 Feuer</option>
+                                <option value="🥰">🥰 Verliebtes Gesicht</option>
+                                <option value="👏">👏 Klatschen</option>
+                                <option value="😁">😁 Strahlendes Lächeln</option>
+                                <option value="🤔">🤔 Nachdenklich</option>
+                                <option value="🤯">🤯 Explodierender Kopf</option>
+                                <option value="😱">😱 Schrei</option>
+                                <option value="🤬">🤬 Fluchen</option>
+                                <option value="😢">😢 Weinend</option>
+                                <option value="🎉">🎉 Party</option>
+                                <option value="🤩">🤩 Sternenaugen</option>
+                                <option value="🤮">🤮 Übergeben</option>
+                                <option value="💩">💩 Kackhaufen</option>
+                                <option value="🙏">🙏 Beten/Danke</option>
+                                <option value="👌">👌 Okay</option>
+                                <option value="🕊">🕊 Taube</option>
+                                <option value="🤡">🤡 Clown</option>
+                                <option value="🥱">🥱 Gähnen</option>
+                                <option value="🥴">🥴 Beschwipst</option>
+                                <option value="😍">😍 Herzaugen</option>
+                                <option value="🐳">🐳 Wal</option>
+                                <option value="❤️‍🔥">❤️‍🔥 Brennendes Herz</option>
+                                <option value="🌚">🌚 Neumond Gesicht</option>
+                                <option value="🌭">🌭 Hotdog</option>
+                                <option value="💯">💯 100 Punkte</option>
+                                <option value="🤣">🤣 ROFL</option>
+                                <option value="⚡️">⚡️ Blitz</option>
+                                <option value="🍌">🍌 Banane</option>
+                                <option value="🏆">🏆 Pokal</option>
+                                <option value="💔">💔 Gebrochenes Herz</option>
+                                <option value="🤨">🤨 Skepsis</option>
+                                <option value="😐">😐 Neutral</option>
+                                <option value="🍓">🍓 Erdbeere</option>
+                                <option value="🍾">🍾 Champagner</option>
+                                <option value="💋">💋 Kussmund</option>
+                                <option value="🖕">🖕 Mittelfinger</option>
+                                <option value="😈">😈 Teufel</option>
+                                <option value="😴">😴 Schlafen</option>
+                                <option value="😭">😭 Heulend</option>
+                                <option value="🤓">🤓 Nerd</option>
+                                <option value="👻">👻 Geist</option>
+                                <option value="👨‍💻">👨‍💻 Programmierer</option>
+                                <option value="👀">👀 Augen</option>
+                                <option value="🎃">🎃 Kürbis</option>
+                                <option value="🙈">🙈 Nichts sehen</option>
+                                <option value="😇">😇 Heiligenschein</option>
+                                <option value="🤝">🤝 Handschlag</option>
+                                <option value="✍️">✍️ Schreiben</option>
+                                <option value="🤗">🤗 Umarmung</option>
+                                <option value="🫡">🫡 Salutieren</option>
+                                <option value="🎅">🎅 Weihnachtsmann</option>
+                                <option value="🎄">🎄 Weihnachtsbaum</option>
+                                <option value="☃️">☃️ Schneemann</option>
+                                <option value="💅">💅 Nägel lackieren</option>
+                                <option value="🤪">🤪 Verrückt</option>
+                                <option value="🗿">🗿 Moai (Statue)</option>
+                                <option value="🆒">🆒 Cool</option>
+                                <option value="💘">💘 Herz mit Pfeil</option>
+                                <option value="🙉">🙉 Nichts hören</option>
+                                <option value="🦄">🦄 Einhorn</option>
+                                <option value="😘">😘 Kussmund zuwerfen</option>
+                                <option value="💊">💊 Pille</option>
+                                <option value="🙊">🙊 Nichts sagen</option>
+                                <option value="😎">😎 Cool mit Sonnenbrille</option>
+                                <option value="👾">👾 Space Invader</option>
+                                <option value="🤷‍♂️">🤷‍♂️ Achselzucken (Mann)</option>
+                                <option value="🤷‍♀️">🤷‍♀️ Achselzucken (Frau)</option>
+                                <option value="😡">😡 Wütend</option>
+                            </select>
+                            
+                            <!-- Select for Premium Effect -->
+                            <div id="premiumEffectContainer" style="display: none;">
+                                <label class="form-label text-secondary small fw-bold mt-2">1. Vollbild Premium-Effekt (Nur Privat-Chat)</label>
+                                <select class="form-select mb-2" id="premiumEffectSelect">
+                                    <option value="5104841245755180586">🔥 Feuer</option>
+                                    <option value="5107584321108051014">👍 Daumen hoch</option>
+                                    <option value="5104858069142078462">👎 Daumen runter</option>
+                                    <option value="5159385139981059251">❤️ Herz</option>
+                                    <option value="5046509860389126442">🎉 Party-Popper</option>
+                                    <option value="5046589136895476101">💩 Kackhaufen</option>
+                                </select>
+                                
+                                <label class="form-label text-secondary small fw-bold">2. Kleine Emoji-Reaktion an der Nachricht</label>
+                                <select class="form-select" id="secondaryEmoji">
+                                    <!-- Same exhaustive list for secondary emoji -->
+                                    <option value="👍">👍 Daumen hoch</option>
+                                    <option value="👎">👎 Daumen runter</option>
+                                    <option value="❤️">❤️ Rotes Herz</option>
+                                    <option value="🔥">🔥 Feuer</option>
+                                    <option value="🥰">🥰 Verliebtes Gesicht</option>
+                                    <option value="👏">👏 Klatschen</option>
+                                    <option value="😁">😁 Strahlendes Lächeln</option>
+                                    <option value="🤔">🤔 Nachdenklich</option>
+                                    <option value="🤯">🤯 Explodierender Kopf</option>
+                                    <option value="😱">😱 Schrei</option>
+                                    <option value="🤬">🤬 Fluchen</option>
+                                    <option value="😢">😢 Weinend</option>
+                                    <option value="🎉">🎉 Party</option>
+                                    <option value="🤩">🤩 Sternenaugen</option>
+                                    <option value="🤮">🤮 Übergeben</option>
+                                    <option value="💩">💩 Kackhaufen</option>
+                                    <option value="🙏">🙏 Beten/Danke</option>
+                                    <option value="👌">👌 Okay</option>
+                                    <option value="🕊">🕊 Taube</option>
+                                    <option value="🤡">🤡 Clown</option>
+                                    <option value="🥱">🥱 Gähnen</option>
+                                    <option value="🥴">🥴 Beschwipst</option>
+                                    <option value="😍">😍 Herzaugen</option>
+                                    <option value="🐳">🐳 Wal</option>
+                                    <option value="❤️‍🔥">❤️‍🔥 Brennendes Herz</option>
+                                    <option value="🌚">🌚 Neumond Gesicht</option>
+                                    <option value="🌭">🌭 Hotdog</option>
+                                    <option value="💯">💯 100 Punkte</option>
+                                    <option value="🤣">🤣 ROFL</option>
+                                    <option value="⚡️">⚡️ Blitz</option>
+                                    <option value="🍌">🍌 Banane</option>
+                                    <option value="🏆">🏆 Pokal</option>
+                                    <option value="💔">💔 Gebrochenes Herz</option>
+                                    <option value="🤨">🤨 Skepsis</option>
+                                    <option value="😐">😐 Neutral</option>
+                                    <option value="🍓">🍓 Erdbeere</option>
+                                    <option value="🍾">🍾 Champagner</option>
+                                    <option value="💋">💋 Kussmund</option>
+                                    <option value="🖕">🖕 Mittelfinger</option>
+                                    <option value="😈">😈 Teufel</option>
+                                    <option value="😴">😴 Schlafen</option>
+                                    <option value="😭">😭 Heulend</option>
+                                    <option value="🤓">🤓 Nerd</option>
+                                    <option value="👻">👻 Geist</option>
+                                    <option value="👨‍💻">👨‍💻 Programmierer</option>
+                                    <option value="👀">👀 Augen</option>
+                                    <option value="🎃">🎃 Kürbis</option>
+                                    <option value="🙈">🙈 Nichts sehen</option>
+                                    <option value="😇">😇 Heiligenschein</option>
+                                    <option value="🤝">🤝 Handschlag</option>
+                                    <option value="✍️">✍️ Schreiben</option>
+                                    <option value="🤗">🤗 Umarmung</option>
+                                    <option value="🫡">🫡 Salutieren</option>
+                                    <option value="🎅">🎅 Weihnachtsmann</option>
+                                    <option value="🎄">🎄 Weihnachtsbaum</option>
+                                    <option value="☃️">☃️ Schneemann</option>
+                                    <option value="💅">💅 Nägel lackieren</option>
+                                    <option value="🤪">🤪 Verrückt</option>
+                                    <option value="🗿">🗿 Moai (Statue)</option>
+                                    <option value="🆒">🆒 Cool</option>
+                                    <option value="💘">💘 Herz mit Pfeil</option>
+                                    <option value="🙉">🙉 Nichts hören</option>
+                                    <option value="🦄">🦄 Einhorn</option>
+                                    <option value="😘">😘 Kussmund zuwerfen</option>
+                                    <option value="💊">💊 Pille</option>
+                                    <option value="🙊">🙊 Nichts sagen</option>
+                                    <option value="😎">😎 Cool mit Sonnenbrille</option>
+                                    <option value="👾">👾 Space Invader</option>
+                                    <option value="🤷‍♂️">🤷‍♂️ Achselzucken (Mann)</option>
+                                    <option value="🤷‍♀️">🤷‍♀️ Achselzucken (Frau)</option>
+                                    <option value="😡">😡 Wütend</option>
+                                </select>
+                            </div>
+
+                            <div class="form-text text-secondary mt-2" id="reactionHelpText" style="font-size: 0.75rem;">
+                                <strong>Tipp:</strong> Wähle das gewünschte Standard-Emoji aus, das unter der Nachricht erscheinen soll.
+                            </div>
+                            
+                            <div class="alert alert-warning mt-3 mb-0" id="premiumWarningBox" style="display: none; font-size: 0.8rem; padding: 10px;">
+                                <i class="bi bi-info-circle-fill me-1"></i> <strong>Hinweis:</strong> Telegram blockiert Vollbild-Effekte in Gruppen! In Gruppen wird nur die "Kleine Emoji-Reaktion" angeheftet. Im Privat-Chat wird beides ausgeführt.
+                            </div>
+                        </div>
+                            <button class="btn btn-warning w-100 fw-bold" id="submitBtn">
+                                <i class="bi bi-save me-1"></i> REGEL SPEICHERN
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary w-100 fw-bold mt-2" id="cancelEditBtn" style="display: none;">
+                                ABBRECHEN
+                            </button>
+                        </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rules List Column -->
+        <div class="col-lg-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-list-ul text-warning me-2"></i> Aktive Regeln</h5>
+                    <span class="badge bg-secondary">{{ rules|length }} Regeln gesamt</span>
+                </div>
+                <div class="card-body p-0">
+                    {% if rules|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover mb-0 align-middle">
+                            <thead class="text-secondary small">
+                                <tr>
+                                    <th class="border-top-0 ps-4">Auslöser</th>
+                                    <th class="border-top-0">Aktion</th>
+                                    <th class="border-top-0">Wert</th>
+                                    <th class="border-top-0 text-center">Status</th>
+                                    <th class="border-top-0 text-end pe-4">Aktionen</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for rule in rules %}
+                                <tr>
+                                    <td class="ps-4 fw-bold text-white">
+                                        {% if rule.trigger_type == 'keyword' %}
+                                            Text: "{{ rule.trigger_text }}"
+                                        {% elif rule.trigger_type == 'all_text' %}
+                                            <i class="bi bi-chat-left-text me-1 text-info"></i> Alle Textnachrichten
+                                        {% elif rule.trigger_type == 'media_image' %}
+                                            <i class="bi bi-image me-1 text-info"></i> Bild
+                                        {% elif rule.trigger_type == 'media_audio' %}
+                                            <i class="bi bi-mic-fill me-1 text-info"></i> Audio/Voice
+                                        {% elif rule.trigger_type == 'media_video' %}
+                                            <i class="bi bi-camera-video me-1 text-info"></i> Video
+                                        {% endif %}
+                                        
+                                        <div class="mt-1">
+                                            {% if rule.chat_type == 'private' %}
+                                            <span class="badge bg-info text-dark" style="font-size: 0.65rem;"><i class="bi bi-person-fill"></i> Privat</span>
+                                            {% elif rule.chat_type == 'group' %}
+                                            <span class="badge bg-warning text-dark" style="font-size: 0.65rem;"><i class="bi bi-people-fill"></i> Gruppe</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary" style="font-size: 0.65rem;">Alle Chats</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if rule.reaction_type == 'effect' %}
+                                        <span class="badge bg-warning text-dark border border-warning">Premium Effekt</span>
+                                        {% else %}
+                                        <span class="badge bg-light text-dark border border-secondary">Chat Reaktion</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-white fs-5">
+                                        {% if rule.reaction_type == 'effect' %}
+                                            {% if rule.reaction_emoji == '5104841245755180586' %}🔥 Feuer
+                                            {% elif rule.reaction_emoji == '5107584321108051014' %}👍 Daumen
+                                            {% elif rule.reaction_emoji == '5104858069142078462' %}👎 Daumen
+                                            {% elif rule.reaction_emoji == '5159385139981059251' %}❤️ Herz
+                                            {% elif rule.reaction_emoji == '5046509860389126442' %}🎉 Party
+                                            {% elif rule.reaction_emoji == '5046589136895476101' %}💩 Kackhaufen
+                                            {% else %}
+                                                ID: {{ rule.reaction_emoji }}
+                                            {% endif %}
+                                            <div class="text-secondary" style="font-size: 0.65rem;">+ Emoji: {{ rule.secondary_emoji }}</div>
+                                        {% else %}
+                                            {{ rule.reaction_emoji }}
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="form-check form-switch d-inline-block">
+                                            <input class="form-check-input toggle-rule" type="checkbox"
+                                                data-id="{{ loop.index0 }}" {% if rule.is_active %}checked{% endif %}
+                                                style="cursor: pointer;">
+                                        </div>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <button class="btn btn-sm btn-outline-info btn-edit-rule me-1"
+                                            data-id="{{ loop.index0 }}" 
+                                            data-trigger-type="{{ rule.trigger_type }}"
+                                            data-trigger-text="{{ rule.trigger_text }}"
+                                            data-reaction-type="{{ rule.reaction_type }}"
+                                            data-reaction-emoji="{{ rule.reaction_emoji }}"
+                                            data-secondary-emoji="{{ rule.secondary_emoji }}"
+                                            data-chat-type="{{ rule.chat_type }}">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger btn-delete-rule"
+                                            data-id="{{ loop.index0 }}">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center p-5 text-secondary">
+                        <i class="bi bi-emoji-smile fs-1 mb-3 text-muted"></i>
+                        <h5>Keine Regeln gefunden</h5>
+                        <p class="small">Füge links deine erste Reaktion hinzu.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Handle form visibility based on trigger type
+    const triggerType = document.getElementById('triggerType');
+    const keywordContainer = document.getElementById('keywordContainer');
+    const triggerText = document.getElementById('triggerText');
+    const reactionType = document.getElementById('reactionType');
+    const reactionEmoji = document.getElementById('reactionEmoji');
+    const premiumEffectSelect = document.getElementById('premiumEffectSelect');
+    const reactionInputLabel = document.getElementById('reactionInputLabel');
+    const reactionHelpText = document.getElementById('reactionHelpText');
+
+    triggerType.addEventListener('change', () => {
+        if (triggerType.value === 'keyword') {
+            keywordContainer.style.display = 'block';
+            triggerText.required = true;
+        } else {
+            keywordContainer.style.display = 'none';
+            triggerText.required = false;
+        }
+    });
+
+    const premiumWarningBox = document.getElementById('premiumWarningBox');
+
+    const premiumEffectContainer = document.getElementById('premiumEffectContainer');
+    const secondaryEmoji = document.getElementById('secondaryEmoji');
+    const reactionTypeContainer = document.getElementById('reactionTypeContainer');
+
+    // Handle Chat Type Radio change
+    document.querySelectorAll('.chat-type-radio').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            if (e.target.value === 'group') {
+                reactionTypeContainer.style.display = 'none';
+                if (reactionType.value === 'effect') {
+                    reactionType.value = 'reaction';
+                    reactionType.dispatchEvent(new Event('change'));
+                }
+            } else {
+                reactionTypeContainer.style.display = 'block';
+            }
+        });
+    });
+
+    reactionType.addEventListener('change', () => {
+        if (reactionType.value === 'effect') {
+            reactionEmoji.style.display = 'none';
+            reactionEmoji.required = false;
+            premiumEffectContainer.style.display = 'block';
+            premiumEffectSelect.required = true;
+            secondaryEmoji.required = true;
+            premiumWarningBox.style.display = 'block';
+            reactionInputLabel.style.display = 'none';
+            reactionHelpText.style.display = 'none';
+        } else {
+            reactionEmoji.style.display = 'block';
+            reactionEmoji.required = true;
+            premiumEffectContainer.style.display = 'none';
+            premiumEffectSelect.required = false;
+            secondaryEmoji.required = false;
+            premiumWarningBox.style.display = 'none';
+            reactionInputLabel.style.display = 'block';
+            reactionInputLabel.innerText = "Emoji eingeben";
+            reactionHelpText.style.display = 'block';
+            reactionHelpText.innerHTML = "<strong>Tipp:</strong> Wähle das gewünschte Standard-Emoji aus, das unter der Nachricht erscheinen soll.";
+        }
+    });
+
+    // Edit / Cancel Edit logic
+    const formTitle = document.getElementById('formTitle');
+    const submitBtn = document.getElementById('submitBtn');
+    const cancelEditBtn = document.getElementById('cancelEditBtn');
+    const editIdx = document.getElementById('editIdx');
+
+    document.querySelectorAll('.btn-edit-rule').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const btnData = e.currentTarget.dataset;
+            editIdx.value = btnData.id;
+            formTitle.innerHTML = '<i class="bi bi-pencil text-info me-2"></i> Regel bearbeiten';
+            submitBtn.innerHTML = '<i class="bi bi-save me-1"></i> ÄNDERUNGEN SPEICHERN';
+            submitBtn.className = 'btn btn-info w-100 fw-bold';
+            cancelEditBtn.style.display = 'block';
+            
+            // Populate form
+            document.querySelector(`input[name="chatType"][value="${btnData.chatType}"]`).checked = true;
+            document.querySelector(`input[name="chatType"]:checked`).dispatchEvent(new Event('change'));
+            
+            triggerType.value = btnData.triggerType;
+            triggerType.dispatchEvent(new Event('change'));
+            triggerText.value = btnData.triggerText;
+            
+            reactionType.value = btnData.reactionType;
+            reactionType.dispatchEvent(new Event('change'));
+            
+            if (btnData.reactionType === 'effect') {
+                document.getElementById('premiumEffectSelect').value = btnData.reactionEmoji;
+                secondaryEmoji.value = btnData.secondaryEmoji || '';
+            } else {
+                document.getElementById('reactionEmoji').value = btnData.reactionEmoji;
+            }
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    });
+
+    cancelEditBtn.addEventListener('click', () => {
+        editIdx.value = "-1";
+        formTitle.innerHTML = '<i class="bi bi-plus-circle text-warning me-2"></i> Neue Regel hinzufügen';
+        submitBtn.innerHTML = '<i class="bi bi-save me-1"></i> REGEL SPEICHERN';
+        submitBtn.className = 'btn btn-warning w-100 fw-bold';
+        cancelEditBtn.style.display = 'none';
+        document.getElementById('addRuleForm').reset();
+        triggerType.dispatchEvent(new Event('change'));
+        document.getElementById('chatGroup').checked = true;
+        document.querySelector(`input[name="chatType"]:checked`).dispatchEvent(new Event('change'));
+    });
+
+    // Add / Edit Rule Submit
+    document.getElementById('addRuleForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const type = document.getElementById('triggerType').value;
+        const text = document.getElementById('triggerText').value;
+        const reactType = document.getElementById('reactionType').value;
+        const emoji = reactType === 'effect' ? document.getElementById('premiumEffectSelect').value : document.getElementById('reactionEmoji').value;
+        const secEmoji = reactType === 'effect' ? document.getElementById('secondaryEmoji').value : '';
+        const chatType = document.querySelector('input[name="chatType"]:checked').value;
+        const idx = editIdx.value;
+
+        const endpoint = idx === "-1" ? '/api/reaction-bot/add' : `/api/reaction-bot/edit/${idx}`;
+
+        try {
+            const res = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    trigger_type: type,
+                    trigger_text: text,
+                    reaction_type: reactType,
+                    reaction_emoji: emoji,
+                    secondary_emoji: secEmoji,
+                    chat_type: chatType
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Fehler: ' + data.error);
+            }
+        } catch (err) {
+            alert('Netzwerkfehler beim Speichern.');
+        }
+    });
+
+    // Delete Rule
+    document.querySelectorAll('.btn-delete-rule').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            if (!confirm('Regel wirklich löschen?')) return;
+            const id = e.currentTarget.dataset.id;
+            try {
+                const res = await fetch(`/api/reaction-bot/delete/${id}`, { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Fehler beim Löschen.');
+                }
+            } catch (err) {
+                alert('Netzwerkfehler.');
+            }
+        });
+    });
+
+    // Toggle Rule Status
+    document.querySelectorAll('.toggle-rule').forEach(checkbox => {
+        checkbox.addEventListener('change', async (e) => {
+            const id = e.currentTarget.dataset.id;
+            try {
+                const res = await fetch(`/api/reaction-bot/toggle/${id}`, { method: 'POST' });
+                const data = await res.json();
+                if (!data.success) {
+                    e.currentTarget.checked = !e.currentTarget.checked; // revert
+                    alert('Fehler beim Ändern des Status.');
+                }
+            } catch (err) {
+                e.currentTarget.checked = !e.currentTarget.checked; // revert
+                alert('Netzwerkfehler.');
+            }
+        });
+    });
+
+    // Initialize UI state on page load
+    document.querySelector('.chat-type-radio:checked').dispatchEvent(new Event('change'));
+    document.getElementById('reactionType').dispatchEvent(new Event('change'));
+</script>
+{% endblock %}

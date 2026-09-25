@@ -1,0 +1,10 @@
+Dieses Projekt wurde am 22.04.2026 um 18:27 Uhr vollständig synchronisiert.
+Version: 1.9.85
+Status: Live-Moderation Sortierung & Admin-Trennung AKTIV.
+
+Dateien in diesem Paket:
+- bots/main_bot.py (Logging & Edits)
+- shared_bot_utils.py (Zentrales Logging)
+- web_dashboard/app/models.py (DB-Struktur)
+- web_dashboard/app/templates/live_moderation.html (Sidebar-Logik)
+- scripts/apply_topic_names.py (Namen-Update)

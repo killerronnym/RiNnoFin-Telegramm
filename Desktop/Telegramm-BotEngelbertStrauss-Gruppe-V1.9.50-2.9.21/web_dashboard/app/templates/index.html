@@ -1,0 +1,796 @@
+{% extends "base.html" %}
+
+{% block title %}Bot Steuerung | Cockpit{% endblock %}
+
+{% block content %}
+<!-- Include Sortable.js for drag and drop -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+<style>
+    .cockpit-header {
+        margin-bottom: 2.5rem;
+    }
+
+    .cockpit-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .cockpit-stat-card {
+        background: linear-gradient(135deg, rgba(16, 24, 40, 0.4) 0%, rgba(10, 15, 28, 0.4) 100%);
+        border: 1px solid var(--border-muted);
+        border-radius: 14px;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        transition: all 0.25s ease;
+    }
+
+    .cockpit-stat-card:hover {
+        border-color: var(--border-accent);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .cockpit-stat-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 12px;
+        background: rgba(99, 102, 241, 0.1);
+        border: 1px solid rgba(99, 102, 241, 0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        color: var(--accent-indigo);
+    }
+
+    .cockpit-stat-icon.status-green {
+        color: var(--accent-emerald);
+        background: rgba(16, 185, 129, 0.1);
+        border-color: rgba(16, 185, 129, 0.25);
+    }
+
+    .cockpit-stat-icon.status-yellow {
+        color: var(--accent-cyan);
+        background: rgba(6, 182, 212, 0.1);
+        border-color: rgba(6, 182, 212, 0.25);
+    }
+
+    .cockpit-stat-icon.status-purple {
+        color: var(--accent-purple);
+        background: rgba(168, 85, 247, 0.1);
+        border-color: rgba(168, 85, 247, 0.25);
+    }
+
+    .cockpit-stat-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .cockpit-stat-value {
+        font-size: 1.35rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        line-height: 1.2;
+    }
+
+    .cockpit-stat-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-dim);
+        margin-top: 2px;
+    }
+
+    .quick-actions-panel {
+        background: rgba(10, 16, 28, 0.35);
+        border: 1px solid var(--border-muted);
+        border-radius: 16px;
+        padding: 1.75rem;
+        margin-bottom: 3rem;
+        text-align: center;
+    }
+
+    .quick-actions-title {
+        font-size: 0.8rem;
+        font-weight: 800;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .quick-action-btn {
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        padding: 0.75rem 2rem;
+        letter-spacing: 0.02em;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .quick-action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+    }
+
+    /* Grid layout adjustments */
+    .card {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .card-body {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+
+    .btn-action-sm {
+        padding: 0.55rem 0.9rem;
+        font-size: 0.78rem;
+        font-weight: 700;
+        border-radius: 8px;
+        border: none;
+        text-transform: uppercase;
+    }
+
+    .btn-settings-big {
+        background-color: rgba(99, 102, 241, 0.1);
+        border: 1px solid rgba(99, 102, 241, 0.25);
+        color: var(--text-primary);
+        font-weight: 600;
+        border-radius: 8px;
+        padding: 0.7rem 1rem;
+        transition: all 0.2s;
+        text-align: center;
+        text-decoration: none;
+        display: block;
+        width: 100%;
+        font-size: 0.85rem;
+        cursor: pointer;
+    }
+
+    .btn-settings-big:hover {
+        background-color: var(--accent-indigo);
+        border-color: var(--accent-indigo);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        transform: translateY(-1px);
+        color: white;
+    }
+
+    /* Edit Mode Styles */
+    .edit-mode .card {
+        cursor: move;
+    }
+
+    .edit-mode .card:hover {
+        border-color: #f59e0b !important;
+    }
+
+    .edit-mode .dashboard-title-edit {
+        display: block !important;
+    }
+
+    .edit-mode .dashboard-title-static {
+        display: none !important;
+    }
+
+    .wiggle {
+        animation: wiggle 0.3s infinite;
+    }
+
+    @keyframes wiggle {
+        0% { transform: rotate(0deg); }
+        25% { transform: rotate(0.4deg); }
+        50% { transform: rotate(0deg); }
+        75% { transform: rotate(-0.4deg); }
+        100% { transform: rotate(0deg); }
+    }
+
+    .visibility-toggle {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 10;
+        background: rgba(0, 0, 0, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: #fff;
+        padding: 4px 8px;
+        border-radius: 6px;
+        display: none;
+        cursor: pointer;
+        font-size: 0.75rem;
+    }
+
+    .edit-mode .visibility-toggle {
+        display: block;
+    }
+
+    .hidden-card {
+        opacity: 0.3;
+        filter: grayscale(1);
+    }
+
+    .hidden-card:not(.edit-mode *) {
+        display: none !important;
+    }
+
+    /* Update Card Specifics */
+    .card-update {
+        border-color: rgba(6, 182, 212, 0.25);
+        background: rgba(6, 182, 212, 0.03);
+    }
+
+    .update-notify {
+        padding: 10px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        margin-bottom: 1rem;
+        display: none;
+        text-align: center;
+        font-weight: 600;
+    }
+
+    .update-info-box {
+        background: rgba(0, 0, 0, 0.35);
+        padding: 12px;
+        border-radius: 8px;
+        margin-top: 10px;
+        display: none;
+        border: 1px solid rgba(99, 102, 241, 0.25);
+    }
+
+    .changelog-text {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        max-height: 80px;
+        overflow-y: auto;
+        margin-top: 8px;
+        white-space: pre-wrap;
+    }
+
+    .spin {
+        animation: spin 1s linear infinite;
+        display: inline-block;
+    }
+
+    @keyframes spin {
+        100% { transform: rotate(360deg); }
+    }
+</style>
+
+<div class="cockpit-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="fw-bold mb-1 h3 text-white">
+            <span class="dashboard-title-static">{{ layout.title if layout and layout.title else 'System-Cockpit' }}</span>
+            <input type="text" id="inputDashboardTitle"
+                class="dashboard-title-edit bg-transparent border-0 border-bottom border-warning text-white fw-bold h3 mb-0"
+                value="{{ layout.title if layout and layout.title else 'System-Cockpit' }}"
+                style="display:none; outline: none; width: auto;">
+        </h1>
+        <p class="text-secondary small mb-0">Angemeldet als: <span class="text-white fw-semibold">{{ current_user.username }}</span> (Rolle: <span class="badge bg-secondary ms-1">{{ current_user.role|upper }}</span>)</p>
+    </div>
+    <div>
+        {% if current_user.role == 'admin' %}
+        <button id="btnEditLayout" class="btn btn-outline-warning fw-bold px-4">
+            <i class="bi bi-pencil-square me-2"></i> LAYOUT ANPASSEN
+        </button>
+        <button id="btnSaveLayout" class="btn btn-success fw-bold px-4" style="display:none;">
+            <i class="bi bi-check-lg me-2"></i> SPEICHERN
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ⚡ COCKPIT STATUS WIDGETS -->
+{% set active_bots = namespace(count=0) %}
+{% for k, v in bot_status.items() %}
+    {% if v.running %}
+        {% set active_bots.count = active_bots.count + 1 %}
+    {% endif %}
+{% endfor %}
+
+<div class="cockpit-stats-grid">
+    <div class="cockpit-stat-card">
+        <div class="cockpit-stat-icon status-green">
+            <i class="bi bi-cpu-fill"></i>
+        </div>
+        <div class="cockpit-stat-info">
+            <div class="cockpit-stat-value status-badge-glow text-emerald">Online</div>
+            <div class="cockpit-stat-label">System-Status</div>
+        </div>
+    </div>
+    
+    <div class="cockpit-stat-card">
+        <div class="cockpit-stat-icon">
+            <i class="bi bi-robot"></i>
+        </div>
+        <div class="cockpit-stat-info">
+            <div class="cockpit-stat-value">{{ active_bots.count }} / {{ bot_status|length }}</div>
+            <div class="cockpit-stat-label">Aktive Module</div>
+        </div>
+    </div>
+
+    <div class="cockpit-stat-card">
+        <div class="cockpit-stat-icon status-purple">
+            <i class="bi bi-database-fill-check"></i>
+        </div>
+        <div class="cockpit-stat-info">
+            <div class="cockpit-stat-value">{% if backup_config.enabled %}Aktiv ({{ backup_config.backup_time }}){% else %}Aus{% endif %}</div>
+            <div class="cockpit-stat-label">Autom. Backup</div>
+        </div>
+    </div>
+
+    <div class="cockpit-stat-card">
+        <div class="cockpit-stat-icon status-yellow">
+            <i class="bi bi-git"></i>
+        </div>
+        <div class="cockpit-stat-info">
+            <div class="cockpit-stat-value">v{{ version.version }}</div>
+            <div class="cockpit-stat-label">System-Version</div>
+        </div>
+    </div>
+</div>
+
+<!-- ⚡ SOFORT-AKTIONEN -->
+<div class="quick-actions-panel">
+    <div class="quick-actions-title">
+        <i class="bi bi-lightning-charge-fill text-warning"></i> Sofort-Aktionen
+    </div>
+    <div class="d-flex gap-3 justify-content-center flex-wrap">
+        <form action="/quiz/send-random" method="POST" class="m-0">
+            <button type="submit" class="btn btn-primary quick-action-btn">
+                ❔ QUIZFRAGE SENDEN
+            </button>
+        </form>
+        <form action="/umfrage/send-now" method="POST" class="m-0">
+            <button type="submit" class="btn btn-secondary quick-action-btn" style="background-color: #475569; border: none;">
+                📊 UMFRAGE SENDEN
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- 📋 MODULE GRID -->
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="sortableGrid">
+    {% set items = [
+    {'id': 'live_mod', 'title': 'Live Moderation', 'icon': 'bi-shield-check', 'desc': 'Überwachen und moderieren Sie Telegram-Gruppen in Echtzeit.', 'link': url_for('dashboard.live_moderation'), 'type': 'open'},
+    {'id': 'planer', 'title': 'Nachricht Planer', 'icon': 'bi-megaphone', 'desc': 'Nachrichten & Medien planen oder sofort über den ID-Finder senden.', 'link': url_for('dashboard.broadcast_manager'), 'type': 'settings', 'bot': 'id_finder'},
+    {'id': 'tiktok', 'title': 'TikTok Live Benachrichtigung', 'icon': 'bi-tiktok', 'desc': 'Überwacht TikTok Livestreams auf Zielpersonen.', 'link': url_for('dashboard.tiktok_settings'), 'type': 'bot', 'bot': 'tiktok'},
+    {'id': 'invite', 'title': 'Einladungs-Bot', 'icon': 'bi-apple', 'desc': 'Begrüßungstexte & automatische Beitrittskontrolle.', 'link': url_for('dashboard.bot_settings'), 'type': 'bot', 'bot': 'invite'},
+    {'id': 'quiz', 'title': 'Quiz Bot', 'icon': 'bi-question-circle', 'desc': 'Verwaltung der Quizfragen und automatischer Zeitplaner.', 'link': url_for('dashboard.quiz_settings'), 'type': 'bot', 'bot': 'quiz'},
+    {'id': 'umfrage', 'title': 'Umfrage Bot', 'icon': 'bi-bar-chart', 'desc': 'Verwaltung der Umfragen und automatischer Zeitplaner.', 'link': url_for('dashboard.umfrage_settings'), 'type': 'bot', 'bot': 'umfrage'},
+    {'id': 'outfit', 'title': 'Outfit-Wettbewerb', 'icon': 'bi-person-badge', 'desc': 'Steuerung für den täglichen Outfit-Contest.', 'link': url_for('dashboard.outfit_bot_dashboard'), 'type': 'bot', 'bot': 'outfit'},
+    {'id': 'id_finder', 'title': 'ID-Finder Bot', 'icon': 'bi-search', 'desc': 'Werkzeuge zum Ermitteln von Chat-IDs & Topic-IDs.', 'link': url_for('dashboard.id_finder_dashboard'), 'type': 'bot', 'bot': 'id_finder'},
+    {'id': 'auto_responder', 'title': 'Auto-Antworten', 'icon': 'bi-chat-right-text', 'desc': 'Benutzerdefinierte Antworten auf Schlüsselwörter und Befehle.', 'link': url_for('dashboard.auto_responder'), 'type': 'bot', 'bot': 'auto_responder'},
+    {'id': 'reaction_bot', 'title': 'Reaktionen & Effekte', 'icon': 'bi-stars', 'desc': 'Automatische Reaktionen und unsichtbare Premium-Effekte.', 'link': url_for('dashboard.reaction_settings'), 'type': 'bot', 'bot': 'reaction_bot'},
+    {'id': 'profanity_filter', 'title': 'Beleidigungsfilter', 'icon': 'bi-shield-slash', 'desc': 'Zentrale Blacklist für Beleidigungen mit automatischer Verwarnung.', 'link': url_for('dashboard.profanity_filter'), 'type': 'bot', 'bot': 'profanity_filter'},
+    {'id': 'birthday', 'title': 'Geburtstags-Bot', 'icon': 'bi-gift-fill', 'desc': 'Verwaltung der eingetragenen Geburtstage und Gratulationen.', 'link': url_for('dashboard.birthday_settings'), 'type': 'bot', 'bot': 'birthday'},
+    {'id': 'minecraft', 'title': 'Minecraft Server Status', 'icon': 'bi-hammer', 'desc': 'Statusüberwachung und Benachrichtigungen.', 'link': url_for('dashboard.minecraft_status_page'), 'type': 'settings'},
+    {'id': 'logs', 'title': 'Kritische Logs', 'icon': 'bi-exclamation-triangle', 'desc': 'Zeigt alle Error- und Critical-Logs der Anwendung an.', 'link': url_for('dashboard.critical_errors'), 'type': 'logs'},
+    {'id': 'report_bot', 'title': 'Report Bot', 'icon': 'bi-flag', 'desc': 'Zentrale für das Melde-System (/report). Konfiguration von Ziel-Kanal und Topic.', 'link': url_for('dashboard.report_settings'), 'type': 'bot', 'bot': 'report_bot'},
+    {'id': 'event_planner', 'title': 'Event Planer', 'icon': 'bi-calendar-event', 'desc': 'Termine planen, RSVPs verwalten und Benachrichtigungen senden.', 'link': url_for('dashboard.event_settings'), 'type': 'bot', 'bot': 'event_bot'},
+    {'id': 'analytics', 'title': 'Analytics', 'icon': 'bi-graph-up', 'desc': 'Detaillierte Statistiken über Nutzer-Aktivitäten und Bot-Nutzung.', 'link': url_for('dashboard.id_finder_analytics'), 'type': 'open'},
+    {'id': 'profiles', 'title': 'Steckbriefe', 'icon': 'bi-people', 'desc': 'Nutzer-Profile und Steckbriefe einsehen und verwalten.', 'link': url_for('dashboard.id_finder_profiles'), 'type': 'open'},
+    {'id': 'topic_cleanup', 'title': 'Topic 24h Löschen', 'icon': 'bi-trash3', 'desc': 'Automatisches Aufräumen von Nachrichten in ausgewählten Topics nach Ablauf von 24h.', 'link': url_for('dashboard.cleanup_settings'), 'type': 'cleanup'},
+    {'id': 'user_management', 'title': 'Nutzer-Steuerung', 'icon': 'bi-person-x', 'desc': 'Stummschalten von Nutzern (Global oder pro Topic) inkl. Auto-Löschen.', 'link': url_for('dashboard.user_management'), 'type': 'settings'},
+    {'id': 'team_management', 'title': 'Teamverwaltung', 'icon': 'bi-people-fill', 'desc': 'Moderatoren-Accounts und Admin-Rechte verwalten.', 'link': url_for('dashboard.team_management'), 'type': 'settings'},
+    {'id': 'ip_locks', 'title': 'IP-Sperren', 'icon': 'bi-shield-lock', 'desc': 'Verwalten und Entsperren von durch Brute-Force-Schutz blockierten IP-Adressen.', 'link': url_for('dashboard.ip_locks'), 'type': 'settings'},
+    {'id': 'update', 'title': 'Software Update', 'icon': 'bi-cloud-arrow-down', 'desc': 'Prüfen Sie auf neue Versionen und halten Sie Ihr System aktuell.', 'link': '#', 'type': 'update'},
+    {'id': 'backup', 'title': 'Backup & Recovery', 'icon': 'bi-database-down', 'desc': 'Verwalten Sie Ihre Datenbanksicherungen lokal, über Ihre Synology NAS oder Google Drive.', 'link': '#', 'type': 'open'}
+    ] %}
+
+    {% set allowed_for_mods = ['live_mod', 'planer', 'user_management', 'event_planner', 'analytics'] %}
+
+    {% for item in items %}
+    {% if current_user.role == 'admin' or item.id in allowed_for_mods %}
+    <div class="col" data-id="{{ item.id }}" id="card-{{ item.id }}">
+        <div class="card h-100 {% if item.type == 'update' %}card-update{% endif %}">
+            <button class="visibility-toggle" onclick="toggleVisibility('{{ item.id }}')"><i
+                    class="bi bi-eye"></i></button>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi {{ item.icon }} me-2"></i>{{ item.title }}</h6>
+                {% if item.bot %}
+                <span class="small fw-bold {{ 'text-success' if bot_status[item.bot].running else 'text-danger' }}">
+                    <span class="status-badge {{ 'bg-success' if bot_status[item.bot].running else 'bg-danger' }}"></span>
+                    {{ 'AKTIV' if bot_status[item.bot].running else 'OFFLINE' }}
+                </span>
+                {% if item.id == 'id_finder' and bot_status[item.bot].last_heartbeat %}
+                <span class="text-secondary" style="font-size: 0.65rem; margin-left: 5px;">
+                    <i class="bi bi-heart-fill text-danger small"></i> {{ bot_status[item.bot].last_heartbeat[11:16] }}
+                </span>
+                {% endif %}
+                {% endif %}
+            </div>
+            <div class="card-body d-flex flex-column">
+                <p class="card-text small text-secondary mb-3">{{ item.desc }}</p>
+
+                {% if item.type == 'update' %}
+                <div id="updateBox">
+                    <div id="updateNotify" class="update-notify"></div>
+
+                    <!-- Auto-Update Toggle -->
+                    <div class="d-flex justify-content-between align-items-center mb-3 p-2 border border-subtle rounded-3 bg-opacity-10 bg-white">
+                        <div class="small fw-medium"><i class="bi bi-robot me-1"></i> Auto-Update</div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="checkAutoUpdate">
+                        </div>
+                    </div>
+
+                    <button id="btnManualUpdateCheck" class="btn-settings-big btn-primary">
+                        <i class="bi bi-arrow-repeat me-1"></i> NACH UPDATES SCANNEN
+                    </button>
+                    <div class="text-center mt-2">
+                        <small class="text-secondary" style="font-size: 0.75rem;">Zuletzt geprüft: <span id="lastCheckTime">-</span></small>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <button class="btn btn-outline-info btn-sm w-100 fw-bold border-opacity-25" 
+                                data-bs-toggle="modal" data-bs-target="#systemSettingsModal"
+                                style="background: rgba(13, 202, 240, 0.05); font-size: 0.75rem;">
+                            <i class="bi bi-gear-wide-connected me-1"></i> GITHUB INTEGRATION EINSTELLEN
+                        </button>
+                    </div>
+                    <div id="updateInfoBox" class="update-info-box">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-primary">v<span id="newVersionTag"></span> verfügbar</span>
+                            <small class="text-dim" id="newVersionDate"></small>
+                        </div>
+                        <div class="changelog-text" id="updateChangelog"></div>
+                        <button id="btnInstallNow" class="btn btn-success w-100 mt-3 fw-bold btn-action-sm">JETZT INSTALLIEREN</button>
+                    </div>
+
+                    <!-- Downgrade / Version History -->
+                    <div class="mt-3 text-center">
+                        <button class="btn btn-link text-info small p-0 text-decoration-none"
+                            onclick="toggleVersionHistory()" style="font-size: 0.75rem;">
+                            <i class="bi bi-clock-history me-1"></i> Versionen-Verlauf / Downgrade
+                        </button>
+                    </div>
+                    <div id="versionHistoryBox" class="update-info-box mt-2"
+                        style="max-height: 200px; overflow-y: auto; display: none;">
+                        <div id="versionList" class="small">
+                            <div class="text-center py-2"><i class="bi bi-arrow-repeat spin"></i> Lade...</div>
+                        </div>
+                    </div>
+
+                    <div class="progress mt-3" id="updateProgress" style="display:none; height: 8px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                            style="width: 0%"></div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="mt-auto">
+                    {% if item.type == 'bot' %}
+                    <div class="d-flex gap-2 mb-2">
+                        {% if bot_status[item.bot].running %}
+                        <form action="/bot-action/{{ item.bot }}/stop" method="POST" class="flex-grow-1 m-0">
+                            <button type="submit" class="btn btn-danger btn-action-sm w-100">STOP</button>
+                        </form>
+                        {% else %}
+                        <form action="/bot-action/{{ item.bot }}/start" method="POST" class="flex-grow-1 m-0">
+                            <button type="submit" class="btn btn-success btn-action-sm w-100">START</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    {% if item.type == 'cleanup' %}
+                    <div class="alert alert-info border-0 small py-2 mb-3 bg-opacity-10 bg-info">
+                        <i class="bi bi-info-circle me-1"></i> Verwaltung der automatischen Löschung wurde auf eine separate Seite verschoben.
+                    </div>
+                    {% endif %}
+
+                    {% if item.id == 'backup' %}
+                    <div class="d-grid gap-2">
+                        <button onclick="triggerManualNasBackup(event)"
+                            class="btn-settings-big btn-outline-danger"
+                            style="background: rgba(244, 63, 94, 0.15); border: 1px solid #f43f5e; color: #fda4af;">
+                            <i class="bi bi-lightning-fill me-1"></i> SOFORT-BACKUP AUSFÜHREN
+                        </button>
+                        <a href="{{ url_for('dashboard.download_backup') }}" class="btn-settings-big">
+                            <i class="bi bi-download me-1"></i> HERUNTERLADEN
+                        </a>
+                        <button onclick="openRestoreModal()"
+                            class="btn-settings-big btn-outline-warning"
+                            style="background: rgba(245, 158, 11, 0.1); border: 1px solid #f59e0b;">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i> WIEDERHERSTELLEN
+                        </button>
+                        <button data-bs-toggle="modal" data-bs-target="#backupSettingsModal"
+                            class="btn-settings-big btn-outline-info"
+                            style="background: rgba(13, 202, 240, 0.1); border: 1px solid #0dcaf0;">
+                            <i class="bi bi-gear me-1"></i> AUTOM. BACKUP SETUP
+                        </button>
+                    </div>
+                    {% elif item.type != 'update' %}
+                    <a href="{{ item.link }}" class="btn-settings-big">
+                        <i class="bi bi-gear-fill me-2"></i> EINSTELLUNGEN
+                    </a>
+                    {% else %}
+                    <a href="{{ item.link }}"
+                        class="btn-settings-big {% if item.type == 'logs' %}btn-danger{% endif %}">
+                        {{ 'LOGS ANSEHEN' if item.type == 'logs' else ('ÖFFNEN' if item.type == 'open' else 'EINSTELLUNGEN') }}
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+</div>
+{% endblock content %}
+
+{% block scripts %}
+<script>
+    const grid = document.getElementById('sortableGrid');
+    const editBtn = document.getElementById('btnEditLayout');
+    const saveBtn = document.getElementById('btnSaveLayout');
+    const titleInput = document.getElementById('inputDashboardTitle');
+    let sortable = null;
+
+    // Load saved layout
+    const savedLayout = JSON.parse('{{ layout | tojson | safe if layout else "null" }}');
+    if (savedLayout) {
+        if (savedLayout.order) {
+            savedLayout.order.forEach(id => {
+                const el = document.getElementById('card-' + id);
+                if (el) grid.appendChild(el);
+            });
+        }
+        if (savedLayout.hidden) {
+            savedLayout.hidden.forEach(id => {
+                const el = document.getElementById('card-' + id);
+                if (el) el.classList.add('hidden-card');
+            });
+        }
+    }
+
+    if (editBtn) {
+        editBtn.onclick = () => {
+            document.body.classList.add('edit-mode');
+            document.querySelectorAll('.card').forEach(c => c.classList.add('wiggle'));
+            editBtn.style.display = 'none';
+            if (saveBtn) saveBtn.style.display = 'inline-block';
+            sortable = new Sortable(grid, { animation: 150, ghostClass: 'bg-primary-subtle' });
+        };
+    }
+
+    if (saveBtn) {
+        saveBtn.onclick = async () => {
+            const order = Array.from(grid.children).map(child => child.dataset.id);
+            const hidden = Array.from(document.querySelectorAll('.hidden-card')).map(el => el.dataset.id);
+            const title = titleInput ? titleInput.value : 'System-Cockpit';
+
+            const res = await fetch('/api/dashboard/save-layout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ order, hidden, title })
+            });
+            if (res.ok) location.reload();
+        };
+    }
+
+    function toggleVisibility(id) {
+        const el = document.getElementById('card-' + id);
+        if (el) {
+            el.classList.toggle('hidden-card');
+            const icon = el.querySelector('.visibility-toggle i');
+            if (icon) icon.className = el.classList.contains('hidden-card') ? 'bi bi-eye-slash' : 'bi bi-eye';
+        }
+    }
+
+    // --- UPDATE LOGIC ---
+    {% if current_user.role == 'admin' %}
+    const scanBtn = document.getElementById('btnManualUpdateCheck');
+    const notify = document.getElementById('updateNotify');
+    const infoBox = document.getElementById('updateInfoBox');
+    const autoUpdateToggle = document.getElementById('checkAutoUpdate');
+    const lastCheckSpan = document.getElementById('lastCheckTime');
+    let updateData = null;
+
+    async function initUpdateSettings() {
+        try {
+            const res = await fetch('/api/system/settings');
+            const data = await res.json();
+            if (autoUpdateToggle) autoUpdateToggle.checked = !!data.auto_update_enabled;
+            if (lastCheckSpan && data.last_check_at) {
+                const date = new Date(data.last_check_at);
+                lastCheckSpan.innerText = date.toLocaleString('de-DE');
+            }
+        } catch (e) { console.error("Could not load system settings", e); }
+    }
+    initUpdateSettings();
+
+    if (autoUpdateToggle) {
+        autoUpdateToggle.onchange = async () => {
+            try {
+                await fetch('/api/system/settings/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ auto_update_enabled: autoUpdateToggle.checked })
+                });
+            } catch (e) { alert("Fehler beim Speichern der Einstellung."); }
+        };
+    }
+
+    function safeReload() {
+        if (notify) {
+            notify.innerText = 'Server startet neu... Bitte warten...';
+            notify.style.background = 'rgba(255, 165, 0, 0.2)';
+            notify.style.color = '#fbbf24';
+        }
+
+        let attempts = 0;
+        const maxAttempts = 30;
+
+        const interval = setInterval(async () => {
+            attempts++;
+            try {
+                const res = await fetch('/', { method: 'HEAD' });
+                if (res.ok) {
+                    clearInterval(interval);
+                    location.reload();
+                }
+            } catch (e) {}
+
+            if (attempts >= maxAttempts) {
+                clearInterval(interval);
+                if (notify) {
+                    notify.innerText = 'Server antwortet nicht. Bitte Seite manuell neu laden.';
+                    notify.style.background = 'rgba(239, 68, 68, 0.2)';
+                    notify.style.color = '#ef4444';
+                }
+            }
+        }, 1000);
+    }
+
+    if (scanBtn && notify) {
+        scanBtn.onclick = async () => {
+            scanBtn.disabled = true;
+            scanBtn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> SCANNE...';
+            notify.style.display = 'block';
+            notify.style.background = 'rgba(255,255,255,0.05)';
+            notify.style.color = '#fff';
+            notify.innerText = 'Suche nach neuen Versionen...';
+
+            try {
+                const res = await fetch('/api/update/check');
+                const data = await res.json();
+                if (data.update_available) {
+                    updateData = data;
+                    notify.style.background = 'rgba(59, 130, 246, 0.2)';
+                    notify.style.color = '#60a5fa';
+                    notify.innerText = 'Neue Version gefunden!';
+                    document.getElementById('newVersionTag').innerText = data.latest_version;
+                    document.getElementById('newVersionDate').innerText = new Date(data.published_at).toLocaleDateString();
+                    document.getElementById('updateChangelog').innerText = data.changelog || 'Keine Details verfügbar.';
+                    scanBtn.style.display = 'none';
+                    if (infoBox) infoBox.style.display = 'block';
+                } else {
+                    notify.style.background = 'rgba(16, 185, 129, 0.2)';
+                    notify.style.color = '#10b981';
+                    notify.innerText = 'Software ist aktuell.';
+                    setTimeout(() => {
+                        notify.style.display = 'none';
+                        scanBtn.disabled = false;
+                        scanBtn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i> NACH UPDATES SCANNEN';
+                    }, 3000);
+                }
+            } catch (e) {
+                notify.style.background = 'rgba(239, 68, 68, 0.2)';
+                notify.style.color = '#ef4444';
+                notify.innerText = 'Fehler bei der Update-Prüfung.';
+                scanBtn.disabled = false;
+                scanBtn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i> NACH UPDATES SCANNEN';
+            }
+        };
+    }
+
+    async function performUpdate() {
+        if (!updateData || !notify) return;
+        notify.style.display = 'block';
+        notify.style.background = 'rgba(255, 255, 255, 0.05)';
+        notify.style.color = '#fff';
+        notify.innerText = 'Update wird installiert...';
+
+        try {
+            const res = await fetch('/api/update/install', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    url: updateData.zipball_url,
+                    version: updateData.latest_version,
+                    published_at: updateData.published_at
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                notify.style.background = 'rgba(16, 185, 129, 0.2)';
+                notify.style.color = '#10b981';
+                notify.innerText = 'Update erfolgreich installiert! System startet neu...';
+                setTimeout(safeReload, 1500);
+            } else {
+                notify.style.background = 'rgba(239, 68, 68, 0.2)';
+                notify.style.color = '#ef4444';
+                notify.innerText = 'Update fehlgeschlagen: ' + (data.error || 'Unbekannt');
+            }
+        } catch (e) {
+            notify.style.background = 'rgba(239, 68, 68, 0.2)';
+            notify.style.color = '#ef4444';
+            notify.innerText = 'Fehler beim Senden des Update-Befehls.';
+        }
+    }
+
+    const installBtn = document.getElementById('btnInstallNow');
+    if (installBtn) {
+        installBtn.onclick = async () => {
+            const confirmed = confirm("ACHTUNG! Hast du ein Backup deiner Datenbank gemacht?\n\nKlicke auf 'OK', wenn du fortfahren möchtest. Der Server wird während des Updates neu gestartet.");
+            if (!confirmed) return;
+            
+            if (infoBox) infoBox.style.display = 'none';
+            await performUpdate();
+        };
+    }
+
+    async function triggerUpdate(url, version, published_at) {
+        if (!confirm(`Möchtest du wirklich auf Version v${version} wechseln? Der Server wird neu gestartet.`)) return;
+        updateData = { zipball_url: url, latest_version: version, published_at: published_at };
+        await performUpdate();
+    }
+
+    // --- VERSION HISTORY & DOWNGRADE LOGIC ---
+    async function loadVersionHistory() {
+        const list = document.getElementById('versionList');
+        if (!list) return;
+        try {
+            const res = await fetch('/api/update/releases');
+            const releases = await res.json();
+
+            if (releases.length === 0) {
+                list.innerHTML = '<div class="text-center py-2 text-dim">Keine Versionen gefunden.</div>';
+                return;
+            }
+
+            let html = '';
+            releases.forEach(r => {
+                const date = new Date(r.published_at).toLocaleDateString();
+                const isCurrent = r.is_current;
+                html += `
+                    <div class="d-flex justify-content-between align-items-center p-2 border-bottom border-light border-opacity-10">
+                        <div>
+                            <span class="fw-bold text-white">v${r.version}</span>
+                            ${isCurrent ? '<span class="badge bg-success ms-1" style="font-size: 0.6rem;">AKTUELL</span>' : ''}
+                            <div class="text-dim" style="font-size: 0.7rem;">${date}</div>
+                        </div>
+                        <div>
+                            <button class="btn btn-outline-info btn-sm py-0 px-2" style="font-size: 0.7rem;" 
+                                onclick="triggerUpdate('${r.zipball_url}', '${r.version}', '${r.published_at}')"
+                                ${isCurrent ? 'disabled' : ''}>
+                                ${isCurrent ? 'Installiert' : 'Installieren'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            list.innerHTML = html;
+        } catch (e) {
+            list.innerHTML = '<div class="text-center py-2 text-danger">Fehler beim Laden.</div>';
+        }
+    }
+    {% endif %}
+</script>
+{% endblock scripts %}

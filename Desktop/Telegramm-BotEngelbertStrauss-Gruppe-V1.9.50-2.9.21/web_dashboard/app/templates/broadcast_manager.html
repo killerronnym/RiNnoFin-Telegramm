@@ -1,0 +1,647 @@
+{% extends "base.html" %}
+
+{% block title %}Nachricht Planer | Einstellungen{% endblock %}
+
+{% block content %}
+<style>
+    .dashboard-container {
+        padding: 2.5rem;
+    }
+
+    .btn-back {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border-muted);
+        color: var(--text-secondary);
+        font-weight: 500;
+        border-radius: 8px;
+        padding: 0.6rem 1.25rem;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-size: 0.85rem;
+    }
+
+    .btn-back:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: #fff;
+        border-color: var(--blue-accent);
+    }
+
+    .card {
+        height: auto; /* Changed from 100% to auto to prevent overlap */
+        transition: all 0.2s ease;
+        border: 1px solid var(--border-muted);
+        background: rgba(13, 17, 23, 0.6);
+        backdrop-filter: blur(10px);
+        margin-bottom: 1.5rem;
+    }
+
+    .card-header {
+        background: rgba(255, 255, 255, 0.03);
+        border-bottom: 1px solid var(--border-muted);
+        padding: 1rem 1.5rem;
+    }
+
+    .card-header h6 {
+        margin-bottom: 0;
+        font-weight: 600;
+        font-size: 0.8rem;
+        letter-spacing: 0.05em;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+    }
+
+    .table {
+        color: var(--text-primary);
+        --bs-table-bg: transparent;
+        --bs-table-border-color: rgba(255, 255, 255, 0.04);
+        font-size: 0.9rem;
+    }
+
+    .table thead th {
+        background: rgba(0, 0, 0, 0.15);
+        color: var(--text-dim);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        letter-spacing: 0.08em;
+        padding: 0.8rem 1.5rem;
+    }
+
+    /* Telegram Preview Styles */
+    .tg-preview {
+        background: #0e1621;
+        border-radius: 12px;
+        padding: 12px;
+        width: 100%;
+        max-width: 320px;
+        margin: 0 auto;
+        position: relative;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        border-bottom-left-radius: 4px;
+    }
+    .tg-preview-media {
+        width: 100%;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        background: #17212b;
+        aspect-ratio: 1/1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #555;
+        overflow: hidden;
+        position: relative;
+    }
+    .tg-preview-media img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .tg-preview-text {
+        font-size: 0.9rem;
+        color: #fff;
+        line-height: 1.4;
+        word-wrap: break-word;
+        white-space: pre-wrap;
+    }
+    .tg-preview-time {
+        font-size: 0.7rem;
+        color: #6c7883;
+        text-align: right;
+        margin-top: 4px;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    /* Telegram Spoiler Effect */
+    .tg-spoiler {
+        background: rgba(255,255,255,0.1);
+        color: transparent !important;
+        border-radius: 3px;
+        cursor: pointer;
+        position: relative;
+        transition: background 0.3s;
+        /* Noise Effect Simulation */
+        background-image: repeating-radial-gradient(circle at 10% 10%, rgba(255,255,255,0.2) 0px, rgba(255,255,255,0.2) 1px, transparent 1px, transparent 100%);
+        background-size: 3px 3px;
+    }
+    .tg-spoiler:hover {
+        background-color: rgba(255,255,255,0.15);
+    }
+    .tg-spoiler.revealed {
+        background: transparent !important;
+        color: inherit !important;
+        background-image: none !important;
+    }
+
+    .tg-preview-media-spoiler {
+        filter: blur(25px) !important;
+        transition: filter 0.3s ease;
+        cursor: pointer;
+    }
+    .tg-preview-media-spoiler.revealed {
+        filter: blur(0) !important;
+    }
+
+    .formatting-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        background: rgba(255,255,255,0.03);
+        padding: 5px;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+    .format-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-secondary);
+        padding: 5px 8px;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .format-btn:hover {
+        background: rgba(255,255,255,0.1);
+        color: #fff;
+    }
+    
+    .emoji-picker {
+        display: none;
+        position: absolute;
+        bottom: 100%;
+        left: 0;
+        background: #1c2635;
+        border: 1px solid #2d3a4b;
+        border-radius: 12px;
+        padding: 10px;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 8px;
+        z-index: 1000;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+    }
+    .emoji-btn {
+        background: none;
+        border: none;
+        font-size: 1.4rem;
+        cursor: pointer;
+        transition: transform 0.1s;
+    }
+    .emoji-btn:hover {
+        transform: scale(1.2);
+    }
+
+    /* Fixed Height for List Group */
+    .topic-list-container {
+        max-height: 250px;
+        overflow-y: auto;
+        padding-right: 5px;
+    }
+    .topic-list-container::-webkit-scrollbar {
+        width: 4px;
+    }
+    .topic-list-container::-webkit-scrollbar-thumb {
+        background: rgba(255,255,255,0.1);
+        border-radius: 10px;
+    }
+
+    .topic-item {
+        background: rgba(255,255,255,0.02) !important;
+        border: 1px solid rgba(255,255,255,0.05) !important;
+        border-radius: 8px !important;
+        margin-bottom: 5px;
+        padding: 0.75rem !important;
+    }
+</style>
+
+<div class="dashboard-container">
+    <div class="d-flex justify-content-between align-items-start mb-5">
+        <div>
+            <a href="/" class="btn-back mb-4"><i class="bi bi-chevron-left"></i> ZURÜCK ZUR ÜBERSICHT</a>
+            <h1 class="fw-bold mb-1 h3 text-white">Nachricht <span class="text-blue">Planer</span></h1>
+            <p class="text-secondary small">Broadcasts senden, planen & anpinnen</p>
+        </div>
+    </div>
+
+    <!-- MAIN GRID -->
+    <div class="row g-4 mb-4">
+        <!-- LEFT COLUMN: EDITOR -->
+        <div class="col-xl-8">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6>📢 Nachricht erstellen</h6>
+                    <span class="badge bg-blue bg-opacity-10 text-blue border border-blue border-opacity-20 px-3">EDITOR</span>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('dashboard.save_broadcast') }}" method="POST" id="broadcastForm" enctype="multipart/form-data">
+                        
+                        <div class="mb-3 position-relative">
+                            <label class="small text-secondary fw-bold mb-2">NACHRICHTENTEXT / CAPTION</label>
+                            
+                            <div class="formatting-toolbar">
+                                <button type="button" class="format-btn" onclick="insertTag('<b>', '</b>')" title="Fett"><i class="bi bi-type-bold"></i></button>
+                                <button type="button" class="format-btn" onclick="insertTag('<i>', '</i>')" title="Kursiv"><i class="bi bi-type-italic"></i></button>
+                                <button type="button" class="format-btn" onclick="insertTag('<u>', '</u>')" title="Unterstrichen"><i class="bi bi-type-underline"></i></button>
+                                <button type="button" class="format-btn" onclick="insertTag('<tg-spoiler>', '</tg-spoiler>')" title="Spoiler Text"><i class="bi bi-eye-slash"></i></button>
+                                <button type="button" class="format-btn" onclick="insertTag('<code>', '</code>')" title="Code"><i class="bi bi-code"></i></button>
+                                <button type="button" class="format-btn" onclick="toggleEmojiPicker()"><i class="bi bi-emoji-smile"></i> Emoji</button>
+                                
+                                <div class="emoji-picker" id="emojiPicker">
+                                    <button type="button" class="emoji-btn" onclick="insertText('😊')">😊</button>
+                                    <button type="button" class="emoji-btn" onclick="insertText('🔔')">🔔</button>
+                                    <button type="button" class="emoji-btn" onclick="insertText('🚨')">🚨</button>
+                                    <button type="button" class="emoji-btn" onclick="insertText('✅')">✅</button>
+                                    <button type="button" class="emoji-btn" onclick="insertText('❌')">❌</button>
+                                    <button type="button" class="emoji-btn" onclick="insertText('📝')">📝</button>
+                                    <button type="button" class="emoji-btn" onclick="insertText('🚀')">🚀</button>
+                                    <button type="button" class="emoji-btn" onclick="insertText('🕒')">🕒</button>
+                                    <button type="button" class="emoji-btn" onclick="insertText('📎')">📎</button>
+                                    <button type="button" class="emoji-btn" onclick="insertText('🔥')">🔥</button>
+                                    <button type="button" class="emoji-btn" onclick="insertText('💡')">💡</button>
+                                    <button type="button" class="emoji-btn" onclick="insertText('💬')">💬</button>
+                                </div>
+                            </div>
+
+                            <textarea class="form-control" name="text" id="broadcastText" rows="7"
+                                placeholder="Schreibe hier deine Nachricht..." oninput="updatePreview()"></textarea>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="small text-secondary fw-bold mb-1">ZIEL-TOPIC</label>
+                                <select class="form-select" name="topic_id" id="broadcastTopic">
+                                    <option value="">-- Hauptchat (kein Topic) --</option>
+                                    {% for tid, name in known_topics.items() %}
+                                    <option value="{{ tid }}">{{ name }} (ID: {{ tid }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small text-secondary fw-bold mb-1">SENDE-MODUS</label>
+                                <select class="form-select" name="send_mode" id="sendModeSelect" onchange="onSendModeChange(this)">
+                                    <option value="standard" selected>Standard (Foto/Video Vorschau)</option>
+                                    <option value="document">Dokument (Originalqualität)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="small text-secondary fw-bold mb-1">MEDIEN HOCHLADEN</label>
+                                <input type="file" class="form-control" name="media" accept="image/*,video/*" multiple
+                                    id="mediaInput" onchange="updateMediaPreview(this)">
+                                <div id="mediaPreview" class="mt-2 d-flex flex-wrap gap-2"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small text-secondary fw-bold mb-1">GEPLANTER ZEITPUNKT</label>
+                                <input type="datetime-local" class="form-control" name="scheduled_at" id="scheduled_at" onchange="updatePreview()">
+                                <small class="text-dim">Sofort senden, wenn leer.</small>
+                            </div>
+                        </div>
+
+                        <!-- OPTIONS: PIN, SILENT, SPOILER -->
+                        <div class="row g-2 mb-4 border-top border-white border-opacity-5 pt-3">
+                            <div class="col-md-4">
+                                <div class="form-check form-switch p-3 rounded border border-white border-opacity-5 bg-opacity-10 bg-white" style="padding-left: 3.5rem !important;">
+                                    <input class="form-check-input" type="checkbox" id="pin_message" name="pin_message" onchange="updatePreview()">
+                                    <label class="form-check-label small fw-bold" for="pin_message">📌 Anpinnen</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-switch p-3 rounded border border-white border-opacity-5 bg-opacity-10 bg-white" style="padding-left: 3.5rem !important;">
+                                    <input class="form-check-input" type="checkbox" id="silent_send" name="silent_send" onchange="updatePreview()">
+                                    <label class="form-check-label small fw-bold" for="silent_send">🔕 Lautlos</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4" id="spoilerWrapper">
+                                <div class="form-check form-switch p-3 rounded border border-white border-opacity-5 bg-opacity-10 bg-white" style="padding-left: 3.5rem !important;">
+                                    <input class="form-check-input" type="checkbox" id="spoiler" name="spoiler" onchange="updatePreview()">
+                                    <label class="form-check-label small fw-bold" for="spoiler">🫣 Medien Spoiler</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <button type="submit" name="action" value="send_now" class="btn btn-warning w-100 py-3 fw-bold shadow-sm" style="border-radius: 12px; font-size: 1rem;">
+                                    🚀 JETZT ABSCHICKEN
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <button type="submit" name="action" value="schedule" class="btn btn-blue-action w-100 py-3 fw-bold shadow-sm" style="border-radius: 12px; font-size: 1rem; background: var(--blue-deep);">
+                                    🕒 ZEITPLAN ERSTELLEN
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: PREVIEW & TOPICS -->
+        <div class="col-xl-4">
+            
+            <!-- PREVIEW CARD -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6>👀 Telegram Vorschau</h6>
+                </div>
+                <div class="card-body py-5 d-flex align-items-center justify-content-center" style="background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-size: cover; border-radius: 0 0 12px 12px;">
+                    <div class="tg-preview" id="tgPreviewContainer">
+                        <div id="previewMediaContainer" class="tg-preview-media d-none"></div>
+                        <div class="tg-preview-text" id="previewText">Deine Nachricht...</div>
+                        <div class="tg-preview-time">
+                            <span id="previewPin" class="d-none"><i class="bi bi-pin-angle-fill"></i> anpinnen</span>
+                            <span id="previewTimeStr">{{ now.strftime('%H:%M') if now else '12:00' }}</span>
+                            <i class="bi bi-check2-all text-blue"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TOPIC MANAGER CARD -->
+            {% set can_edit_topics = current_user.is_admin or current_user.has_permission('edit_broadcast_chat_id') %}
+            <div class="card mb-0">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6>🏷️ Topics Manager</h6>
+                    {% if not can_edit_topics %}
+                    <span class="badge bg-warning text-dark"><i class="bi bi-lock-fill me-1"></i> Gesperrt</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('dashboard.save_topic_mapping') }}" method="POST" class="mb-4">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <input type="text" name="topic_id" id="input_topic_id" class="form-control form-control-sm" placeholder="ID (z.B. 104)" required {% if not can_edit_topics %}disabled style="opacity: 0.7;"{% endif %}>
+                            </div>
+                            <div class="col-6">
+                                <input type="text" name="topic_name" id="input_topic_name" class="form-control form-control-sm" placeholder="Name (z.B. Allgemein)" required {% if not can_edit_topics %}disabled style="opacity: 0.7;"{% endif %}>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-blue-action btn-sm w-100 fw-bold" {% if not can_edit_topics %}disabled style="opacity: 0.5; cursor: not-allowed;"{% endif %}>TOPIC SPEICHERN</button>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <div class="topic-list-container">
+                        <ul class="list-group list-group-flush">
+                            {% for tid, name in known_topics.items() %}
+                            <li class="list-group-item topic-item d-flex justify-content-between align-items-center">
+                                <div class="text-truncate text-white small">
+                                    <span class="fw-bold">{{ name }}</span> 
+                                    <code class="ms-1 text-dim">#{{ tid }}</code>
+                                </div>
+                                {% if can_edit_topics %}
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-sm text-blue p-0" onclick="editTopic('{{ tid }}', '{{ name }}')">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+                                    <form action="{{ url_for('dashboard.delete_topic_mapping', topic_id=tid) }}" method="POST" class="m-0">
+                                        <button type="submit" class="btn btn-sm text-danger p-0" onclick="return confirm('Sicher löschen?')">
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                                {% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- HISTORY SECTION -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h6>⏳ Verlauf & Archiv</h6>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-secondary btn-sm" onclick="window.location.reload()"><i class="bi bi-arrow-clockwise"></i></button>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">STATUS</th>
+                            <th>MODUS</th>
+                            <th>NACHRICHT</th>
+                            <th>ZIEL</th>
+                            <th>ZEITPUNKT</th>
+                            <th class="text-end pe-4">AKTION</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if broadcasts %}
+                        {% for b in broadcasts %}
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.03) !important;">
+                            <td class="ps-4">
+                                {% if b.status == 'sent' %}
+                                    <span class="badge rounded-pill bg-success bg-opacity-10 text-success border border-success border-opacity-20 px-3">OK</span>
+                                {% elif b.status == 'pending' %}
+                                    <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary border border-primary border-opacity-20 px-3">OFFEN</span>
+                                {% else %}
+                                    <span class="badge rounded-pill bg-danger bg-opacity-10 text-danger border border-danger border-opacity-20 px-3">FEHLER</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-dim small text-uppercase fw-bold">{{ b.send_mode or 'std' }}</td>
+                            <td style="max-width: 320px;" class="text-truncate small">
+                                <span class="text-white">{{ b.text[:80] or 'Kein Text' }}{% if b.text and b.text|length > 80 %}...{% endif %}</span>
+                                {% if b.media_path or b.media_files %}<span class="text-blue ms-1 fw-bold"><i class="bi bi-image"></i> Media</span>{% endif %}
+                            </td>
+                            <td><span class="badge bg-secondary bg-opacity-10 text-secondary border border-white border-opacity-10">{{ known_topics.get(b.topic_id|string, b.topic_id or 'Hauptchat') }}</span></td>
+                            <td class="small text-dim">{{ b.scheduled_at.strftime('%d.%m %H:%M') if b.scheduled_at else 'Sofort' }}</td>
+                            <td class="text-end pe-4">
+                                <div class="d-flex gap-2 justify-content-end">
+                                    <button class="btn btn-blue-action btn-sm px-3" onclick="resendBroadcast({{ b.id }}, {{ b.text|tojson|safe }}, '{{ b.topic_id or '' }}', '{{ b.send_mode }}', {{ b.spoiler|tojson }}, {{ b.pin_message|tojson }}, {{ b.silent_send|tojson }})">
+                                        <i class="bi bi-arrow-repeat"></i> KOPIEREN
+                                    </button>
+                                    {% if b.status == 'pending' %}
+                                    <form action="{{ url_for('dashboard.delete_broadcast', broadcast_id=b.id) }}" method="POST" class="m-0">
+                                        <button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash3"></i></button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                <i class="bi bi-inbox text-dim h1 d-block mb-2"></i>
+                                <span class="text-dim small italic">Noch keine Nachrichten im Verlauf.</span>
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleEmojiPicker() {
+        const picker = document.getElementById('emojiPicker');
+        picker.style.display = picker.style.display === 'grid' ? 'none' : 'grid';
+    }
+
+    function insertText(text) {
+        const textarea = document.getElementById('broadcastText');
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        textarea.value = textarea.value.substring(0, start) + text + textarea.value.substring(end);
+        textarea.focus();
+        textarea.selectionStart = textarea.selectionEnd = start + text.length;
+        document.getElementById('emojiPicker').style.display = 'none';
+        updatePreview();
+    }
+
+    function insertTag(openTag, closeTag) {
+        const textarea = document.getElementById('broadcastText');
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const selected = textarea.value.substring(start, end);
+        const replacement = openTag + selected + closeTag;
+        textarea.value = textarea.value.substring(0, start) + replacement + textarea.value.substring(end);
+        textarea.focus();
+        textarea.selectionStart = textarea.selectionEnd = start + replacement.length;
+        updatePreview();
+    }
+
+    function editTopic(id, name) {
+        document.getElementById('input_topic_id').value = id;
+        document.getElementById('input_topic_name').value = name;
+        document.getElementById('input_topic_name').focus();
+    }
+
+    function onSendModeChange(select) {
+        const wrapper = document.getElementById('spoilerWrapper');
+        const cb = document.getElementById('spoiler');
+        if (select.value === 'document') {
+            wrapper.style.opacity = '0.4';
+            cb.checked = false;
+            cb.disabled = true;
+        } else {
+            wrapper.style.opacity = '1';
+            cb.disabled = false;
+        }
+        updatePreview();
+    }
+
+    function updateMediaPreview(input) {
+        const preview = document.getElementById('mediaPreview');
+        const previewMedia = document.getElementById('previewMediaContainer');
+        preview.innerHTML = '';
+        previewMedia.innerHTML = '';
+        
+        if (input.files.length === 0) {
+            previewMedia.classList.add('d-none');
+            return;
+        }
+        
+        previewMedia.classList.remove('d-none');
+        const files = Array.from(input.files);
+        
+        files.forEach((file, index) => {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.style.cssText = 'height:64px;width:64px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,0.1);';
+                    preview.appendChild(img);
+                    
+                    if (index === 0) {
+                        const previewImg = document.createElement('img');
+                        previewImg.src = e.target.result;
+                        previewImg.id = 'mainPreviewImg';
+                        previewMedia.appendChild(previewImg);
+                        updatePreview();
+                    }
+                };
+                reader.readAsDataURL(file);
+            } else {
+                const badge = document.createElement('span');
+                badge.className = 'badge bg-secondary d-flex align-items-center gap-1 p-2';
+                badge.innerHTML = '<i class="bi bi-camera-video"></i> ' + file.name.substring(0, 15);
+                preview.appendChild(badge);
+                
+                if (index === 0) {
+                    previewMedia.innerHTML = '<div class="text-center"><i class="bi bi-play-circle" style="font-size: 3.5rem; color: #fff;"></i><br><small class="text-secondary">Video</small></div>';
+                }
+            }
+        });
+    }
+
+    function updatePreview() {
+        const text = document.getElementById('broadcastText').value;
+        const previewText = document.getElementById('previewText');
+        const isMediaSpoiler = document.getElementById('spoiler').checked;
+        const isPinned = document.getElementById('pin_message').checked;
+        const mainMedia = document.getElementById('mainPreviewImg') || document.querySelector('.tg-preview-media i');
+        const pinBadge = document.getElementById('previewPin');
+
+        if (text.trim() === '') {
+            previewText.innerHTML = '<span class="text-white opacity-25">Deine Nachricht...</span>';
+        } else {
+            let html = text
+                .replace(/<b>(.*?)<\/b>/g, '<strong>$1</strong>')
+                .replace(/<i>(.*?)<\/i>/g, '<em>$1</em>')
+                .replace(/<u>(.*?)<\/u>/g, '<u>$1</u>')
+                .replace(/<tg-spoiler>(.*?)<\/tg-spoiler>/g, '<span class="tg-spoiler" onclick="this.classList.toggle(\'revealed\')">$1</span>')
+                .replace(/<code>(.*?)<\/code>/g, '<code style="background: rgba(0,0,0,0.4); padding: 2px 4px; border-radius: 4px; color: #eebb55;">$1</code>');
+            previewText.innerHTML = html;
+        }
+
+        const mediaContainer = document.getElementById('previewMediaContainer');
+        if (!mediaContainer.classList.contains('d-none')) {
+            if (isMediaSpoiler) mediaContainer.classList.add('tg-preview-media-spoiler');
+            else mediaContainer.classList.remove('tg-preview-media-spoiler', 'revealed');
+            
+            // Allow clicking media preview to reveal if blurred
+            mediaContainer.onclick = function() {
+                if (this.classList.contains('tg-preview-media-spoiler')) {
+                    this.classList.toggle('revealed');
+                }
+            };
+        }
+        
+        if (isPinned) pinBadge.classList.remove('d-none');
+        else pinBadge.classList.add('d-none');
+
+        // Show scheduled time in preview if set
+        const schedTime = document.getElementById('scheduled_at').value;
+        if (schedTime) {
+            const date = new Date(schedTime);
+            document.getElementById('previewTimeStr').textContent = date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
+        }
+    }
+
+    function resendBroadcast(id, text, topicId, sendMode, spoiler, pin, silent) {
+        document.getElementById('broadcastText').value = text;
+        document.getElementById('broadcastTopic').value = topicId;
+        document.getElementById('sendModeSelect').value = sendMode || 'standard';
+        document.getElementById('spoiler').checked = spoiler;
+        document.getElementById('pin_message').checked = pin;
+        document.getElementById('silent_send').checked = silent;
+        onSendModeChange(document.getElementById('sendModeSelect'));
+        updatePreview();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    
+    document.addEventListener('DOMContentLoaded', updatePreview);
+</script>
+{% endblock %}

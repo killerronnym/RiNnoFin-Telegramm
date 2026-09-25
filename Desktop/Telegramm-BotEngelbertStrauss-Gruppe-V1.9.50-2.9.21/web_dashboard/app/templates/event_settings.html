@@ -1,0 +1,2427 @@
+{% extends "base.html" %}
+
+{% block title %}Event Planer | Admin Pro V2.2{% endblock %}
+
+{% block content %}
+<style>
+    .dashboard-container {
+        padding: 2.5rem;
+        font-family: 'Inter', -apple-system, sans-serif;
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-container {
+            padding: 1rem 0.5rem;
+        }
+        .shared-row {
+            padding: 1rem !important;
+        }
+        .card-body {
+            padding: 1rem !important;
+        }
+        .upload-zone {
+            padding: 1.5rem 1rem !important;
+        }
+    }
+
+    .auto-expand-textarea {
+        min-height: 120px;
+        resize: vertical;
+        overflow-y: hidden;
+        transition: height 0.15s ease-out;
+    }
+
+    .btn-back {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #888;
+        border-radius: 8px;
+        padding: 0.6rem 1.25rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+    }
+
+    .btn-back:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: #fff;
+    }
+
+    .card {
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(15px);
+        border-radius: 16px;
+        overflow: hidden;
+        transition: all 0.3s;
+    }
+
+    .card-header {
+        background: rgba(255, 255, 255, 0.02);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .section-box {
+        height: 100%;
+        transition: border-color 0.3s ease;
+    }
+
+    .shared-row {
+        background: rgba(0, 0, 0, 0.25);
+        border-radius: 16px;
+        padding: 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .form-control,
+    .form-select {
+        background-color: #121922 !important;
+        border-color: #2c3640 !important;
+        color: white !important;
+        border-radius: 10px !important;
+        transition: all 0.2s;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        box-shadow: 0 0 0 3px rgba(80, 162, 227, 0.2);
+        border-color: #50a2e3 !important;
+    }
+
+    .input-group-text {
+        background: #0f141a !important;
+        border-color: #2c3640 !important;
+        color: #50a2e3 !important;
+    }
+
+    #phoneMockup {
+        background: #0e1621 url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png') center/cover;
+        border-radius: 20px;
+        padding: 12px;
+        width: 100%;
+        max-width: 320px;
+        min-height: 500px;
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+        position: relative;
+        border: 4px solid #1c242f;
+    }
+
+    .preview-bubble {
+        background: #182533;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        overflow: hidden;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    .preview-mode-btn {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #ccc;
+        font-size: 0.7rem;
+        padding: 6px 12px;
+        border-radius: 20px;
+        transition: all 0.2s;
+        backdrop-filter: blur(5px);
+    }
+
+    .preview-mode-btn.active {
+        background: #50a2e3;
+        color: white;
+        border-color: #50a2e3;
+        box-shadow: 0 0 15px rgba(80, 162, 227, 0.3);
+    }
+
+    .tg-card {
+        background: #1c242f;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .tg-card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(113, 177, 224, 0.2);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .media-thumb-large {
+        width: 140px;
+        height: 140px;
+        border-radius: 12px;
+        overflow: hidden;
+        flex-shrink: 0;
+        cursor: zoom-in;
+        border: 2px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .media-thumb-large img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s;
+    }
+
+    .media-thumb-large:hover img {
+        transform: scale(1.1);
+    }
+
+    .btn-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        transition: all 0.2s;
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .btn-icon:hover {
+        transform: scale(1.1);
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .rsvp-header {
+        border-left: 3px solid currentColor;
+        padding-left: 10px;
+        margin-bottom: 12px;
+    }
+
+    .rsvp-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 10px;
+    }
+
+    .rsvp-user-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        padding: 6px 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+    }
+
+    .rsvp-user-card:hover {
+        background: rgba(255, 255, 255, 0.07);
+        border-color: rgba(80, 162, 227, 0.3);
+        transform: translateX(2px);
+    }
+
+    .avatar-sm {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        overflow: hidden;
+        background: #2c3640;
+    }
+
+    .avatar-sm img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .user-info {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    .username {
+        font-size: 0.75rem;
+        color: #dfe6ed;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-weight: 500;
+    }
+
+    .verified-icon {
+        font-size: 0.65rem;
+        margin-left: 2px;
+    }
+
+    .line-clamp-6 {
+        display: -webkit-box;
+        -webkit-line-clamp: 6;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+</style>
+
+<div class="dashboard-container">
+    <div class="mb-5">
+        <a href="{{ url_for('dashboard.index') }}" class="btn-back mb-3"><i class="bi bi-grid-fill"></i> DASHBOARD</a>
+        <h1 class="h3 fw-bold text-white m-0">Event <span class="text-info">Konfiguration</span> <span
+                class="badge bg-info bg-opacity-10 text-info ms-2" style="font-size: 0.65rem;">V2.2 PRO</span></h1>
+    </div>
+
+    <form id="eventForm" action="{{ url_for('dashboard.create_event_api') }}" method="POST"
+        enctype="multipart/form-data">
+        <input type="hidden" name="event_id" id="editId">
+        <input type="hidden" name="event_dates" id="eEventDates">
+
+        <div class="row g-4">
+            <!-- MAIN CONFIG -->
+            <div class="col-xl-8">
+                <!-- Collapsible Telegram Connection Card (Admins Only) -->
+                {% if current_user.role == 'admin' or current_user.is_admin %}
+                <div class="card mb-4 border-warning border-opacity-25 shadow-sm">
+                    <div class="card-header d-flex justify-content-between align-items-center cursor-pointer collapsed py-3 px-4" 
+                        data-bs-toggle="collapse" data-bs-target="#eventConnectionCollapse" 
+                        aria-expanded="false" aria-controls="eventConnectionCollapse" style="cursor: pointer; background: rgba(0,0,0,0.15);">
+                        <h6 class="m-0 fw-bold text-warning"><i class="bi bi-shield-lock-fill me-2 text-warning"></i> ZIEL-GRUPPE (Sensibel)</h6>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-warning text-dark"><i class="bi bi-lock-fill"></i> Admin-Bereich</span>
+                            <i class="bi bi-chevron-down text-warning"></i>
+                        </div>
+                    </div>
+                    <div class="collapse" id="eventConnectionCollapse">
+                        <div class="card-body p-4">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="small text-secondary fw-bold mb-1">ZIEL-GRUPPE (CHAT ID)</label>
+                                    <input type="text" class="form-control bg-dark border-secondary text-white"
+                                        name="chat_id" id="eChatId" placeholder="z.B. -100..."
+                                        value="{{ config.last_chat_id or '' }}"
+                                        oninput="this.classList.remove('border-danger')">
+                                    <div id="eChatIdError" class="text-danger small mt-1 d-none">Bitte eine Chat-ID angeben.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <!-- Hidden inputs for moderators to preserve values when posting/editing -->
+                <input type="hidden" name="chat_id" id="eChatId" value="{{ config.last_chat_id or '' }}">
+                {% endif %}
+
+                <!-- STEP 1: SHARED BASICS -->
+                <div class="card mb-4 border-info border-opacity-10">
+                    <div class="card-header py-3 px-4">
+                        <h6 class="m-0 fw-bold text-info"><i class="bi bi-1-circle me-2"></i> BASIS DATEN (Zentral)</h6>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label class="small text-secondary fw-bold mb-1">EVENT TITEL</label>
+                                <input type="text"
+                                    class="form-control bg-dark border-secondary text-white form-control-lg"
+                                    name="title" id="eTitle" placeholder="z.B. CSD Köln 2026"
+                                    oninput="liveUpdate(); this.classList.remove('border-danger')">
+                                <div id="eTitleError" class="text-danger small mt-1 d-none">Bitte einen Titel angeben.
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="small text-secondary fw-bold mb-1">UMFRAGE-STIL</label>
+                                <select class="form-select bg-dark border-secondary text-white form-control-lg"
+                                    name="poll_type" id="ePollType" onchange="liveUpdate()">
+                                    <option value="multi_day">Mehrtägig</option>
+                                    <option value="standard">Standard (Ja/Vielleicht/Nein)</option>
+                                    <option value="days_only">Nur Tage</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="small text-secondary fw-bold mb-1">TOPIC (THEMA)</label>
+                                <select class="form-select bg-dark border-secondary text-white form-control-lg" name="topic_id" id="eTopicId">
+                                    <option value="">-- Haupt-Chat --</option>
+                                    {% for tid, name in known_topics.items() %}
+                                    <option value="{{ tid }}" {% if tid=='872' %}selected{% endif %}>{{ name }} ({{ tid }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-12 mt-4">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <label class="small text-secondary fw-bold">TERMINE / ZEITPLAN</label>
+                                    <button type="button" class="btn btn-sm btn-outline-info px-3"
+                                        onclick="addDateRow()">
+                                        <i class="bi bi-plus-lg me-1"></i> TAG HINZUFÜGEN
+                                    </button>
+                                </div>
+                                <div id="dateRowsContainer" class="d-grid gap-2"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2: PARALLEL MESSAGES -->
+                <div class="row g-4 mb-4">
+                    <!-- GROUP MESSAGE -->
+                    <div class="col-lg-6">
+                        <div class="card section-box border-warning border-opacity-10 h-100">
+                            <div class="card-header py-3 px-4">
+                                <h6 class="m-0 fw-bold text-warning"><i class="bi bi-people me-2"></i> GRUPPEN-NACHRICHT
+                                </h6>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="mb-3">
+                                    <label class="small text-secondary fw-bold mb-1">BILD / VIDEO (GRUPPE)</label>
+                                    <div class="upload-zone p-4 rounded-3 text-center mb-2"
+                                        onclick="document.getElementById('eImage').click()">
+                                        <i class="bi bi-image fs-3 text-secondary"></i>
+                                        <p class="small text-secondary mt-1 mb-0" id="eCurPath">Hauptmedium hochladen
+                                        </p>
+                                    </div>
+                                    <input type="file" class="d-none" name="image" id="eImage" accept="image/*,video/*"
+                                        onchange="previewFile(this, 'pI', 'pV', 'pMediaWrap')">
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <label class="small text-secondary fw-bold m-0">BESCHREIBUNG (GRUPPE)</label>
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-secondary py-0 px-2 text-white-50" style="font-size: 0.7rem;" onclick="cleanTextarea('eDesc')" title="Formatierung bereinigen / Leerzeilen reduzieren"><i class="bi bi-magic me-1"></i> Säubern</button>
+                                            <button type="button" class="btn btn-outline-info py-0 px-2" style="font-size: 0.7rem;" onclick="pasteToTextarea('eDesc')" title="Aus Zwischenablage einfügen"><i class="bi bi-clipboard-plus me-1"></i> Einfügen</button>
+                                        </div>
+                                    </div>
+                                    <textarea class="form-control bg-dark border-secondary text-white auto-expand-textarea"
+                                        name="description" id="eDesc" rows="4" placeholder="Öffentlicher Infotext..."
+                                        oninput="autoResizeTextarea(this); liveUpdate()"></textarea>
+                                </div>
+                                <!-- Interaction type moved to the bottom section -->
+                                <div class="row g-2">
+                                    {% for f, l, i in [('pin','Pin','📌'), ('silent','Lautlos','🔕'),
+                                    ('spoiler','Spoiler','👁️'), ('split','Split','✂️')] %}
+                                    <div class="col-6">
+                                        <div
+                                            class="p-2 bg-dark bg-opacity-30 border border-white border-opacity-5 rounded-3">
+                                            <div class="form-check form-switch m-0 small">
+                                                <input class="form-check-input" type="checkbox" name="{{ f }}"
+                                                    id="{{ f }}Sw">
+                                                <label class="form-check-label text-white ms-1">{{ i }} {{ l }}</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PRIVATE DM -->
+                    <div class="col-lg-6">
+                        <div class="card section-box border-success border-opacity-10 h-100">
+                            <div class="card-header py-3 px-4 d-flex justify-content-between align-items-center">
+                                <h6 class="m-0 fw-bold text-success"><i class="bi bi-shield-check me-2"></i>
+                                    PRIVAT-NACHRICHT (DM)</h6>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="send_confirmation"
+                                        id="sendConfirmSw" checked onchange="toggleConfirmSection()">
+                                </div>
+                            </div>
+                            <div class="card-body p-4" id="confirmSection">
+                                <div class="mb-3">
+                                    <label class="small text-secondary fw-bold mb-1">BILD (PRIVAT - OPTIONAL)</label>
+                                    <div class="upload-zone p-4 rounded-3 text-center mb-2"
+                                        onclick="document.getElementById('eDmImage').click()">
+                                        <i class="bi bi-person-badge fs-3 text-secondary"></i>
+                                        <p class="small text-secondary mt-1 mb-0" id="eDmCurPath">Anderes Bild für DM
+                                        </p>
+                                    </div>
+                                    <input type="file" class="d-none" name="confirmation_image" id="eDmImage"
+                                        accept="image/*" onchange="previewDmFile(this)">
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <label class="small text-secondary fw-bold m-0">BESTÄTIGUNGS-TEXT (PRIVAT)</label>
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-secondary py-0 px-2 text-white-50" style="font-size: 0.7rem;" onclick="cleanTextarea('eConfirmText')" title="Formatierung bereinigen"><i class="bi bi-magic me-1"></i> Säubern</button>
+                                            <button type="button" class="btn btn-outline-success py-0 px-2" style="font-size: 0.7rem;" onclick="pasteToTextarea('eConfirmText')" title="Aus Zwischenablage einfügen"><i class="bi bi-clipboard-plus me-1"></i> Einfügen</button>
+                                        </div>
+                                    </div>
+                                    <textarea class="form-control bg-dark border-secondary text-white auto-expand-textarea"
+                                        name="confirmation_text" id="eConfirmText" rows="4"
+                                        placeholder="Dankestext & Infos..." oninput="autoResizeTextarea(this); liveUpdate()"></textarea>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-12">
+                                        <label class="small text-secondary fw-bold mb-1">KALENDER-TITEL</label>
+                                        <input type="text" class="form-control bg-dark border-secondary text-white"
+                                            name="calendar_title" id="eCalTitle" placeholder="Name im Kalender..."
+                                            oninput="liveUpdate()">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="small text-secondary fw-bold mb-1">DATEI-NAME (.ics)</label>
+                                        <input type="text" class="form-control bg-dark border-secondary text-white"
+                                            name="calendar_filename" id="eCalFilename" placeholder="termin.ics">
+                                    </div>
+                                </div>
+
+                                <div class="mt-4 pt-3 border-top border-white border-opacity-5">
+                                    <label class="small text-success fw-bold mb-2"><i class="bi bi-link-45deg me-1"></i>
+                                        DM-SPEZIFISCHE LINKS (Optional)</label>
+                                    <div class="row g-2">
+                                        <div class="col-12">
+                                            <div class="input-group input-group-sm mb-2">
+                                                <span class="input-group-text bg-dark border-secondary text-success"><i
+                                                        class="bi bi-globe"></i></span>
+                                                <input type="url"
+                                                    class="form-control bg-dark border-secondary text-white"
+                                                    name="dm_website_url" id="eDmWebUrl"
+                                                    placeholder="Eigene Web-URL für DM..." oninput="liveUpdate()">
+                                            </div>
+                                            <input type="text"
+                                                class="form-control form-control-sm bg-dark border-secondary text-white mb-3"
+                                                name="dm_website_label" id="eDmWebLabel"
+                                                placeholder="Text für DM-Webseite Link" oninput="liveUpdate()">
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="input-group input-group-sm mb-2">
+                                                <span class="input-group-text bg-dark border-secondary text-success"><i
+                                                        class="bi bi-ticket-perforated"></i></span>
+                                                <input type="url"
+                                                    class="form-control bg-dark border-secondary text-white"
+                                                    name="dm_tickets_url" id="eDmTickUrl"
+                                                    placeholder="Eigene Ticket-URL für DM..." oninput="liveUpdate()">
+                                            </div>
+                                            <input type="text"
+                                                class="form-control form-control-sm bg-dark border-secondary text-white"
+                                                name="dm_tickets_label" id="eDmTickLabel"
+                                                placeholder="Text für DM-Ticket Link" oninput="liveUpdate()">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 3: SHARED TOGGLES -->
+                <div class="card border-primary border-opacity-10 mb-4">
+                    <div class="card-header py-3 px-4">
+                        <h6 class="m-0 fw-bold text-primary"><i class="bi bi-3-circle me-2"></i> INFOS & LINKS (Global)
+                        </h6>
+                    </div>
+                    <div class="card-body p-4">
+                        <!-- LOCATION -->
+                        <div class="shared-row mb-4">
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-8">
+                                    <label class="small text-secondary fw-bold mb-1">LOCATION / ORT</label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" class="form-control bg-dark border-secondary text-white"
+                                            name="location" id="eLocation" placeholder="Genaue Adresse..."
+                                            oninput="liveUpdate()">
+                                        <button class="btn btn-outline-secondary" type="button"
+                                            onclick="window.open('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(document.getElementById('eLocation').value), '_blank')">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="visibility-toggle-group">
+                                        <div class="form-check form-check-inline m-0">
+                                            <input class="form-check-input" type="checkbox" name="location_in_group"
+                                                id="eLocInGroup" checked onchange="liveUpdate()">
+                                            <label class="form-check-label small text-white">Gruppe</label>
+                                        </div>
+                                        <div class="form-check form-check-inline m-0">
+                                            <input class="form-check-input" type="checkbox" name="location_in_dm"
+                                                id="eLocInDm" checked onchange="liveUpdate()">
+                                            <label class="form-check-label small text-white">Privat</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- WEBSITE -->
+                        <div class="shared-row mb-4">
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-4">
+                                    <label class="small text-secondary fw-bold mb-1"><i class="bi bi-globe me-1"></i>
+                                        WEBSEITE URL</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-dark border-secondary text-secondary"><i
+                                                class="bi bi-link-45deg"></i></span>
+                                        <input type="url" class="form-control bg-dark border-secondary text-white"
+                                            name="website_url" id="eWebUrl" placeholder="https://..."
+                                            oninput="liveUpdate()">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="small text-secondary fw-bold mb-1">LINK TEXT</label>
+                                    <input type="text"
+                                        class="form-control form-control-sm bg-dark border-secondary text-white"
+                                        name="website_label" id="eWebLabel" placeholder="🌐 Webseite besuchen"
+                                        oninput="liveUpdate()">
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="visibility-toggle-group">
+                                        <div class="form-check form-check-inline m-0">
+                                            <input class="form-check-input" type="checkbox" name="website_in_group"
+                                                id="eWebInGroup" checked onchange="liveUpdate()">
+                                            <label class="form-check-label small text-white">Gruppe</label>
+                                        </div>
+                                        <div class="form-check form-check-inline m-0">
+                                            <input class="form-check-input" type="checkbox" name="website_in_dm"
+                                                id="eWebInDm" checked onchange="liveUpdate()">
+                                            <label class="form-check-label small text-white">Privat</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TICKETS -->
+                        <div class="shared-row">
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-4">
+                                    <label class="small text-secondary fw-bold mb-1"><i
+                                            class="bi bi-ticket-perforated me-1"></i> TICKET URL</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-dark border-secondary text-secondary"><i
+                                                class="bi bi-cart3"></i></span>
+                                        <input type="url" class="form-control bg-dark border-secondary text-white"
+                                            name="tickets_url" id="eTickUrl" placeholder="https://..."
+                                            oninput="liveUpdate()">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="small text-secondary fw-bold mb-1">LINK TEXT</label>
+                                    <input type="text"
+                                        class="form-control form-control-sm bg-dark border-secondary text-white"
+                                        name="tickets_label" id="eTickLabel" placeholder="🎟️ Tickets sichern"
+                                        oninput="liveUpdate()">
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="visibility-toggle-group">
+                                        <div class="form-check form-check-inline m-0">
+                                            <input class="form-check-input" type="checkbox" name="tickets_in_group"
+                                                id="eTickInGroup" checked onchange="liveUpdate()">
+                                            <label class="form-check-label small text-white">Gruppe</label>
+                                        </div>
+                                        <div class="form-check form-check-inline m-0">
+                                            <input class="form-check-input" type="checkbox" name="tickets_in_dm"
+                                                id="eTickInDm" checked onchange="liveUpdate()">
+                                            <label class="form-check-label small text-white">Privat</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- DATE SELECTION -->
+                        <div class="shared-row mt-4">
+                            <label
+                                class="small text-secondary fw-bold mb-3 d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-calendar-check me-2"></i> DATUM / TERMINE</span>
+                                <button type="button" class="btn btn-sm btn-info py-1 px-3 fw-bold"
+                                    style="font-size: 0.7rem; border-radius: 20px;" onclick="addDateRow()">
+                                    <i class="bi bi-plus-circle me-1"></i> Termin hinzufügen
+                                </button>
+                            </label>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="small text-muted mb-1">Umfrage-Stil</label>
+                                    <select class="form-select form-select-sm bg-dark border-secondary text-white"
+                                        name="poll_type" id="ePollType" onchange="liveUpdate()">
+                                        <option value="multi_day">Einzelne Tage/Zeiten (Getrennt wählbar)</option>
+                                        <option value="standard">Standard-Umfrage (Dabei / Vielleicht / Nein)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div id="dateRowsContainer" class="d-grid gap-2 mb-2">
+                                <!-- Dates injected by JS -->
+                            </div>
+                        </div>
+
+                        <!-- NEW: POLL CONFIGURATION SECTION (BOTTOM SEPARATED) -->
+                        <div class="p-4 mt-4 rounded-4 border border-info border-opacity-25"
+                            style="background: rgba(13, 202, 240, 0.03);">
+                            <h5 class="text-info fw-bold mb-4 d-flex align-items-center">
+                                <i class="bi bi-bar-chart-line-fill me-3 fs-4"></i> UMFRAGE-KONFIGURATION
+                            </h5>
+
+                            <div class="mb-4">
+                                <label class="small text-secondary fw-bold mb-2">UMFRAGE-VORLAGE</label>
+                                <div class="row g-2" id="pollModeSelector">
+                                    <div class="col-4">
+                                        <input type="radio" class="btn-check" name="interaction_type_ui"
+                                            id="modeStandard" value="standard"
+                                            onchange="handlePollModeChange('standard')" checked>
+                                        <label class="btn btn-outline-info btn-sm w-100 py-2 fw-bold"
+                                            for="modeStandard">JA / NEIN</label>
+                                    </div>
+                                    <div class="col-4">
+                                        <input type="radio" class="btn-check" name="interaction_type_ui" id="modeDates"
+                                            value="dates" onchange="handlePollModeChange('dates')">
+                                        <label class="btn btn-outline-info btn-sm w-100 py-2 fw-bold"
+                                            for="modeDates">TERMINE</label>
+                                    </div>
+                                    <div class="col-4">
+                                        <input type="radio" class="btn-check" name="interaction_type_ui" id="modeNone"
+                                            value="none" onchange="handlePollModeChange('none')">
+                                        <label class="btn btn-outline-danger btn-sm w-100 py-2 fw-bold"
+                                            for="modeNone">KEINE</label>
+                                    </div>
+                                </div>
+                                <input type="hidden" name="interaction_type" id="eInteractionType" value="poll">
+                                <input type="hidden" name="poll_type" id="ePollType" value="multi_day">
+                            </div>
+
+                            <div id="pollDetailedSettings">
+                                <div
+                                    class="mb-3 p-3 bg-dark bg-opacity-50 rounded-3 border border-white border-opacity-5">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" name="poll_multiple_choice"
+                                            id="ePollMulti" checked onchange="liveUpdate()">
+                                        <label class="form-check-label fw-bold small text-info">MEHRFACHAUSWAHL
+                                            ERLAUBEN</label>
+                                    </div>
+                                </div>
+
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-dark bg-opacity-40 rounded-3 border border-white border-opacity-5 h-100"
+                                            id="settingYes">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <label class="small text-secondary fw-bold m-0 text-uppercase">Bin
+                                                    Dabei</label>
+                                                <div class="form-check form-switch m-0">
+                                                    <input class="form-check-input" type="checkbox" name="poll_show_yes"
+                                                        id="ePollShowYes" checked onchange="liveUpdate()">
+                                                </div>
+                                            </div>
+                                            <input type="text"
+                                                class="form-control form-control-sm bg-dark border-secondary text-white"
+                                                name="poll_yes_label" id="ePollYesLabel" placeholder="✅ Bin dabei"
+                                                oninput="liveUpdate()">
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-dark bg-opacity-40 rounded-3 border border-white border-opacity-5 h-100"
+                                            id="settingAllDay">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <label class="small text-secondary fw-bold m-0 text-uppercase">Alle
+                                                    Tage</label>
+                                                <div class="form-check form-switch m-0">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        name="poll_show_all_day" id="ePollAllDay" checked
+                                                        onchange="liveUpdate()">
+                                                </div>
+                                            </div>
+                                            <input type="text"
+                                                class="form-control form-control-sm bg-dark border-secondary text-white"
+                                                name="poll_all_day_label" id="ePollAllDayLabel"
+                                                placeholder="🌟 Alle Tage dabei" oninput="liveUpdate()">
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-dark bg-opacity-40 rounded-3 border border-white border-opacity-5 h-100"
+                                            id="settingDates">
+                                            <div class="form-check form-switch mb-0">
+                                                <input class="form-check-input" type="checkbox" name="poll_show_dates"
+                                                    id="ePollShowDates" checked onchange="liveUpdate()">
+                                                <label class="form-check-label small text-white fw-bold">TERMINE
+                                                    AUFLISTEN</label>
+                                            </div>
+                                            <div class="text-secondary mt-1" style="font-size:0.6rem;">Die oben
+                                                eingetragenen Termine werden als Optionen angezeigt.</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-dark bg-opacity-40 rounded-3 border border-white border-opacity-5 h-100"
+                                            id="settingMaybe">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <label
+                                                    class="small text-secondary fw-bold m-0 text-uppercase">Vielleicht</label>
+                                                <div class="form-check form-switch m-0">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        name="poll_show_maybe" id="ePollMaybe" checked
+                                                        onchange="liveUpdate()">
+                                                </div>
+                                            </div>
+                                            <input type="text"
+                                                class="form-control form-control-sm bg-dark border-secondary text-white"
+                                                name="poll_maybe_label" id="ePollMaybeLabel" placeholder="🤔 Vielleicht"
+                                                oninput="liveUpdate()">
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-dark bg-opacity-40 rounded-3 border border-white border-opacity-5 h-100"
+                                            id="settingNo">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <label
+                                                    class="small text-secondary fw-bold m-0 text-uppercase">Absage</label>
+                                                <div class="form-check form-switch m-0">
+                                                    <input class="form-check-input" type="checkbox" name="poll_show_no"
+                                                        id="ePollNo" checked onchange="liveUpdate()">
+                                                </div>
+                                            </div>
+                                            <input type="text"
+                                                class="form-control form-control-sm bg-dark border-secondary text-white"
+                                                name="poll_no_label" id="ePollNoLabel" placeholder="❌ Bin nicht dabei"
+                                                oninput="liveUpdate()">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- ACTIONS & AI -->
+                <div class="d-grid gap-3">
+                    <button type="submit" class="btn btn-info btn-lg py-3 fw-bold shadow" id="subBtn">
+                        <i class="bi bi-send-fill me-2"></i> EVENT SPEICHERN & VERÖFFENTLICHEN
+                    </button>
+
+
+                </div>
+            </div>
+
+            <!-- FLOATING MOBILE PREVIEW BUTTON -->
+            <button type="button" class="btn btn-info btn-lg rounded-pill shadow-lg position-fixed d-xl-none px-4 py-3 fw-bold"
+                style="bottom: 24px; right: 20px; z-index: 1050; border: 2px solid rgba(255,255,255,0.2);"
+                data-bs-toggle="offcanvas" data-bs-target="#mobilePreviewOffcanvas">
+                <i class="bi bi-eye-fill me-2"></i> Live-Vorschau
+            </button>
+
+            <!-- PREVIEW COLUMN (Desktop display) -->
+            <div class="col-xl-4 d-none d-xl-block">
+                <div class="sticky-top" style="top: 2rem; z-index: 10;">
+                    <div class="card h-100 p-4 d-flex flex-column align-items-center bg-black bg-opacity-40">
+                        <div class="d-flex gap-2 mb-4">
+                            <button type="button" class="preview-mode-btn active btnGroupMode"
+                                onclick="setPreviewMode('group')">KANAL ANSICHT</button>
+                            <button type="button" class="preview-mode-btn btnDmMode"
+                                onclick="setPreviewMode('dm')">DM ANSICHT</button>
+                        </div>
+
+                        <div id="phoneMockup">
+                            <!-- CHANNEL PREVIEW -->
+                            <div class="modeGroup">
+                                <div class="preview-bubble mb-3">
+                                    <div class="pMediaWrap d-none" style="background: #000;">
+                                        <img src="" class="pI" style="width:100%; height:auto; display:none;">
+                                        <video class="pV" style="width:100%; height:auto; display:none;" autoplay loop muted></video>
+                                    </div>
+                                    <div class="p-3">
+                                        <div class="pT text-white"
+                                            style="white-space: pre-wrap; word-break: break-word; font-size: 0.85rem; line-height: 1.3;">
+                                            <b>📅 Titel</b><br><br>Info...
+                                        </div>
+                                        <div class="pInlineButtons mt-2 d-grid gap-1"></div>
+                                        <div class="text-end mt-2 text-info opacity-50" style="font-size: 0.6rem;">16:08
+                                            <i class="bi bi-check2-all"></i>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="pPollBubble p-3 preview-bubble shadow-sm" style="background: #182533;">
+                                    <div class="small fw-bold text-white mb-2" style="font-size: 0.8rem;"><i
+                                            class="bi bi-bar-chart-fill me-1 text-info"></i> <span
+                                            class="pPollTitle">Teilnahme</span></div>
+                                    <div class="pPollOptions d-grid gap-2"></div>
+                                    <div class="pPollHint text-center mt-2 small text-white-50"
+                                        style="font-size: 0.6rem;">Öffentliche Umfrage • 0 Stimmen</div>
+                                </div>
+                            </div>
+
+                            <!-- DM PREVIEW -->
+                            <div class="modeDm d-none">
+                                <div class="p-3 preview-bubble">
+                                    <div class="d-flex align-items-center gap-3 mb-3 pb-2 border-bottom border-white border-opacity-10">
+                                        <div class="avatar-mini"
+                                            style="width:34px; height:34px; background: linear-gradient(135deg, #50a2e3, #246799); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white;">
+                                            B</div>
+                                        <div>
+                                            <div class="small fw-bold text-white" style="font-size: 0.8rem;">Event Bot</div>
+                                            <div class="text-info opacity-50" style="font-size: 0.6rem;">online</div>
+                                        </div>
+                                    </div>
+                                    <div class="pDmMediaWrap mb-3 d-none rounded-2 overflow-hidden">
+                                        <img src="" class="pDmI" style="width:100%; height:auto;">
+                                    </div>
+                                    <div class="pDmT text-white mb-3"
+                                        style="white-space: pre-wrap; word-break: break-word; font-size: 0.85rem; line-height: 1.3;">
+                                        Bestätigung...</div>
+                                    <div class="py-2 px-3 border border-white border-opacity-10 rounded-2 text-center text-info"
+                                        style="font-size: 0.75rem;"><i class="bi bi-file-earmark-medical me-1"></i>
+                                        <span class="pDmIcs">termin.ics</span>
+                                    </div>
+                                    <div class="pDmInlineButtons mt-3 d-grid gap-1"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MOBILE OFFCANVAS PREVIEW -->
+            <div class="offcanvas offcanvas-bottom h-100 bg-dark text-white d-xl-none" tabindex="-1" id="mobilePreviewOffcanvas" style="background: rgba(15, 23, 42, 0.98) !important; backdrop-filter: blur(20px);">
+                <div class="offcanvas-header border-bottom border-white border-opacity-10">
+                    <h5 class="offcanvas-title text-info fw-bold"><i class="bi bi-phone me-2"></i> Live-Vorschau (Mobile)</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                </div>
+                <div class="offcanvas-body d-flex flex-column align-items-center justify-content-start p-3 overflow-y-auto">
+                    <div class="d-flex gap-2 mb-3">
+                        <button type="button" class="preview-mode-btn active btnGroupMode" onclick="setPreviewMode('group')">KANAL ANSICHT</button>
+                        <button type="button" class="preview-mode-btn btnDmMode" onclick="setPreviewMode('dm')">DM ANSICHT</button>
+                    </div>
+                    <div class="mobile-mockup-wrapper w-100 d-flex justify-content-center">
+                        <div id="phoneMockupMobile" style="max-width: 320px; width: 100%;">
+                            <!-- JS clones #phoneMockup into here on mobile offcanvas open -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </form>
+    <div class="mt-5 pt-5 border-top border-white border-opacity-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="text-white fw-bold m-0"><i class="bi bi-collection-fill me-2 text-info"></i> Veröffentlichte
+                Events ({{ events|length }})</h4>
+        </div>
+
+        <div class="row g-4">
+            {% for e in events %}
+            <div class="col-12">
+                <div class="tg-card border-info border-opacity-10 overflow-hidden">
+                    <!-- Header Bar -->
+                    <div
+                        class="p-3 bg-black bg-opacity-30 d-flex justify-content-between align-items-center border-bottom border-white border-opacity-5">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="fs-4 text-info"><i class="bi bi-calendar-event"></i></div>
+                            <div>
+                                <h5 class="text-white fw-bold m-0" style="letter-spacing: 0.02em;">{{ e.title }}</h5>
+                                <div class="text-white-50" style="font-size: 0.7rem; opacity: 0.6;">
+                                    ID #{{ e.id }} | Gepostet am: {{ e.created_at.strftime('%d.%m. %H:%M') }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="/api/export/event/{{ e.id }}"
+                                class="btn btn-icon btn-outline-light border-opacity-10"
+                                title="Statistik exportieren (CSV)"><i class="bi bi-download"></i></a>
+                            <button type="button" class="btn btn-icon btn-outline-info" onclick="edit('{{ e.id }}')"
+                                title="Bearbeiten"><i class="bi bi-pencil"></i></button>
+                            <button type="button" class="btn btn-icon btn-outline-warning"
+                                onclick="duplicate('{{ e.id }}')" title="Duplizieren (Kopie erstellen)"><i
+                                    class="bi bi-copy"></i></button>
+                            <a href="/api/events/delete/{{ e.id }}" class="btn btn-icon btn-outline-danger"
+                                title="Löschen"><i class="bi bi-trash"></i></a>
+                        </div>
+                    </div>
+
+                    <!-- Meta Badges -->
+                    <div class="px-3 py-2 bg-black bg-opacity-40 d-flex gap-3">
+                        <div class="badge bg-dark border border-white border-opacity-10 text-white-50 px-2 py-1"
+                            style="font-size: 0.65rem;">
+                            <i class="bi bi-clock me-1"></i> {{ e.created_at.strftime('%d.%m.%Y %H:%M') }}
+                        </div>
+                        <div class="badge bg-dark border border-white border-opacity-10 text-white-50 px-2 py-1"
+                            style="font-size: 0.65rem;">
+                            Stil: {{ 'Mehrtägig' if e.poll_type == 'multi_day' else 'Standard' }} (Alle/Einzeln)
+                        </div>
+                    </div>
+
+                    <div class="p-3">
+                        <div class="row g-4">
+                            <!-- Left: Media & Description -->
+                            <div class="col-lg-6">
+                                <div class="d-flex gap-4">
+                                    {% if e.image_path %}
+                                    <div class="media-thumb-large shadow-lg" onclick="zoomImage('{{ e.image_path }}')">
+                                        {% if e.image_path.lower().endswith(('.mp4', '.mov', '.avi', '.webm')) %}
+                                        <video src="{{ e.image_path }}" class="rounded-3 w-100 h-100"
+                                            style="object-fit: cover;" muted></video>
+                                        <div
+                                            class="position-absolute top-50 left-50 translate-middle text-white opacity-50">
+                                            <i class="bi bi-play-circle fs-2"></i>
+                                        </div>
+                                        {% else %}
+                                        <img src="{{ e.image_path }}" class="rounded-3">
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                    <div class="flex-grow-1 overflow-hidden">
+                                        <div class="text-white-50 small line-clamp-6"
+                                            style="font-size: 0.85rem; line-height: 1.5;">
+                                            {{ e.description or 'Keine Beschreibung vorhanden.' }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right: RSVP Grid -->
+                            <div class="col-lg-6">
+                                <div class="d-flex flex-column gap-4">
+                                    {% set rsvps = e.rsvps if e.rsvps else [] %}
+
+                                    {# Summary Statistics #}
+                                    <div
+                                        class="p-3 rounded-3 bg-black bg-opacity-20 border border-white border-opacity-5 mb-2">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <span class="small fw-bold text-white-50 text-uppercase"
+                                                style="letter-spacing: 1px;"><i
+                                                    class="bi bi-bar-chart-fill me-1 text-info"></i> Aktuelle
+                                                Auswertung</span>
+                                            <span class="badge bg-info text-dark fw-bold">{{ rsvps|length }}
+                                                TEILNEHMER</span>
+                                        </div>
+
+                                        {% set rsvp_counts = {} %}
+                                        {% for r in rsvps %}
+                                        {% set statuses = r.status.split(',') if r.status else [] %}
+                                        {% for s in statuses %}
+                                        {% set s = s.strip() %}
+                                        {% if s %}
+                                        {% set _ = rsvp_counts.update({s: (rsvp_counts[s]|default(0)) + 1}) %}
+                                        {% endif %}
+                                        {% endfor %}
+                                        {% endfor %}
+
+                                        <div class="d-flex flex-wrap gap-2">
+                                            {% for status, count in rsvp_counts.items() %}
+                                            {% set display_label = status %}
+                                            {% set btn_cls = "bg-info bg-opacity-10 text-info border-info
+                                            border-opacity-25" %}
+
+                                            {% if status == 'dabei' %}{% set display_label = 'DABEI' %}{% set btn_cls =
+                                            "bg-success bg-opacity-10 text-success border-success border-opacity-25" %}
+                                            {% elif status == 'vielleicht' %}{% set display_label = 'VIELLEICHT' %}{%
+                                            set btn_cls = "bg-warning bg-opacity-10 text-warning border-warning
+                                            border-opacity-25" %}
+                                            {% elif status == 'nicht_dabei' %}{% set display_label = 'ABSAGEN' %}{% set
+                                            btn_cls = "bg-danger bg-opacity-10 text-danger border-danger
+                                            border-opacity-25" %}
+                                            {% elif status == 'Alle Tage' %}{% set display_label = 'ALLE TAGE' %}{% set
+                                            btn_cls = "bg-success bg-opacity-20 text-success border-success
+                                            border-opacity-50" %}
+                                            {% endif %}
+
+                                            <div class="px-3 py-2 rounded-2 border d-flex align-items-center gap-2 {{ btn_cls }}"
+                                                style="font-size: 0.75rem;">
+                                                <span class="fw-bold">{{ display_label }}</span>
+                                                <span class="badge bg-white bg-opacity-10 text-white px-2">{{ count
+                                                    }}</span>
+                                            </div>
+                                            {% endfor %}
+                                            {% if not rsvp_counts %}
+                                            <div class="text-white-50 small italic">Noch keine Rückmeldungen vorhanden.
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    {% set rsvps = e.rsvps if e.rsvps else [] %}
+
+                                    {# Pre-defined groups #}
+                                    {% set groups = {
+                                    'Alle Tage': {'label': 'ALLE TAGE', 'icon': 'bi-fire', 'cls': 'text-success',
+                                    'members': []},
+                                    'dabei': {'label': 'DABEI', 'icon': 'bi-star-fill', 'cls': 'text-success',
+                                    'members': []},
+                                    'vielleicht': {'label': 'EVENTUELL', 'icon': 'bi-question-circle', 'cls':
+                                    'text-warning', 'members': []},
+                                    'nicht_dabei': {'label': 'ABSAGEN', 'icon': 'bi-moon-stars', 'cls': 'text-danger',
+                                    'members': []}
+                                    } %}
+
+                                    {% set other_groups = {} %}
+
+                                    {% for r in rsvps %}
+                                    {% set statuses = r.status.split(',') if r.status else [] %}
+                                    {% for s in statuses %}
+                                    {% set s = s.strip() %}
+                                    {% set matched = false %}
+
+                                    {# Check against pre-defined groups with fuzzy matching for emojis/keywords #}
+                                    {% if 'ALLE TAGE' in s.upper() or '🌟' in s %}
+                                    {% do groups['Alle Tage'].members.append(r) %}
+                                    {% set matched = true %}
+                                    {% elif 'DABEI' in s.upper() or '✅' in s %}
+                                    {% do groups['dabei'].members.append(r) %}
+                                    {% set matched = true %}
+                                    {% elif 'VIELLEICHT' in s.upper() or '🤔' in s %}
+                                    {% do groups['vielleicht'].members.append(r) %}
+                                    {% set matched = true %}
+                                    {% elif 'ABSAGEN' in s.upper() or 'NICHT' in s.upper() or '❌' in s %}
+                                    {% do groups['nicht_dabei'].members.append(r) %}
+                                    {% set matched = true %}
+                                    {% endif %}
+
+                                    {% if not matched and s %}
+                                    {% if s not in other_groups %}
+                                    {% do other_groups.update({s: []}) %}
+                                    {% endif %}
+                                    {% do other_groups[s].append(r) %}
+                                    {% endif %}
+                                    {% endfor %}
+                                    {% endfor %}
+
+                                    {# Render groups #}
+                                    {% for key in ['Alle Tage', 'dabei', 'vielleicht', 'nicht_dabei'] %}
+                                    {% set g = groups[key] %}
+                                    {% if g.members|length > 0 %}
+                                    <div class="rsvp-group">
+                                        <div class="rsvp-header mb-2">
+                                            <span class="{{ g.cls }} fw-bold small text-uppercase"
+                                                style="letter-spacing: 0.05em;">
+                                                <i class="bi {{ g.icon }} me-1"></i> {{ g.label }} — {{ g.members|length
+                                                }}
+                                            </span>
+                                        </div>
+                                        <div class="rsvp-grid">
+                                            {% for r in g.members|unique(attribute='telegram_user_id') %}
+                                            <div class="rsvp-user-card">
+                                                <div class="avatar-sm">
+                                                    <img src="/api/avatar/{{ r.telegram_user_id }}"
+                                                        onerror="this.src='https://ui-avatars.com/api/?name={{ r.username or 'U' }}&background=random';">
+                                                </div>
+                                                <div class="user-info">
+                                                    <span class="username">{{ r.username or 'User' }}</span>
+                                                    {% if r.dm_sent_status == 'success' %}
+                                                    <i class="bi bi-check-circle-fill text-success verified-icon"
+                                                        title="DM erfolgreich zugestellt"></i>
+                                                    {% elif r.dm_sent_status == 'failed' %}
+                                                    <i class="bi bi-x-circle-fill text-danger verified-icon"
+                                                        title="DM Zustellung fehlgeschlagen"></i>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    {% endfor %}
+
+                                    {# Render dynamic date groups #}
+                                    {% for label, items in other_groups.items() %}
+                                    <div class="rsvp-group">
+                                        <div class="rsvp-header mb-2" style="border-left-color: #50a2e3;">
+                                            <span class="text-info fw-bold small text-uppercase"
+                                                style="letter-spacing: 0.05em;">
+                                                <i class="bi bi-calendar2-check me-1"></i> {{ label }} — {{ items|length
+                                                }}
+                                            </span>
+                                        </div>
+                                        <div class="rsvp-grid">
+                                            {% for r in items|unique(attribute='telegram_user_id') %}
+                                            <div class="rsvp-user-card">
+                                                <div class="avatar-sm">
+                                                    <img src="/api/avatar/{{ r.telegram_user_id }}"
+                                                        onerror="this.src='https://ui-avatars.com/api/?name={{ r.username or 'U' }}&background=random';">
+                                                </div>
+                                                <div class="user-info">
+                                                    <span class="username">{{ r.username or 'User' }}</span>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+
+                                    {# Detailed Participant Table #}
+                                    <div class="mt-5 pt-4 border-top border-white border-opacity-5">
+                                        <h6 class="text-white-50 fw-bold small text-uppercase mb-3"
+                                            style="letter-spacing: 1px;"><i
+                                                class="bi bi-people-fill me-2 text-info"></i> Alle Teilnehmer
+                                            (Detailansicht)</h6>
+                                        <div
+                                            class="table-responsive rounded-3 bg-black bg-opacity-20 border border-white border-opacity-5">
+                                            <table class="table table-dark table-hover table-sm m-0 align-middle"
+                                                style="font-size: 0.7rem; --bs-table-bg: transparent;">
+                                                <thead>
+                                                    <tr
+                                                        class="text-white-50 border-bottom border-white border-opacity-10">
+                                                        <th class="ps-3 py-2">Nutzer</th>
+                                                        <th class="py-2">Status / Wahl</th>
+                                                        <th class="py-2">DM-Zustellung</th>
+                                                        <th class="pe-3 py-2 text-end">Zeitpunkt</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for r in rsvps|sort(attribute='updated_at', reverse=true) %}
+                                                    <tr>
+                                                        <td class="ps-3 py-2">
+                                                            <div class="d-flex align-items-center gap-2">
+                                                                <img src="/api/avatar/{{ r.telegram_user_id }}"
+                                                                    class="rounded-circle"
+                                                                    style="width: 20px; height: 20px;"
+                                                                    onerror="this.src='https://ui-avatars.com/api/?name={{ r.username or 'U' }}&background=random';">
+                                                                <span class="fw-bold">{{ r.username or 'Unbekannt'
+                                                                    }}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td class="py-2">
+                                                            {% set labels = r.status.split(',') %}
+                                                            {% for l in labels %}
+                                                            <span
+                                                                class="badge bg-dark border border-white border-opacity-10 text-white-50 px-2 py-1">{{
+                                                                l.strip() }}</span>
+                                                            {% endfor %}
+                                                        </td>
+                                                        <td class="py-2">
+                                                            {% if r.dm_sent_status == 'success' %}
+                                                            <span
+                                                                class="badge bg-success bg-opacity-10 text-success border-success border-opacity-25 px-2 py-1"><i
+                                                                    class="bi bi-check2-circle me-1"></i>
+                                                                Zugestellt</span>
+                                                            {% elif r.dm_sent_status == 'failed' %}
+                                                            <span
+                                                                class="badge bg-danger bg-opacity-10 text-danger border-danger border-opacity-25 px-2 py-1"
+                                                                title="{{ r.dm_error }}"><i
+                                                                    class="bi bi-exclamation-triangle me-1"></i>
+                                                                Fehlgeschlagen</span>
+                                                            {% else %}
+                                                            <span class="text-white-50 small">-</span>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td class="pe-3 py-2 text-end text-white-50">
+                                                            {{ r.updated_at.strftime('%d.%m. %H:%M') }}
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                    {% if not rsvps %}
+                                                    <tr>
+                                                        <td colspan="4" class="text-center py-4 text-white-50 italic">
+                                                            Keine Daten vorhanden.</td>
+                                                    </tr>
+                                                    {% endif %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- AI COPY-PASTE HELPER -->
+<div class="container-fluid mt-5 mb-5">
+    <div class="shared-row">
+        <div class="tg-card border-info border-opacity-25" style="background: rgba(13, 202, 240, 0.05); padding: 2rem;">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                <h5 class="text-info fw-bold m-0"><i class="bi bi-robot me-2"></i> KI-PROMPT GENERATOR (ChatGPT & Co.)</h5>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button type="button" class="btn btn-sm btn-outline-info fw-bold px-3" onclick="copyKiPrompt()">
+                        <i class="bi bi-clipboard me-1"></i> PROMPT KOPIEREN
+                    </button>
+                    <button type="button" class="btn btn-sm btn-info fw-bold px-3" data-bs-toggle="modal" data-bs-target="#kiAutoFillModal">
+                        <i class="bi bi-magic me-1"></i> KI-ANTWORT EINFÜGEN ✨
+                    </button>
+                </div>
+            </div>
+
+            <p class="text-muted small mb-3">Kopiere diesen Prompt und sende ihn an eine KI, um alle Daten für ein Event
+                (z.B. CSD Köln) sofort perfekt formatiert zu erhalten:</p>
+
+            <div class="bg-black bg-opacity-50 p-4 rounded-3 border border-info border-opacity-10 shadow-inner">
+                <code class="small text-info-light" id="kiPrompt"
+                    style="display: block; white-space: pre-wrap; font-family: 'Consolas', monospace; font-size: 0.85rem; color: #a5e8ff; line-height: 1.5;">Ich möchte ein oder mehrere Events bewerben. Ich bin NICHT der Veranstalter, sondern teile die Info nur in meiner Telegram-Gruppe.
+
+WICHTIGER HINWEIS ZUERST: Falls der folgende Text mehrere Teil-Events enthält (erkennbar an unterschiedlichen Orten, unterschiedlichen Webseiten, unterschiedlichem Einlass-Preis oder Zielgruppe, oder an Bezeichnungen wie "Teil 1" / "Teil 2"), erstelle bitte für jedes Event einen eigenen separaten Block mit allen Sektionen (TITEL, ORT, WEBSEITE, TICKETS, TERMINE, TELEGRAM-BESCHREIBUNG TAG X, PRIVAT-NACHRICHT TAG X).
+
+Suche Infos zum Event "[HIER EVENT-NAME]" (oder lies den folgenden Text) und bereite sie mir exakt in diesem Format vor (bitte die exakten Schlüsselwörter in Großbuchstaben verwenden):
+
+TITEL:
+[Name des gesamten Events / Wochenendes]
+
+ORT:
+[Genaue Adresse/Location. Wenn es mehrere Locations sind, liste sie übersichtlich auf, z.B. "Freitag: Ort A | Samstag: Ort B"]
+
+WEBSEITE:
+[Link zur Homepage]
+
+TICKETS:
+[Link zum Ticket-Shop oder Infos zur Kasse]
+
+TERMINE:
+WICHTIG: JEDER Veranstaltungstag MUSS zwingend als eigener Eintrag ("- Tag X:") aufgelistet werden!
+- Tag 1: [Event-Name Teil 1 / Wochentag], [DD.MM.YYYY] um [HH:MM] Uhr
+- Tag 2: [Event-Name Teil 2 / Wochentag], [DD.MM.YYYY] um [HH:MM] Uhr (usw. für jeden Tag)
+
+WICHTIG ZU BESCHREIBUNG & PRIVAT-NACHRICHT:
+Erstelle für JEDEN Tag eine eigene TELEGRAM-BESCHREIBUNG und eine eigene PRIVAT-NACHRICHT, nummeriert wie die Termine:
+
+TELEGRAM-BESCHREIBUNG TAG 1 ([Event-Name Teil 1]):
+(Einladender Text speziell für dieses Event. Erwähne Datum, Ort, Preis & Webseite. Emojis nutzen.)
+
+TELEGRAM-BESCHREIBUNG TAG 2 ([Event-Name Teil 2]):
+(Einladender Text speziell für dieses Event. Erwähne Datum, Ort, Preis & Webseite. Emojis nutzen.)
+(...usw. für jeden Tag)
+
+PRIVAT-NACHRICHT TAG 1 ([Event-Name Teil 1]):
+(PFLICHT! Bestätigungs-DM die Teilnehmer für Tag 1 bekommen. Freundlich, mit Danke & wichtigen Infos zu genau DIESEM Tag.)
+
+PRIVAT-NACHRICHT TAG 2 ([Event-Name Teil 2]):
+(PFLICHT! Bestätigungs-DM die Teilnehmer für Tag 2 bekommen. Freundlich, mit Danke & wichtigen Infos zu genau DIESEM Tag.)
+(...usw. für jeden Tag)
+
+Keine Markdown-Formatierung (** oder __), kein fett/kursiv.</code>
+            </div>
+
+            <div class="mt-3 d-flex align-items-center gap-2" style="font-size: 0.75rem;">
+                <i class="bi bi-lightbulb-fill text-warning"></i>
+                <span class="text-white-50">Prompt kopieren → Bei ChatGPT eingeben → Antwort mit <strong class="text-info">"KI-ANTWORT EINFÜGEN ✨"</strong> automatisch ins Formular übertragen!</span>
+            </div>
+        </div>
+    </div>
+
+<!-- ===================== KI AUTO-FILL MODAL ===================== -->
+<div class="modal fade" id="kiAutoFillModal" tabindex="-1" aria-labelledby="kiAutoFillModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border border-info border-opacity-25" style="background: #0d1117; backdrop-filter: blur(20px);">
+            <div class="modal-header border-bottom border-white border-opacity-10 pb-3">
+                <div>
+                    <h5 class="modal-title text-info fw-bold m-0" id="kiAutoFillModalLabel">
+                        <i class="bi bi-magic me-2"></i> KI-Antwort Auto-Parser
+                    </h5>
+                    <div class="text-white-50 small mt-1">Füge die komplette KI-Antwort ein — alle Felder werden automatisch befüllt.</div>
+                </div>
+                <button type="button" class="btn-close btn-close-white ms-3" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+
+                <!-- Step 1: Paste -->
+                <div id="kiStep1">
+                    <label class="small text-secondary fw-bold mb-2 d-block">
+                        <span class="badge bg-info text-dark me-2">1</span> KI-ANTWORT HIER EINFÜGEN
+                    </label>
+                    <textarea id="kiRawInput" class="form-control bg-dark border-secondary text-white"
+                        rows="12" placeholder="Die vollständige Antwort von ChatGPT / Gemini / Claude hier reinkopieren..."
+                        style="font-family: monospace; font-size: 0.82rem; min-height: 280px; resize: vertical;"></textarea>
+
+                    <div class="mt-3 d-flex gap-2 justify-content-between align-items-center flex-wrap">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="pasteToKiInput()">
+                            <i class="bi bi-clipboard-plus me-1"></i> Aus Zwischenablage einfügen
+                        </button>
+                        <button type="button" class="btn btn-info fw-bold px-4" onclick="runKiAutoFill()">
+                            <i class="bi bi-lightning-charge-fill me-2"></i> FELDER AUTO-BEFÜLLEN
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Preview / Result -->
+                <div id="kiStep2" class="d-none">
+                    <div class="alert border border-success border-opacity-25 rounded-3 p-3 mb-4" style="background: rgba(25, 135, 84, 0.1);">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                            <strong class="text-success">Felder wurden erkannt!</strong>
+                        </div>
+                        <div class="text-white-50 small">Überprüfe die erkannten Werte und klicke dann auf "Übernehmen".</div>
+                    </div>
+
+                    <div id="kiPreviewGrid" class="d-grid gap-3">
+                        <!-- filled by JS -->
+                    </div>
+
+                    <div class="mt-4 d-flex gap-2 justify-content-between flex-wrap">
+                        <button type="button" class="btn btn-outline-secondary" onclick="kiGoBack()">
+                            <i class="bi bi-arrow-left me-1"></i> Zurück
+                        </button>
+                        <button type="button" class="btn btn-success fw-bold px-4" onclick="kiApplyToForm()">
+                            <i class="bi bi-check2-circle me-2"></i> IN FORMULAR ÜBERNEHMEN
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- LOG VIEWER SECTION -->
+    <div class="card mt-5 border-danger border-opacity-10 bg-dark bg-opacity-25">
+        <div class="card-header py-3 px-4 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 fw-bold text-danger"><i class="bi bi-terminal me-2"></i> SYSTEM LOGS (Event-Bot)</h6>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="refreshLogs()">
+                <i class="bi bi-arrow-clockwise me-1"></i> AKTUALISIEREN
+            </button>
+        </div>
+        <div class="card-body p-0">
+            <pre id="logContent" class="m-0 p-4 text-white-50 small"
+                style="max-height: 400px; overflow-y: auto; font-family: 'Courier New', Courier, monospace; background: #0a0e14; line-height: 1.4;"></pre>
+        </div>
+    </div>
+</div>
+</div>
+
+<script>
+    // ============================================================
+    // KI-ANTWORT AUTO-PARSER (v4 — DM Links & Kalender)
+    // ============================================================
+
+    let kiParsedData = null;
+
+    const GERMAN_MONTHS = {
+        'januar': 1, 'jan': 1,
+        'februar': 2, 'feb': 2,
+        'märz': 3, 'maerz': 3, 'mär': 3,
+        'april': 4, 'apr': 4,
+        'mai': 5,
+        'juni': 6, 'jun': 6,
+        'juli': 7, 'jul': 7,
+        'august': 8, 'aug': 8,
+        'september': 9, 'sep': 9, 'sept': 9,
+        'oktober': 10, 'okt': 10,
+        'november': 11, 'nov': 11,
+        'dezember': 12, 'dez': 12
+    };
+
+    // Strip markdown formatting: **text**, *text*, __text__, _text_
+    function stripMarkdown(str) {
+        if (!str) return '';
+        return str
+            .replace(/\*\*(.+?)\*\*/g, '$1')
+            .replace(/\*(.+?)\*/g, '$1')
+            .replace(/__(.+?)__/g, '$1')
+            .replace(/_(.+?)_/g, '$1')
+            .replace(/`(.+?)`/g, '$1')
+            .trim();
+    }
+
+    function parseGermanDateTime(str) {
+        if (!str) return '';
+        str = stripMarkdown(str).replace(/\s+/g, ' ').trim();
+
+        let hour = 0, minute = 0;
+        // "um HH:MM" / "HH:MM Uhr" / "HH.MM Uhr"
+        const timeMatch = str.match(/(?:um\s+)?(\d{1,2})[:.](\d{2})\s*(?:Uhr)?/i);
+        if (timeMatch) {
+            hour = parseInt(timeMatch[1]);
+            minute = parseInt(timeMatch[2]);
+        }
+
+        let day = null, month = null, year = new Date().getFullYear();
+
+        // Text format: "04. Juli 2026" or "4 Juli 2026"
+        const textDateMatch = str.match(/(\d{1,2})\.?\s+([a-zäöüé]+)\.?\s*(\d{4})?/i);
+        // Dot format: "04.07.2026" or "04.07."
+        const dotDateMatch = str.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})?/);
+
+        // Fix: Ensure the matched word is actually a month name! (prevents matching "um")
+        if (textDateMatch && GERMAN_MONTHS[textDateMatch[2].toLowerCase().replace(/\.$/, '')]) {
+            day = parseInt(textDateMatch[1]);
+            month = GERMAN_MONTHS[textDateMatch[2].toLowerCase().replace(/\.$/, '')];
+            if (textDateMatch[3]) year = parseInt(textDateMatch[3]);
+        } else if (dotDateMatch) {
+            day = parseInt(dotDateMatch[1]);
+            month = parseInt(dotDateMatch[2]);
+            if (dotDateMatch[3]) year = parseInt(dotDateMatch[3]);
+        }
+
+        if (!day || !month) return '';
+        const pad = n => String(n).padStart(2, '0');
+        return `${year}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(minute)}`;
+    }
+
+    function parseKiResponse(text) {
+        const result = {
+            title: '',
+            location: '',
+            website: '',
+            tickets: '',
+            description: '',        // first / only description
+            dm_text: '',            // first / only DM text
+            descriptions: [],       // [{label, text}] for multiple events
+            dm_texts: [],           // [{label, text}] for multiple events
+            dates: []
+        };
+
+        text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        const lines = text.split('\n');
+
+        let mode = null;
+
+        for (let i = 0; i < lines.length; i++) {
+            let raw = lines[i];
+            let line = raw.replace(/\*\*/g, '').replace(/__/g, '').trim();
+
+            if (!line) {
+                // Keep empty lines if we are in description or dm_text, otherwise skip
+                if (mode === 'description' || mode === 'dm_text') {
+                    if (mode === 'description') result.description += '\n';
+                    if (mode === 'dm_text') result.dm_text += '\n';
+                }
+                continue;
+            }
+
+            // --- Section headers (State switches) ---
+            if (/^TITEL\s*:/i.test(line)) { mode = 'title'; result.title = stripMarkdown(line.replace(/^TITEL\s*:\s*/i, '')); continue; }
+            if (/^ORT\s*:/i.test(line)) { mode = 'location'; result.location = stripMarkdown(line.replace(/^ORT\s*:\s*/i, '')); continue; }
+            if (/^WEBSEITE\s*:/i.test(line)) { mode = 'website'; result.website = stripMarkdown(line.replace(/^WEBSEITE\s*:\s*/i, '')); continue; }
+            if (/^TICKETS?\s*:/i.test(line)) { mode = 'tickets'; result.tickets = stripMarkdown(line.replace(/^TICKETS?\s*:\s*/i, '')); continue; }
+            if (/^TERMINE\s*:?/i.test(line)) { mode = 'dates'; continue; }
+
+            // Numbered descriptions: "TELEGRAM-BESCHREIBUNG TAG 1 (Chill & Bark):"
+            const descNumMatch = line.match(/^TELEGRAM[-\s]?BESCHREIBUNG\s+TAG\s*(\d+)\s*(?:\(([^)]+)\))?\s*:?/i)
+                                 || line.match(/^BESCHREIBUNG\s+TAG\s*(\d+)\s*(?:\(([^)]+)\))?\s*:?/i);
+            if (descNumMatch) {
+                const lbl = descNumMatch[2] ? descNumMatch[2].trim() : `Tag ${descNumMatch[1]}`;
+                result.descriptions.push({ label: lbl, text: '' });
+                mode = 'description_n';
+                continue;
+            }
+            // Numbered DM texts: "PRIVAT-NACHRICHT TAG 1 (Chill & Bark):"
+            const dmNumMatch = line.match(/^PRIVAT[-\s]?NACHRICHT\s+TAG\s*(\d+)\s*(?:\(([^)]+)\))?\s*:?/i)
+                               || line.match(/^DM[-\s]?NACHRICHT\s+TAG\s*(\d+)\s*(?:\(([^)]+)\))?\s*:?/i);
+            if (dmNumMatch) {
+                const lbl = dmNumMatch[2] ? dmNumMatch[2].trim() : `Tag ${dmNumMatch[1]}`;
+                result.dm_texts.push({ label: lbl, text: '' });
+                mode = 'dm_text_n';
+                continue;
+            }
+            // Plain (non-numbered) sections
+            if (/^TELEGRAM[-\s]?BESCHREIBUNG\s*:?/i.test(line) || /^GRUPPEN?[-\s]?NACHRICHT\s*:?/i.test(line)) { mode = 'description'; continue; }
+            if (/^PRIVAT[-\s]?NACHRICHT\s*:?/i.test(line) || /^DM[-\s]?TEXT\s*:?/i.test(line) || /^BESTÄTIGUNGS[-\s]?TEXT\s*:?/i.test(line)) { mode = 'dm_text'; continue; }
+
+            // Exclude helper texts
+            if (/^WICHTIG\s*(ZU|:\s*$)/i.test(line) || /^HINWEIS\s*:/i.test(line)) { mode = null; continue; }
+            if (/^\(Schreibe|^\(Füge|^\(Einladender|^\(Kurze|^\(WICHTIG|^\(PFLICHT/i.test(line)) continue;
+
+            // --- Accumulate data based on current mode ---
+            if (mode === 'title') {
+                result.title += (result.title ? ' ' : '') + stripMarkdown(line);
+            }
+            else if (mode === 'location') {
+                result.location += (result.location ? ', ' : '') + stripMarkdown(line);
+            }
+            else if (mode === 'website') {
+                result.website += (result.website ? ' ' : '') + stripMarkdown(line);
+            }
+            else if (mode === 'tickets') {
+                result.tickets += (result.tickets ? ' ' : '') + stripMarkdown(line);
+            }
+            else if (mode === 'dates') {
+                if (/^\s*[-•*►oO○◦]\s*|^\s*tag\s*\d+\s*:/i.test(line) || /^\s*(Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag)/i.test(line) || /^\s*\d{1,2}\.\d{1,2}\.\d{4}/.test(line) || /^\s*Teil\s*\d+\s*:/i.test(line)) {
+                    let dateLine = line
+                        .replace(/^\s*[-•*►oO○◦]\s*/, '')
+                        .replace(/^tag\s*\d+\s*:\s*/i, '')
+                        .replace(/^teil\s*\d+\s*:\s*/i, '');
+
+                    let label = `Tag ${result.dates.length + 1}`;
+                    
+                    // Match everything until the date (dd.mm.yyyy) to use as the label!
+                    // This handles formats like "Chill & Bark (Freitag), 17.07.2026"
+                    const datePatternMatch = dateLine.match(/(.*?)\s*(\d{1,2}\.\d{1,2}\.?\s*(?:\d{4})?)/);
+                    if (datePatternMatch && datePatternMatch[1]) {
+                        let extractedLabel = datePatternMatch[1].replace(/[,.|\-–\s]+$/, '').trim();
+                        if (extractedLabel) {
+                            label = extractedLabel;
+                        }
+                    } else {
+                        // Fallback: try to extract day-of-week
+                        const labelMatch = dateLine.match(/^((?:Mon|Die|Mit|Don|Fre|Sam|Son|Mo|Di|Mi|Do|Fr|Sa|So)[a-zäöü]*)[,.]?\s*/i);
+                        if (labelMatch) {
+                            label = labelMatch[1].replace(/[,.]$/, '').trim();
+                        }
+                    }
+
+                    const dtStr = parseGermanDateTime(dateLine);
+                    result.dates.push({ label, start: dtStr, end: '' });
+                }
+            }
+            else if (mode === 'description') {
+                result.description += (result.description ? '\n' : '') + raw.replace(/\*\*/g, '');
+            }
+            else if (mode === 'dm_text') {
+                result.dm_text += (result.dm_text ? '\n' : '') + raw.replace(/\*\*/g, '');
+            }
+            else if (mode === 'description_n' && result.descriptions.length > 0) {
+                const last = result.descriptions[result.descriptions.length - 1];
+                last.text += (last.text ? '\n' : '') + raw.replace(/\*\*/g, '');
+            }
+            else if (mode === 'dm_text_n' && result.dm_texts.length > 0) {
+                const last = result.dm_texts[result.dm_texts.length - 1];
+                last.text += (last.text ? '\n' : '') + raw.replace(/\*\*/g, '');
+            }
+        }
+
+        // --- Post-processing ---
+        // Try to extract pure URL for Website
+        if (result.website) {
+            const urlMatch = result.website.match(/https?:\/\/[^\s)]+/);
+            if (urlMatch) result.website = urlMatch[0];
+        }
+        
+        // Clean up multi-newlines
+        result.description = result.description.replace(/\n{3,}/g, '\n\n').replace(/^\n+|\n+$/g, '').trim();
+        result.dm_text = result.dm_text.replace(/\n{3,}/g, '\n\n').replace(/^\n+|\n+$/g, '').trim();
+        result.descriptions.forEach(d => { d.text = d.text.replace(/\n{3,}/g, '\n\n').replace(/^\n+|\n+$/g, '').trim(); });
+        result.dm_texts.forEach(d => { d.text = d.text.replace(/\n{3,}/g, '\n\n').replace(/^\n+|\n+$/g, '').trim(); });
+
+        // If no numbered descriptions were found, fall back to single
+        if (result.descriptions.length === 0 && result.description)
+            result.descriptions.push({ label: 'Beschreibung', text: result.description });
+        if (result.dm_texts.length === 0 && result.dm_text)
+            result.dm_texts.push({ label: 'Privat-Nachricht', text: result.dm_text });
+
+        // First item is always the default
+        if (result.descriptions.length > 0) result.description = result.descriptions[0].text;
+        if (result.dm_texts.length > 0) result.dm_text = result.dm_texts[0].text;
+
+        // Clean trailing/leading commas in location
+        result.location = result.location.replace(/^,\s*/, '').replace(/,\s*$/, '').trim();
+
+        return result;
+    }
+
+    function runKiAutoFill() {
+        const raw = document.getElementById('kiRawInput').value.trim();
+        if (!raw) {
+            alert('Bitte zuerst die KI-Antwort einfügen!');
+            return;
+        }
+
+        kiParsedData = parseKiResponse(raw);
+
+        const grid = document.getElementById('kiPreviewGrid');
+        grid.innerHTML = '';
+
+        const mkRow = (label, value, extraClass = '') => {
+            if (!value || value === '—') return '';
+            return `<div class="p-3 rounded-3 border border-white border-opacity-10" style="background:rgba(255,255,255,0.03);">
+                <div class="small text-secondary fw-bold mb-1 text-uppercase">${label}</div>
+                <div class="text-white ${extraClass}" style="font-size:0.88rem;word-break:break-word;">${value}</div>
+            </div>`;
+        };
+
+        let html = '';
+        html += mkRow('📌 Titel', kiParsedData.title || '<span class="text-danger">Nicht erkannt</span>', 'fw-bold');
+        html += mkRow('📍 Ort', kiParsedData.location || '<span class="text-warning fst-italic">Nicht erkannt</span>');
+
+        if (kiParsedData.website) {
+            html += mkRow('🌐 Webseite', `<a href="${kiParsedData.website}" target="_blank" class="text-info">${kiParsedData.website}</a>`);
+        }
+        if (kiParsedData.tickets) {
+            html += mkRow('🎟️ Tickets', `<a href="${kiParsedData.tickets}" target="_blank" class="text-info">${kiParsedData.tickets}</a>`);
+        }
+
+        if (kiParsedData.dates.length > 0) {
+            let dh = `<div class="p-3 rounded-3 border border-white border-opacity-10" style="background:rgba(255,255,255,0.03);">
+                <div class="small text-secondary fw-bold mb-2 text-uppercase">📅 Termine erkannt (${kiParsedData.dates.length})</div>
+                <div class="d-grid gap-2">`;
+            kiParsedData.dates.forEach((d, idx) => {
+                const dtDisp = d.start
+                    ? new Date(d.start).toLocaleString('de-DE', {weekday:'short', day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'})
+                    : '<span class="text-warning">Kein Datum erkannt — bitte manuell eintragen</span>';
+                dh += `<div class="d-flex align-items-center gap-3 p-2 rounded-2 bg-dark bg-opacity-30">
+                    <span class="badge bg-info text-dark">${idx+1}</span>
+                    <span class="text-white small fw-bold">${d.label}</span>
+                    <span class="text-white-50 small">${dtDisp}</span>
+                </div>`;
+            });
+            dh += `</div></div>`;
+            html += dh;
+        } else {
+            html += `<div class="p-3 rounded-3 border border-warning border-opacity-25" style="background:rgba(255,193,7,0.05);">
+                <div class="text-warning small"><i class="bi bi-exclamation-triangle me-1"></i>Keine Termine erkannt — bitte manuell eintragen.</div>
+            </div>`;
+        }
+
+        // --- Descriptions (tabbed if multiple) ---
+        if (kiParsedData.descriptions.length > 1) {
+            let tabHtml = `<div class="p-3 rounded-3 border border-info border-opacity-25" style="background:rgba(13,202,240,0.04);">
+                <div class="small text-info fw-bold mb-2 text-uppercase">💬 ${kiParsedData.descriptions.length} Gruppen-Beschreibungen erkannt — wähle welche du verwenden willst:</div>
+                <div class="d-flex flex-wrap gap-1 mb-3" id="kiDescTabs">`;
+            kiParsedData.descriptions.forEach((d, i) => {
+                tabHtml += `<button type="button" class="btn btn-sm ${i===0?'btn-info text-dark':'btn-outline-secondary'}" onclick="kiSelectDesc(${i})">${d.label}</button>`;
+            });
+            tabHtml += `</div><div id="kiDescPreview" class="text-white-50 small" style="white-space:pre-wrap;max-height:150px;overflow-y:auto;">${kiParsedData.descriptions[0].text}</div></div>`;
+            html += tabHtml;
+        } else if (kiParsedData.descriptions.length === 1) {
+            html += `<div class="p-3 rounded-3 border border-white border-opacity-10" style="background:rgba(255,255,255,0.03);">
+                <div class="small text-secondary fw-bold mb-2 text-uppercase">💬 Gruppen-Beschreibung</div>
+                <div class="text-white-50 small" style="white-space:pre-wrap;max-height:120px;overflow-y:auto;">${kiParsedData.descriptions[0].text}</div>
+            </div>`;
+        }
+
+        // --- DM Texts (tabbed if multiple) ---
+        if (kiParsedData.dm_texts.length > 1) {
+            let dmHtml = `<div class="p-3 rounded-3 border border-success border-opacity-25" style="background:rgba(25,135,84,0.05);">
+                <div class="small text-success fw-bold mb-2 text-uppercase">🔒 ${kiParsedData.dm_texts.length} Privat-Nachrichten erkannt — wähle welche du verwenden willst:</div>
+                <div class="d-flex flex-wrap gap-1 mb-3" id="kiDmTabs">`;
+            kiParsedData.dm_texts.forEach((d, i) => {
+                dmHtml += `<button type="button" class="btn btn-sm ${i===0?'btn-success text-dark':'btn-outline-secondary'}" onclick="kiSelectDm(${i})">${d.label}</button>`;
+            });
+            dmHtml += `</div><div id="kiDmPreview" class="text-white-50 small" style="white-space:pre-wrap;max-height:150px;overflow-y:auto;">${kiParsedData.dm_texts[0].text}</div></div>`;
+            html += dmHtml;
+        } else if (kiParsedData.dm_texts.length === 1) {
+            html += `<div class="p-3 rounded-3 border border-success border-opacity-25" style="background:rgba(25,135,84,0.05);">
+                <div class="small text-success fw-bold mb-2 text-uppercase">🔒 Privat-Nachricht (DM)</div>
+                <div class="text-white-50 small" style="white-space:pre-wrap;max-height:120px;overflow-y:auto;">${kiParsedData.dm_texts[0].text}</div>
+            </div>`;
+        } else {
+            html += `<div class="p-3 rounded-3 border border-danger border-opacity-25" style="background:rgba(220,53,69,0.05);">
+                <div class="text-danger small"><i class="bi bi-exclamation-triangle me-1"></i>Keine Privat-Nachricht erkannt!</div>
+            </div>`;
+        }
+
+        grid.innerHTML = html;
+        document.getElementById('kiStep1').classList.add('d-none');
+        document.getElementById('kiStep2').classList.remove('d-none');
+    }
+
+    function kiGoBack() {
+        document.getElementById('kiStep2').classList.add('d-none');
+        document.getElementById('kiStep1').classList.remove('d-none');
+    }
+
+    let kiSelectedDescIdx = 0;
+    let kiSelectedDmIdx = 0;
+
+    function kiSelectDesc(idx) {
+        kiSelectedDescIdx = idx;
+        const preview = document.getElementById('kiDescPreview');
+        if (preview && kiParsedData) preview.textContent = kiParsedData.descriptions[idx].text;
+        document.querySelectorAll('#kiDescTabs button').forEach((b, i) => {
+            b.className = `btn btn-sm ${i === idx ? 'btn-info text-dark' : 'btn-outline-secondary'}`;
+        });
+    }
+
+    function kiSelectDm(idx) {
+        kiSelectedDmIdx = idx;
+        const preview = document.getElementById('kiDmPreview');
+        if (preview && kiParsedData) preview.textContent = kiParsedData.dm_texts[idx].text;
+        document.querySelectorAll('#kiDmTabs button').forEach((b, i) => {
+            b.className = `btn btn-sm ${i === idx ? 'btn-success text-dark' : 'btn-outline-secondary'}`;
+        });
+    }
+
+    function kiApplyToForm() {
+        if (!kiParsedData) return;
+
+        // Apply main fields
+        if (kiParsedData.title) {
+            document.getElementById('eTitle').value = kiParsedData.title;
+            // Also apply to calendar
+            const calTitle = document.getElementById('eCalTitle');
+            if (calTitle && !calTitle.value) calTitle.value = kiParsedData.title;
+            
+            const calFile = document.getElementById('eCalFilename');
+            if (calFile && !calFile.value) {
+                let fname = kiParsedData.title.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+                if(fname.length > 20) fname = fname.substring(0, 20);
+                calFile.value = fname + '.ics';
+            }
+        }
+        
+        if (kiParsedData.location) document.getElementById('eLocation').value = kiParsedData.location;
+        
+        if (kiParsedData.website) {
+            document.getElementById('eWebUrl').value = kiParsedData.website;
+            const dmWebUrl = document.getElementById('eDmWebUrl');
+            if (dmWebUrl && !dmWebUrl.value) dmWebUrl.value = kiParsedData.website;
+        }
+        
+        if (kiParsedData.tickets) {
+            document.getElementById('eTickUrl').value = kiParsedData.tickets;
+            const dmTickUrl = document.getElementById('eDmTickUrl');
+            if (dmTickUrl && !dmTickUrl.value) dmTickUrl.value = kiParsedData.tickets;
+        }
+
+        // Apply selected description
+        const selDesc = kiParsedData.descriptions[kiSelectedDescIdx] || kiParsedData.descriptions[0];
+        if (selDesc && selDesc.text) {
+            const d = document.getElementById('eDesc');
+            d.value = selDesc.text;
+            autoResizeTextarea(d);
+        }
+        // Apply selected DM text
+        const selDm = kiParsedData.dm_texts[kiSelectedDmIdx] || kiParsedData.dm_texts[0];
+        if (selDm && selDm.text) {
+            const d = document.getElementById('eConfirmText');
+            d.value = selDm.text;
+            autoResizeTextarea(d);
+        }
+        // Reset selection indexes for next use
+        kiSelectedDescIdx = 0;
+        kiSelectedDmIdx = 0;
+
+        if (kiParsedData.dates.length > 0) {
+            const container = document.getElementById('dateRowsContainer');
+            container.innerHTML = '';
+            kiParsedData.dates.forEach(d => addDateRow(d));
+        }
+
+        bootstrap.Modal.getInstance(document.getElementById('kiAutoFillModal')).hide();
+        liveUpdate();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        showKiToast();
+    }
+
+    function showKiToast() {
+        const existing = document.getElementById('ki-success-toast');
+        if (existing) existing.remove();
+        const toast = document.createElement('div');
+        toast.id = 'ki-success-toast';
+        toast.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);z-index:9999;';
+        toast.innerHTML = `<div class="d-flex align-items-center gap-3 px-4 py-3 rounded-3 shadow-lg fw-bold text-white"
+            style="background:linear-gradient(135deg,#198754,#0d6efd);font-size:0.95rem;min-width:280px;">
+            <i class="bi bi-check-circle-fill fs-5"></i>Formular wurde automatisch befüllt! ✨
+        </div>`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3500);
+    }
+
+    async function pasteToKiInput() {
+        try {
+            const text = await navigator.clipboard.readText();
+            document.getElementById('kiRawInput').value = text;
+        } catch {
+            alert('Zugriff auf Zwischenablage nicht erlaubt. Bitte manuell einfügen (Strg+V).');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const modal = document.getElementById('kiAutoFillModal');
+        if (modal) {
+            modal.addEventListener('hidden.bs.modal', () => {
+                document.getElementById('kiRawInput').value = '';
+                kiGoBack();
+            });
+        }
+    });
+</script>
+
+<script>
+    async function deleteEvent(id) {
+        console.log("Delete triggered for ID:", id);
+        if (!confirm('Sicher löschen?')) return;
+
+        try {
+            const formData = new FormData();
+            formData.append('action', 'delete_event');
+            formData.append('event_id', id);
+
+            console.log("Sending DELETE request...");
+            const res = await fetch('{{ url_for("dashboard.event_settings") }}', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (res.ok) {
+                console.log("Delete success!");
+                location.reload();
+            } else {
+                console.error("Delete failed with status:", res.status);
+                alert('Fehler beim Löschen (Server Fehler ' + res.status + ')');
+            }
+        } catch (err) {
+            console.error("Network Error:", err);
+            alert('Netzwerkfehler beim Löschen');
+        }
+    }
+
+    const tI = document.getElementById('eTitle'), dI = document.getElementById('eDesc');
+
+    function handlePollModeChange(mode) {
+        const iType = document.getElementById('eInteractionType');
+        const pType = document.getElementById('ePollType');
+        const yes = document.getElementById('ePollShowYes');
+        const dates = document.getElementById('ePollShowDates');
+        const all = document.getElementById('ePollAllDay');
+        const maybe = document.getElementById('ePollMaybe');
+        const no = document.getElementById('ePollNo');
+        const detailSec = document.getElementById('pollDetailedSettings');
+
+        if (mode === 'none') {
+            iType.value = 'none';
+            detailSec.classList.add('d-none');
+        } else {
+            iType.value = 'poll';
+            detailSec.classList.remove('d-none');
+
+            // Smarter defaults
+            if (mode === 'standard') {
+                pType.value = 'standard';
+                yes.checked = true;
+                dates.checked = false;
+                all.checked = false;
+                maybe.checked = true;
+                no.checked = true;
+            } else if (mode === 'dates') {
+                pType.value = 'multi_day';
+                yes.checked = false;
+                dates.checked = true;
+                all.checked = true;
+                maybe.checked = false;
+                no.checked = true;
+            }
+
+            // All sections remain visible now to allow the user to mix/match if they want,
+            // but we provide clear visual cues via the defaults.
+        }
+        liveUpdate();
+    }
+
+
+    function liveUpdate() {
+        try {
+            // Get Elements safely
+            const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value : "";
+            const getCheck = (id) => document.getElementById(id) ? document.getElementById(id).checked : false;
+
+            const title = getVal('eTitle') || 'Event Titel';
+            const desc = getVal('eDesc') || 'Infos zum Event...';
+            const loc = getVal('eLocation') || '';
+            const dmT = getVal('eConfirmText') || 'Vielen Dank für deine Anmeldung!';
+            const iType = getVal('eInteractionType');
+            const dates = getDateData();
+
+            // 1. DATE LIST
+            let dateList = "";
+            if (dates.length) {
+                dateList = "\n\n<b>Termine:</b>";
+                dates.forEach(d => {
+                    let dtStr = "";
+                    if (d.start) {
+                        const s = new Date(d.start);
+                        if (!isNaN(s.getTime())) {
+                            dtStr = `: ${s.getDate().toString().padStart(2, '0')}.${(s.getMonth() + 1).toString().padStart(2, '0')}. um ${s.getHours().toString().padStart(2, '0')}:${s.getMinutes().toString().padStart(2, '0')} Uhr`;
+
+                            if (d.end) {
+                                const e = new Date(d.end);
+                                if (!isNaN(e.getTime())) {
+                                    dtStr += ` bis ${e.getHours().toString().padStart(2, '0')}:${e.getMinutes().toString().padStart(2, '0')} Uhr`;
+                                }
+                            }
+                        }
+                    }
+                    dateList += `\n• ${d.label}${dtStr}`;
+                });
+            }
+
+            // 2. LINKS LOGIC
+            // 2. LINKS LOGIC (Inline Buttons)
+            const getLinks = (mode) => {
+                let html = "";
+                let buttons = [];
+                const isGroup = (mode === 'group');
+
+                if (loc && (isGroup ? getCheck('eLocInGroup') : getCheck('eLocInDm'))) {
+                    html += `\n\n📍 <b>Ort:</b>\n<span class="text-info" style="text-decoration:underline;">${loc}</span>`;
+                }
+
+                // Group Links
+                if (isGroup) {
+                    const wU = getVal('eWebUrl');
+                    if (wU && getCheck('eWebInGroup')) {
+                        let label = getVal('eWebLabel') || 'Webseite besuchen';
+                        if (!/[🌐🔗🌍]/.test(label)) label = "🔗 " + label;
+                        buttons.push(label);
+                    }
+                    const tU = getVal('eTickUrl');
+                    if (tU && getCheck('eTickInGroup')) {
+                        let label = getVal('eTickLabel') || 'Tickets sichern';
+                        if (!/[🎟️🎫🛒]/.test(label)) label = "🎟️ " + label;
+                        buttons.push(label);
+                    }
+                } else {
+                    // DM Links
+                    const wU = getVal('eDmWebUrl') || getVal('eWebUrl');
+                    if (wU && getCheck('eWebInDm')) {
+                        let label = getVal('eDmWebLabel') || getVal('eWebLabel') || 'Webseite besuchen';
+                        if (!/[🌐🔗🌍]/.test(label)) label = "🔗 " + label;
+                        buttons.push(label);
+                    }
+                    const tU = getVal('eDmTickUrl') || getVal('eTickUrl');
+                    if (tU && getCheck('eTickInDm')) {
+                        let label = getVal('eDmTickLabel') || getVal('eTickLabel') || 'Tickets sichern';
+                        if (!/[🎟️🎫🛒]/.test(label)) label = "🎟️ " + label;
+                        buttons.push(label);
+                    }
+                }
+                return { html, buttons };
+            };
+
+            const linksGroup = getLinks('group');
+            const linksDm = getLinks('dm');
+
+            // 3. APPLY TO PREVIEWS
+            document.querySelectorAll('.pT').forEach(el => el.innerHTML = `<b>📅 ${title}</b>\n\n${desc}${dateList}${linksGroup.html}`.replace(/\n/g, '<br>'));
+            document.querySelectorAll('.pDmT').forEach(el => el.innerHTML = `${dmT}${linksDm.html}${dateList}`.replace(/\n/g, '<br>'));
+            document.querySelectorAll('.pDmIcs').forEach(el => el.textContent = getVal('eCalFilename') || 'termin.ics');
+
+            // Render Inline Buttons in Mockup
+            const renderBtns = (className, buttons, rsvpLabel) => {
+                document.querySelectorAll('.' + className).forEach(cont => {
+                    cont.innerHTML = "";
+
+                    let allButtons = [...buttons];
+                    if (rsvpLabel) {
+                        allButtons.unshift(rsvpLabel);
+                    }
+
+                    if (allButtons.length > 0) {
+                        cont.classList.remove('d-none');
+                        allButtons.forEach((b, idx) => {
+                            const btn = document.createElement('div');
+                            btn.className = "btn btn-sm w-100 mb-1 fw-bold shadow-sm";
+
+                            // Style primary button differently
+                            if (rsvpLabel && idx === 0) {
+                                btn.style = "background: #4e87b3; color: white; border: none; font-size: 0.75rem; border-radius: 8px;";
+                            } else {
+                                btn.style = "background: rgba(255,255,255,0.08); color: #50a2e3; border: 1px solid rgba(80,162,227,0.3); font-size: 0.7rem; border-radius: 8px;";
+                            }
+
+                            btn.textContent = b;
+                            cont.appendChild(btn);
+                        });
+                    } else {
+                        cont.classList.add('d-none');
+                    }
+                });
+            };
+
+            renderBtns('pInlineButtons', linksGroup.buttons, iType === 'buttons' ? "✅ Dabei / RSVP" : null);
+
+            let dmButtons = [...linksDm.buttons];
+            renderBtns('pDmInlineButtons', dmButtons, "📅 Termin im Kalender speichern");
+
+            // 4. POLL PREVIEW
+            document.querySelectorAll('.pPollBubble').forEach(pollBubble => {
+                const pollOptionsCont = pollBubble.querySelector('.pPollOptions');
+                if (!pollOptionsCont) return;
+                
+                if (iType === 'poll') {
+                    pollBubble.classList.remove('d-none');
+                    pollOptionsCont.innerHTML = "";
+
+                    let opts = [];
+                    if (getCheck('ePollShowYes')) opts.push(getVal('ePollYesLabel') || "✅ Bin dabei");
+                    if (getCheck('ePollMaybe')) opts.push(getVal('ePollMaybeLabel') || "🤔 Vielleicht");
+                    if (getCheck('ePollNo')) opts.push(getVal('ePollNoLabel') || "❌ Bin nicht dabei");
+
+                    if (getCheck('ePollShowDates') && dates.length) {
+                        dates.forEach(d => {
+                            opts.push(`📅 ${d.label}`);
+                        });
+                    }
+
+                    if (getCheck('ePollAllDay')) opts.push(getVal('ePollAllDayLabel') || "⭐ Komplettes Event");
+
+                    opts.forEach(o => {
+                        const opt = document.createElement('div');
+                        opt.className = "p-2 rounded-2 border border-white border-opacity-10 small text-white-50 d-flex justify-content-between";
+                        opt.innerHTML = `<span>${o}</span><span style="font-size:0.6rem;">0%</span>`;
+                        opt.style.background = "rgba(255,255,255,0.05)";
+                        pollOptionsCont.appendChild(opt);
+                    });
+                } else {
+                    pollBubble.classList.add('d-none');
+                }
+            });
+
+            // 6. KI PROMPT GENERATION (Bottom Section)
+            const kiPromptEl = document.getElementById('kiPrompt');
+            if (kiPromptEl) {
+                const kiPromptText = `Ich möchte ein Event bewerben. Ich bin NICHT der Veranstalter, sondern teile die Info nur in meiner Telegram-Gruppe.
+Suche Infos zum Event "${title !== 'Event Titel' ? title : '[HIER EVENT-NAME]'}" (oder nutze diesen Link: [LINK EINFÜGEN]) und bereite sie mir exakt in diesem Format vor (bitte die exakten Schlüsselwörter in Großbuchstaben verwenden):
+
+TITEL:
+[Name des gesamten Events / Wochenendes]
+
+ORT:
+[Genaue Adresse/Location. Wenn es mehrere Locations sind, liste sie übersichtlich auf, z.B. "Freitag: Ort A | Samstag: Ort B"]
+
+WEBSEITE:
+[Link zur Homepage]
+
+TICKETS:
+[Link zum Ticket-Shop oder Infos zur Kasse]
+
+TERMINE:
+WICHTIG: JEDER Veranstaltungstag MUSS zwingend als eigener Eintrag ("- Tag X:") aufgelistet werden! Wenn ein Wochenende aus 2 verschiedenen Partys besteht (z.B. Freitag Party A, Samstag Party B), fasse sie NIEMALS zusammen. Erstelle für jeden Tag einen eigenen Termin!
+- Tag 1: [Event-Name Teil 1 / Wochentag], [DD.MM.YYYY] um [HH:MM] Uhr
+- Tag 2: [Event-Name Teil 2 / Wochentag], [DD.MM.YYYY] um [HH:MM] Uhr (usw. für jeden Tag)
+
+TELEGRAM-BESCHREIBUNG:
+(Einladender Text für die Gruppe. Emojis nutzen. Erwähne, dass alle Infos auf der Webseite zu finden sind. Kurz & knackig.)
+
+PRIVAT-NACHRICHT:
+(WICHTIG: Erstelle zwingend diesen Text! Kurze persönliche Bestätigungs-Nachricht, die jeder Teilnehmer als private DM vom Bot bekommt, wenn er sich anmeldet. Freundlich, mit Danke & wichtigen Infos. Beispiel: "Danke für deine Anmeldung! Hier sind alle Infos...")
+
+Keine Markdown-Formatierung (** oder __), kein fett/kursiv.`;
+                kiPromptEl.textContent = kiPromptText;
+            }
+
+            // Sync with mobile offcanvas mockup if present
+            const mob = document.getElementById('phoneMockupMobile');
+            const src = document.getElementById('phoneMockup');
+            if (mob && src) {
+                mob.innerHTML = src.innerHTML;
+            }
+
+        } catch (e) {
+            console.error("LiveUpdate failed:", e);
+        }
+    }
+
+    function autoResizeTextarea(el) {
+        if (!el) return;
+        el.style.height = 'auto';
+        el.style.height = Math.max(120, el.scrollHeight + 4) + 'px';
+    }
+
+    function cleanTextarea(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        let txt = el.value;
+        // Trim multiple consecutive empty lines to a single empty line
+        txt = txt.replace(/\n{3,}/g, '\n\n').trim();
+        el.value = txt;
+        autoResizeTextarea(el);
+        liveUpdate();
+    }
+
+    async function pasteToTextarea(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        try {
+            const clipText = await navigator.clipboard.readText();
+            if (clipText) {
+                const start = el.selectionStart || 0;
+                const end = el.selectionEnd || 0;
+                el.value = el.value.substring(0, start) + clipText + el.value.substring(end);
+                autoResizeTextarea(el);
+                liveUpdate();
+            }
+        } catch (err) {
+            alert("Zugriff auf Zwischenablage nicht erlaubt. Bitte manuell einfügen.");
+        }
+    }
+
+    function addDateRow(data = null) {
+        const container = document.getElementById('dateRowsContainer');
+        const row = document.createElement('div');
+        row.className = 'row g-2 align-items-center date-row p-2 rounded-2 border border-white border-opacity-5 bg-dark bg-opacity-30 mb-2';
+        row.innerHTML = `
+            <div class="col-12 col-md-3"><input type="text" class="form-control form-control-sm bg-dark text-white border-secondary date-label" placeholder="Tag 1" value="${data ? data.label : 'Tag ' + (container.children.length + 1)}" oninput="liveUpdate()"></div>
+            <div class="col-12 col-sm-6 col-md-4"><div class="input-group input-group-sm"><span class="input-group-text bg-dark border-secondary text-white-50 small">Start</span><input type="datetime-local" class="form-control bg-dark text-white border-secondary date-start" value="${data ? data.start : ''}" max="9999-12-31T23:59" oninput="liveUpdate()"></div></div>
+            <div class="col-12 col-sm-6 col-md-4"><div class="input-group input-group-sm"><span class="input-group-text bg-dark border-secondary text-white-50 small">Ende</span><input type="datetime-local" class="form-control bg-dark text-white border-secondary date-end" value="${data ? data.end : ''}" max="9999-12-31T23:59" oninput="liveUpdate()"></div></div>
+            <div class="col-12 col-md-1 text-end"><button type="button" class="btn btn-sm btn-outline-danger border-0 w-100 w-md-auto" onclick="this.closest('.date-row').remove(); liveUpdate();"><i class="bi bi-trash"></i></button></div>
+        `;
+        container.appendChild(row);
+        liveUpdate();
+    }
+
+    function getDateData() {
+        const rows = document.querySelectorAll('.date-row');
+        const dates = [];
+        rows.forEach(r => {
+            const label = r.querySelector('.date-label').value;
+            const start = r.querySelector('.date-start').value;
+            const end = r.querySelector('.date-end').value;
+            if (start) dates.push({ label, start, end });
+        });
+        return dates;
+    }
+
+    function previewFile(input, imgId, vidId, wrapId) {
+        if (input.files && input.files[0]) {
+            const r = new FileReader(); r.onload = e => {
+                const im = document.getElementById(imgId), vi = document.getElementById(vidId);
+                if (input.files[0].type.startsWith('video/')) { vi.src = e.target.result; vi.style.display = 'block'; im.style.display = 'none'; }
+                else { im.src = e.target.result; im.style.display = 'block'; vi.style.display = 'none'; }
+                document.getElementById(wrapId).classList.remove('d-none');
+                liveUpdate();
+            }; r.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function previewDmFile(input) {
+        if (input.files && input.files[0]) {
+            const r = new FileReader(); r.onload = e => {
+                document.getElementById('pDmI').src = e.target.result;
+                document.getElementById('pDmMediaWrap').classList.remove('d-none');
+                setPreviewMode('dm');
+            }; r.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function toggleConfirmSection() {
+        document.getElementById('confirmSection').classList.toggle('d-none', !document.getElementById('sendConfirmSw').checked);
+    }
+
+    function setPreviewMode(mode) {
+        document.querySelectorAll('.modeGroup').forEach(el => el.classList.toggle('d-none', mode !== 'group'));
+        document.querySelectorAll('.modeDm').forEach(el => el.classList.toggle('d-none', mode !== 'dm'));
+        document.querySelectorAll('.btnGroupMode').forEach(el => el.classList.toggle('active', mode === 'group'));
+        document.querySelectorAll('.btnDmMode').forEach(el => el.classList.toggle('active', mode === 'dm'));
+    }
+
+    async function edit(id) {
+        const r = await fetch('/api/events/' + id); const d = await r.json();
+        if (d.success) {
+            const e = d.event;
+            document.getElementById('editId').value = e.id;
+            tI.value = e.title;
+            document.getElementById('eDesc').value = e.description || '';
+            document.getElementById('eLocation').value = e.location || '';
+            document.getElementById('eChatId').value = e.chat_id || '';
+            document.getElementById('eTopicId').value = e.topic_id || '';
+            // Handle Interaction Type UI
+            const iType = e.interaction_type || 'poll';
+            const pType = e.poll_type || 'multi_day';
+
+            if (iType === 'poll') {
+                if (pType === 'multi_day') {
+                    document.getElementById('modeDates').checked = true;
+                    handlePollModeChange('dates');
+                } else {
+                    document.getElementById('modeStandard').checked = true;
+                    handlePollModeChange('standard');
+                }
+            } else if (iType === 'none') {
+                document.getElementById('modeNone').checked = true;
+                handlePollModeChange('none');
+            }
+
+            document.getElementById('sendConfirmSw').checked = e.send_confirmation;
+            document.getElementById('eConfirmText').value = e.confirmation_text || '';
+            document.getElementById('ePollAllDay').checked = e.poll_show_all_day !== false;
+            document.getElementById('ePollMaybe').checked = e.poll_show_maybe !== false;
+            document.getElementById('ePollNo').checked = e.poll_show_no !== false;
+            document.getElementById('ePollShowYes').checked = e.poll_show_yes !== false;
+            document.getElementById('ePollShowDates').checked = e.poll_show_dates !== false;
+            document.getElementById('ePollMulti').checked = e.poll_multiple_choice !== false;
+
+            if (e.poll_config_json) {
+                try {
+                    const cfg = JSON.parse(e.poll_config_json);
+                    document.getElementById('ePollAllDayLabel').value = cfg.all_day || '';
+                    document.getElementById('ePollMaybeLabel').value = cfg.maybe || '';
+                    document.getElementById('ePollNoLabel').value = cfg.no || '';
+                    document.getElementById('ePollYesLabel').value = cfg.yes || '';
+                } catch (err) { console.error("Poll config parse error"); }
+            } else {
+                document.getElementById('ePollAllDayLabel').value = '';
+                document.getElementById('ePollMaybeLabel').value = '';
+                document.getElementById('ePollNoLabel').value = '';
+                document.getElementById('ePollYesLabel').value = '';
+            }
+            document.getElementById('eCalTitle').value = e.calendar_title || '';
+            document.getElementById('eCalFilename').value = e.calendar_filename || 'termin.ics';
+
+            document.getElementById('eWebUrl').value = e.website_url || '';
+            document.getElementById('eWebLabel').value = e.website_label || '';
+            document.getElementById('eWebInGroup').checked = e.website_in_group !== false;
+            document.getElementById('eWebInDm').checked = e.website_in_dm !== false;
+
+            document.getElementById('eTickUrl').value = e.tickets_url || '';
+            document.getElementById('eTickLabel').value = e.tickets_label || '';
+            document.getElementById('eTickInGroup').checked = e.tickets_in_group !== false;
+            document.getElementById('eTickInDm').checked = e.tickets_in_dm !== false;
+
+            document.getElementById('eDmWebUrl').value = e.dm_website_url || '';
+            document.getElementById('eDmWebLabel').value = e.dm_website_label || '';
+            document.getElementById('eDmTickUrl').value = e.dm_tickets_url || '';
+            document.getElementById('eDmTickLabel').value = e.dm_tickets_label || '';
+
+            document.getElementById('eLocInGroup').checked = e.location_in_group !== false;
+            document.getElementById('eLocInDm').checked = e.location_in_dm !== false;
+
+            const container = document.getElementById('dateRowsContainer');
+            container.innerHTML = "";
+            if (e.event_dates_json) {
+                JSON.parse(e.event_dates_json).forEach(d => addDateRow(d));
+            } else if (e.event_start) {
+                addDateRow({ label: 'Termin', start: e.event_start.substring(0, 16) });
+            }
+
+            if (e.image_path) {
+                const im = document.getElementById('pI'), vi = document.getElementById('pV');
+                const isVid = e.media_type === 'video' || e.image_path.match(/\.(mp4|mov|avi|webm)$|video/i);
+                if (isVid) { vi.src = e.image_path; vi.style.display = 'block'; im.style.display = 'none'; }
+                else { im.src = e.image_path; im.style.display = 'block'; vi.style.display = 'none'; }
+                document.getElementById('pMediaWrap').classList.remove('d-none');
+            }
+            document.getElementById('sendAsDocSw').checked = e.send_as_document || false;
+
+            if (e.confirmation_image_path) {
+                const dim = document.getElementById('pDmI'); dim.src = e.confirmation_image_path;
+                document.getElementById('pDmMediaWrap').classList.remove('d-none');
+            }
+
+            toggleConfirmSection();
+            autoResizeTextarea(document.getElementById('eDesc'));
+            autoResizeTextarea(document.getElementById('eConfirmText'));
+            liveUpdate();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+
+    function duplicate(id) {
+        edit(id);
+        setTimeout(() => {
+            document.getElementById('editId').value = "";
+            document.getElementById('subBtn').innerHTML = '<i class="bi bi-send me-2"></i> ALS KOPIE POSTEN';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 100);
+    }
+
+    function toggleSched() { document.getElementById('schedSection').classList.toggle('d-none'); }
+    function copyKiPrompt() {
+        const txt = document.getElementById('kiPrompt').textContent;
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(txt).then(() => alert('Prompt kopiert!')).catch(() => fallbackCopy(txt));
+        } else {
+            fallbackCopy(txt);
+        }
+    }
+
+    function fallbackCopy(text) {
+        const el = document.createElement('textarea');
+        el.value = text;
+        el.setAttribute('readonly', '');
+        el.style.position = 'absolute';
+        el.style.left = '-9999px';
+        document.body.appendChild(el);
+        el.select();
+        try {
+            document.execCommand('copy');
+            alert('Prompt kopiert!');
+        } catch (err) {
+            alert('Kopieren fehlgeschlagen. Bitte manuell markieren und kopieren.');
+        }
+        document.body.removeChild(el);
+    }
+
+
+    document.getElementById('eventForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        let hasError = false;
+        const title = document.getElementById('eTitle');
+        const chatId = document.getElementById('eChatId');
+
+        if (!title.value.trim()) {
+            title.classList.add('border-danger');
+            document.getElementById('eTitleError').classList.remove('d-none');
+            hasError = true;
+        } else {
+            document.getElementById('eTitleError').classList.add('d-none');
+        }
+
+        if (!chatId.value.trim()) {
+            chatId.classList.add('border-danger');
+            document.getElementById('eChatIdError').classList.remove('d-none');
+            // Auto-expand the collapse if it is currently closed
+            const collapseEl = document.getElementById('eventConnectionCollapse');
+            if (collapseEl && !collapseEl.classList.contains('show')) {
+                const bsCollapse = bootstrap.Collapse.getOrCreateInstance(collapseEl);
+                bsCollapse.show();
+            }
+            hasError = true;
+        } else {
+            document.getElementById('eChatIdError').classList.add('d-none');
+        }
+
+        if (hasError) {
+            // Scroll to the first error element instead of the top
+            const firstError = document.querySelector('.border-danger');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            return;
+        }
+
+        document.getElementById('eEventDates').value = JSON.stringify(getDateData());
+
+        // Add poll config JSON
+        const pollCfg = {
+            all_day: document.getElementById('ePollAllDayLabel').value,
+            maybe: document.getElementById('ePollMaybeLabel').value,
+            no: document.getElementById('ePollNoLabel').value,
+            yes: document.getElementById('ePollYesLabel').value
+        };
+        const cfgInput = document.createElement('input');
+        cfgInput.type = 'hidden';
+        cfgInput.name = 'poll_config_json';
+        cfgInput.value = JSON.stringify(pollCfg);
+        e.target.appendChild(cfgInput);
+
+        const btn = document.getElementById('subBtn');
+        const old = btn.innerHTML; btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i> VERARBEITE...'; btn.disabled = true;
+        try {
+            const wasChatIdDisabled = chatId.disabled;
+            if (wasChatIdDisabled) chatId.disabled = false;
+            const formData = new FormData(e.target);
+            if (wasChatIdDisabled) chatId.disabled = true;
+
+            const res = await fetch(e.target.action, { method: 'POST', body: formData });
+            const d = await res.json();
+            if (d.success) {
+                location.reload();
+            } else {
+                alert('Fehler: ' + d.error);
+                // Also show in red in UI if possible
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'alert alert-danger mt-3';
+                errorDiv.textContent = 'Fehler beim Speichern: ' + d.error;
+                e.target.prepend(errorDiv);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        } catch (err) { alert('Netzwerkfehler: ' + err); } finally { btn.innerHTML = old; btn.disabled = false; }
+    });
+
+    function zoomImage(src) {
+        const isVid = src.toLowerCase().match(/\.(mp4|mov|avi|webm)$/);
+        const o = document.createElement('div'); o.style = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:zoom-out;";
+        o.onclick = () => o.remove();
+        if (isVid) {
+            o.innerHTML = `<video src="${src}" style="max-height:90%; max-width:90%; border-radius:12px;" autoplay controls></video>`;
+        } else {
+            o.innerHTML = `<img src="${src}" style="max-height:90%; border-radius:12px;">`;
+        }
+        document.body.appendChild(o);
+    }
+
+    async function refreshLogs() {
+        const logEl = document.getElementById('logContent');
+        if (!logEl) return;
+        try {
+            const res = await fetch('/api/event-logs');
+            const data = await res.json();
+            logEl.textContent = data.logs || "Keine Logs verfügbar.";
+            logEl.scrollTop = logEl.scrollHeight;
+        } catch (e) {
+            logEl.textContent = "Fehler beim Laden der Logs.";
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!document.getElementById('editId').value) {
+            handlePollModeChange('standard');
+        }
+        if (!document.getElementById('dateRowsContainer').children.length) addDateRow();
+        autoResizeTextarea(document.getElementById('eDesc'));
+        autoResizeTextarea(document.getElementById('eConfirmText'));
+        liveUpdate();
+        refreshLogs();
+        // Auto refresh logs every 30 seconds
+        setInterval(refreshLogs, 30000);
+    });
+</script>
+{% endblock %}

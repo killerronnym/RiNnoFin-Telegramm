@@ -1,0 +1,1174 @@
+﻿<!DOCTYPE html>
+<html lang="de" data-bs-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Bot Steuerung{% endblock %}</title>
+    
+    <!-- Bootstrap & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Premium Central Styling -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    
+    <!-- PWA & Favicon -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/icon.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icon.png') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#6366f1">
+    
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register("{{ url_for('static', filename='sw.js') }}")
+                    .then(reg => console.log('SW registered'))
+                    .catch(err => console.log('SW failed', err));
+            });
+        }
+    </script>
+</head>
+
+<body>
+    {% if current_user.is_authenticated %}
+    
+    <!-- Mobile Header -->
+    <header class="mobile-header d-flex d-lg-none justify-content-between align-items-center">
+        <button class="btn text-white" id="sidebarMobileToggle" aria-label="Toggle Sidebar">
+            <i class="bi bi-list fs-3"></i>
+        </button>
+        <div class="mobile-brand">
+            <i class="bi bi-robot text-blue me-2"></i>BOT<span class="text-blue">STEUERUNG</span>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <button class="btn btn-link text-white p-0 shadow-none" onclick="toggleMobileSearch()" aria-label="Suche">
+                <i class="bi bi-search fs-4"></i>
+            </button>
+            <div class="dropdown">
+                <div class="mobile-user-icon text-info dropdown-toggle" type="button" id="mobileProfileDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
+                    {% if current_user.profile_picture %}
+                    <img src="{{ url_for('static', filename='uploads/profiles/' + current_user.profile_picture) }}" alt="Avatar" class="rounded-circle object-fit-cover" width="28" height="28" onerror="this.onerror=null; this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%3E%3Crect%20width%3D%22256%22%20height%3D%22256%22%20fill%3D%22%232a2d32%22%2F%3E%3Cpath%20d%3D%22M128%2C136a48%2C48%2C0%2C1%2C0-48-48A48.05%2C48.05%2C0%2C0%2C0%2C128%2C136ZM80%2C88a48%2C48%2C0%2C1%2C1%2C48%2C48A48.05%2C48.05%2C0%2C0%2C1%2C80%2C88ZM222.14%2C208.52A104%2C104%2C0%2C0%2C0%2C128%2C152a104%2C104%2C0%2C0%2C0-94.14%2C56.52%2C8%2C8%2C0%2C0%2C0%2C14.28%2C6.96A88%2C88%2C0%2C0%2C1%2C128%2C168a88%2C88%2C0%2C0%2C1%2C79.86%2C47.48%2C8%2C8%2C0%2C0%2C0%2C14.28-6.96Z%22%20fill%3D%22%236c757d%22%2F%3E%3C%2Fsvg%3E';">
+                    {% else %}
+                    <i class="bi bi-person-circle fs-4"></i>
+                    {% endif %}
+                </div>
+                <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow mt-2 border-secondary border-opacity-25" aria-labelledby="mobileProfileDropdown">
+                    <li class="px-3 py-2 text-center border-bottom border-secondary border-opacity-25 mb-1">
+                        <strong class="d-block text-white">{{ current_user.username }}</strong>
+                        <small class="text-muted">{{ current_user.role }}</small>
+                    </li>
+                    <li><a class="dropdown-item py-2" href="{{ url_for('dashboard.profile') }}"><i class="bi bi-person-circle me-2 text-info"></i>Mein Profil</a></li>
+                    <li><a class="dropdown-item py-2" href="{{ url_for('dashboard.profile') }}#2fa"><i class="bi bi-shield-lock me-2 text-warning"></i>2-Faktor Auth</a></li>
+                    <li><hr class="dropdown-divider border-secondary border-opacity-25"></li>
+                    <li><a class="dropdown-item py-2 text-danger" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Abmelden</a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar Overlay for mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="app-sidebar" id="appSidebar">
+            <!-- Sidebar Brand -->
+            <div class="sidebar-brand">
+                <a class="brand-link" href="{{ url_for('dashboard.index') }}">
+                    <i class="bi bi-robot"></i>
+                    <span>BOT<span class="brand-text-accent">STEUERUNG</span></span>
+                </a>
+                <button class="sidebar-collapse-btn" id="sidebarCollapseBtn" title="Sidebar einklappen/ausklappen">
+                    <i class="bi bi-chevron-left" id="collapseIcon"></i>
+                </button>
+            </div>
+
+            <!-- Global Search Box Removed from Sidebar -->
+
+            <!-- Sidebar Navigation -->
+            <div class="sidebar-nav">
+                <!-- ðŸ  Sektion 1 -->
+                <div class="nav-category">Dashboard Sektion</div>
+                <a class="nav-item-link {% if request.endpoint == 'dashboard.index' %}active{% endif %}" href="{{ url_for('dashboard.index') }}">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Ãœbersicht</span>
+                </a>
+
+                <!-- ðŸ›¡ï¸ Sektion 2 -->
+                <div class="nav-category">Moderation & Sicherheit</div>
+                <a class="nav-item-link {% if request.endpoint == 'dashboard.live_moderation' %}active{% endif %}" href="{{ url_for('dashboard.live_moderation') }}">
+                    <i class="bi bi-chat-dots"></i>
+                    <span>Live Moderation</span>
+                </a>
+                <a class="nav-item-link {% if request.endpoint == 'dashboard.user_management' %}active{% endif %}" href="{{ url_for('dashboard.user_management') }}">
+                    <i class="bi bi-person-x"></i>
+                    <span>Nutzer-Sperren</span>
+                </a>
+                <a class="nav-item-link {% if request.endpoint == 'dashboard.profanity_filter' %}active{% endif %}" href="{{ url_for('dashboard.profanity_filter') }}">
+                    <i class="bi bi-shield-slash"></i>
+                    <span>Beleidigungsfilter</span>
+                </a>
+                <a class="nav-item-link {% if request.endpoint == 'dashboard.report_settings' %}active{% endif %}" href="{{ url_for('dashboard.report_settings') }}">
+                    <i class="bi bi-flag"></i>
+                    <span>Melde-System</span>
+                </a>
+                {% if current_user.role == 'admin' %}
+                <a class="nav-item-link {% if request.endpoint == 'dashboard.ip_locks' %}active{% endif %}" href="{{ url_for('dashboard.ip_locks') }}">
+                    <i class="bi bi-shield-lock"></i>
+                    <span>Sicherheits-Center</span>
+                </a>
+                {% endif %}
+
+                <!-- ðŸ¤– Sektion 3 -->
+                <div class="nav-category">Bot-Module</div>
+                {% if current_user.role == 'admin' %}
+                <a class="nav-item-link {% if request.endpoint == 'dashboard.bot_settings' %}active{% endif %}" href="{{ url_for('dashboard.bot_settings') }}">
+                    <i class="bi bi-apple"></i>
+                    <span>Einladungs-Bot</span>
+                </a>
+                {% endif %}
+                <a class="nav-item-link {% if request.endpoint == 'dashboard.id_finder_dashboard' or request.endpoint == 'dashboard.id_finder_user_detail' or request.endpoint == 'dashboard.id_finder_commands' or request.endpoint == 'dashboard.id_finder_admin_panel' %}active{% endif %}" href="{{ url_for('dashboard.id_finder_dashboard') }}">
+                    <i class="bi bi-search"></i>
+                    <span>ID-Finder Bot</span>
+                </a>
+                <a class="nav-item-link {% if request.endpoint == 'dashboard.rss_feeds_dashboard' %}active{% endif %}" href="{{ url_for('dashboard.rss_feeds_dashboard') }}">
+                    <i class="bi bi-rss"></i>
+                    <span>RSS Feeds</span>
+                </a>
+                <a class="nav-item-link {% if request.endpoint == 'dashboard.outfit_bot_dashboard' %}active{% endif %}" href="{{ url_for('dashboard.outfit_bot_dashboard') }}">
+                    <i class="bi bi-person-badge"></i>
+                    <span>Outfit-Contest</span>
+                </a>
+                <a class="nav-item-link {% if request.endpoint == 'dashboard.auto_responder' %}active{% endif %}" href="{{ url_for('dashboard.auto_responder') }}">
+                    <i class="bi bi-chat-right-text"></i>
+                    <span>Auto-Responder</span>
+                </a>
+                <a class="nav-item-link {% if request.endpoint == 'dashboard.reaction_settings' %}active{% endif %}" href="{{ url_for('dashboard.reaction_settings') }}">
+                    <i class="bi bi-stars"></i>
+                    <span>Reaktionen & Effekte</span>
+                </a>
+                {% if current_user.role == 'admin' %}
+                <a class="nav-item-link {% if request.endpoint == 'dashboard.birthday_settings' %}active{% endif %}" href="{{ url_for('dashboard.birthday_settings') }}">
+                    <i class="bi bi-gift"></i>
+                    <span>Geburtstags-Bot</span>
+                </a>
+                {% endif %}
+                <a class="nav-item-link {% if request.endpoint == 'dashboard.event_settings' %}active{% endif %}" href="{{ url_for('dashboard.event_settings') }}">
+                    <i class="bi bi-calendar-event"></i>
+                    <span>Event Planer</span>
+                </a>
+                <a class="nav-item-link {% if request.endpoint == 'dashboard.quiz_settings' %}active{% endif %}" href="{{ url_for('dashboard.quiz_settings') }}">
+                    <i class="bi bi-question-circle"></i>
+                    <span>Quiz Bot</span>
+                </a>
+                <a class="nav-item-link {% if request.endpoint == 'dashboard.umfrage_settings' %}active{% endif %}" href="{{ url_for('dashboard.umfrage_settings') }}">
+                    <i class="bi bi-bar-chart"></i>
+                    <span>Umfrage Bot</span>
+                </a>
+                <a class="nav-item-link {% if request.endpoint == 'dashboard.broadcast_manager' %}active{% endif %}" href="{{ url_for('dashboard.broadcast_manager') }}">
+                    <i class="bi bi-megaphone"></i>
+                    <span>Broadcast-Manager</span>
+                </a>
+
+                <!-- ðŸ“Š Sektion 4 -->
+                <div class="nav-category">Statistiken & Logs</div>
+                <a class="nav-item-link {% if request.endpoint == 'dashboard.id_finder_analytics' %}active{% endif %}" href="{{ url_for('dashboard.id_finder_analytics') }}">
+                    <i class="bi bi-graph-up"></i>
+                    <span>Analytics</span>
+                </a>
+                {% if current_user.role == 'admin' %}
+                <a class="nav-item-link {% if request.endpoint == 'dashboard.id_finder_profiles' %}active{% endif %}" href="{{ url_for('dashboard.id_finder_profiles') }}">
+                    <i class="bi bi-people"></i>
+                    <span>Steckbrief-Katalog</span>
+                </a>
+                <a class="nav-item-link {% if request.endpoint == 'dashboard.minecraft_status_page' %}active{% endif %}" href="{{ url_for('dashboard.minecraft_status_page') }}">
+                    <i class="bi bi-hammer"></i>
+                    <span>Minecraft Status</span>
+                </a>
+                {% endif %}
+
+                <!-- âš™ï¸ Sektion 5 -->
+                <div class="nav-category">System-Verwaltung</div>
+                {% if current_user.role == 'admin' %}
+                <a class="nav-item-link {% if request.endpoint == 'dashboard.team_management' %}active{% endif %}" href="{{ url_for('dashboard.team_management') }}">
+                    <i class="bi bi-people-fill"></i>
+                    <span>Teamverwaltung</span>
+                </a>
+                <a class="nav-item-link" href="#" data-bs-toggle="modal" data-bs-target="#backupSettingsModal">
+                    <i class="bi bi-database-down"></i>
+                    <span>Backup & Recovery</span>
+                </a>
+                <a class="nav-item-link" href="#" data-bs-toggle="modal" data-bs-target="#systemSettingsModal">
+                    <i class="bi bi-gear-wide-connected"></i>
+                    <span>Software Setup</span>
+                </a>
+                {% endif %}
+                {% if current_user.role == 'admin' %}
+                <a class="nav-item-link {% if request.endpoint == 'dashboard.critical_errors' %}active{% endif %}" href="{{ url_for('dashboard.critical_errors') }}">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <span>Kritische Logs</span>
+                </a>
+                {% endif %}
+                <a class="nav-item-link {% if request.endpoint == 'dashboard.wiki' %}active{% endif %}" href="{{ url_for('dashboard.wiki') }}">
+                    <i class="bi bi-book-half"></i>
+                    <span>Hilfe & Wiki</span>
+                </a>
+            </div>
+
+            <!-- Sidebar Footer -->
+            <div class="sidebar-footer">
+                <button class="sidebar-btn-link" id="global-photo-mode-btn" onclick="togglePhotoMode()" title="Fotomodus ein/aus">
+                    <i class="bi bi-camera-fill"></i>
+                    <span>Fotomodus</span>
+                </button>
+                <div class="sidebar-user">
+                    <i class="bi bi-person-circle"></i>
+                    <div class="sidebar-user-info">
+                        <span class="sidebar-user-name">{{ current_user.username }}</span>
+                        <span class="sidebar-user-role">{{ current_user.role }}</span>
+                    </div>
+                </div>
+                <a href="{{ url_for('auth.logout') }}" class="sidebar-btn-link logout-btn">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Abmelden</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="app-content">
+            <!-- Top Navbar (Desktop Search) -->
+            <div class="d-none d-lg-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary border-opacity-10" id="topNavbar">
+                <div class="position-relative" style="width: 380px;" id="topSearchContainer">
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark border-secondary border-opacity-20 text-secondary" style="border-right: none; background: rgba(13,20,35,0.9) !important;"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control bg-dark border-secondary border-opacity-20 text-white" id="topSearchInput" placeholder="Schnellsuche (Ctrl + K)..." autocomplete="off" style="border-left: none; background: rgba(13,20,35,0.9) !important; font-size: 0.85rem;">
+                    </div>
+                    <div class="dropdown-menu dropdown-menu-dark w-100 shadow mt-1 p-2 border-secondary border-opacity-25" id="topSearchDropdown" style="display: none; max-height: 300px; overflow-y: auto; font-size: 0.85rem; z-index: 1050; position: absolute;">
+                        <!-- Results dynamically populated -->
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center gap-3">
+                    <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2" id="top-photo-mode-btn" onclick="togglePhotoMode()">
+                        <i class="bi bi-camera-fill"></i>
+                        <span>Fotomodus</span>
+                    </button>
+                    <div class="dropdown">
+                        <button class="btn btn-dark dropdown-toggle d-flex align-items-center gap-2 border-0 bg-transparent p-0 shadow-none" type="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src="{{ url_for('static', filename='uploads/profiles/' + (current_user.profile_picture or 'none.png')) }}" 
+                                 alt="Avatar" class="rounded-circle object-fit-cover border border-secondary border-opacity-25" width="32" height="32" onerror="this.onerror=null; this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%3E%3Crect%20width%3D%22256%22%20height%3D%22256%22%20fill%3D%22%232a2d32%22%2F%3E%3Cpath%20d%3D%22M128%2C136a48%2C48%2C0%2C1%2C0-48-48A48.05%2C48.05%2C0%2C0%2C0%2C128%2C136ZM80%2C88a48%2C48%2C0%2C1%2C1%2C48%2C48A48.05%2C48.05%2C0%2C0%2C1%2C80%2C88ZM222.14%2C208.52A104%2C104%2C0%2C0%2C0%2C128%2C152a104%2C104%2C0%2C0%2C0-94.14%2C56.52%2C8%2C8%2C0%2C0%2C0%2C14.28%2C6.96A88%2C88%2C0%2C0%2C1%2C128%2C168a88%2C88%2C0%2C0%2C1%2C79.86%2C47.48%2C8%2C8%2C0%2C0%2C0%2C14.28-6.96Z%22%20fill%3D%22%236c757d%22%2F%3E%3C%2Fsvg%3E';">
+                            <span class="text-white fw-semibold">{{ current_user.username }}</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow mt-2 border-secondary border-opacity-25" aria-labelledby="profileDropdown">
+                            <li><a class="dropdown-item py-2" href="{{ url_for('dashboard.profile') }}"><i class="bi bi-person-circle me-2 text-info"></i>Mein Profil</a></li>
+                            <li><a class="dropdown-item py-2" href="{{ url_for('dashboard.profile') }}#2fa"><i class="bi bi-shield-lock me-2 text-warning"></i>2-Faktor Auth</a></li>
+                            <li><hr class="dropdown-divider border-secondary border-opacity-25"></li>
+                            <li><a class="dropdown-item py-2 text-danger" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Abmelden</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile Search Bar (Collapsible) -->
+            <div class="mobile-search-bar bg-dark p-2 border-bottom border-secondary border-opacity-10 d-lg-none mb-3" id="mobileSearchContainer" style="display: none; border-radius: 8px;">
+                <div class="position-relative w-100">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-dark border-secondary border-opacity-20 text-secondary" style="border-right: none; background: rgba(13,20,35,0.9) !important;"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control bg-dark border-secondary border-opacity-20 text-white" id="mobileSearchInput" placeholder="Suchen..." autocomplete="off" style="border-left: none; background: rgba(13,20,35,0.9) !important; font-size: 0.85rem;">
+                    </div>
+                    <div class="dropdown-menu dropdown-menu-dark w-100 shadow mt-1 p-2 border-secondary border-opacity-25" id="mobileSearchDropdown" style="display: none; max-height: 250px; overflow-y: auto; font-size: 0.85rem; z-index: 1050; position: absolute;">
+                        <!-- Results dynamically populated -->
+                    </div>
+                </div>
+            </div>
+            <!-- Trial Version Banner -->
+            {% if sync_state and sync_state.get('mode') == 'TRIAL' %}
+            <div class="bg-danger text-white text-center py-2 fw-bold mb-3 rounded-3"
+                style="font-size: 0.95rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.5);">
+                âš ï¸ TESTVERSION 3 TAGE â€“ Noch ca. {{ trial_remaining_hours }} Stunden verbleibend âš ï¸
+            </div>
+            {% endif %}
+
+            <!-- Critical Errors Alert -->
+            {% if has_critical_errors and request.endpoint != 'dashboard.critical_errors' %}
+            <div class="alert alert-danger border-danger border-opacity-50 bg-danger bg-opacity-10 d-flex justify-content-between align-items-center py-3 px-4 shadow-lg mb-4" 
+                 style="border-radius: 12px; animation: pulseBanner 2s infinite;">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="bi bi-exclamation-triangle-fill fs-3 text-danger"></i>
+                    <div>
+                        <h6 class="mb-1 fw-bold text-white">KRITISCHE FEHLER ERKANNT!</h6>
+                        <p class="mb-0 small text-danger-emphasis">Es wurden schwerwiegende Fehler in den System-Logs registriert. Deine Aufmerksamkeit ist erforderlich.</p>
+                    </div>
+                </div>
+                <a href="{{ url_for('dashboard.critical_errors') }}" class="btn btn-danger fw-bold rounded-pill px-4">
+                    FEHLER ANSEHEN
+                </a>
+            </div>
+            <style>
+                @keyframes pulseBanner {
+                    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.4); }
+                    70% { transform: scale(1.01); box-shadow: 0 0 0 10px rgba(225, 29, 72, 0); }
+                    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(225, 29, 72, 0); }
+                }
+                
+                /* Dropdown search styling */
+                #topSearchDropdown, #mobileSearchDropdown {
+                    background: linear-gradient(135deg, rgba(13, 20, 35, 0.98) 0%, rgba(6, 10, 18, 0.99) 100%);
+                    backdrop-filter: blur(20px);
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 12px;
+                }
+                #topSearchDropdown .dropdown-item, #mobileSearchDropdown .dropdown-item {
+                    color: var(--text-secondary);
+                    transition: all var(--transition-fast);
+                }
+                #topSearchDropdown .dropdown-item:hover, #mobileSearchDropdown .dropdown-item:hover {
+                    background: rgba(255, 255, 255, 0.05) !important;
+                    color: var(--text-primary) !important;
+                }
+            </style>
+            {% endif %}
+
+            <!-- Flash Messages -->
+            <div class="flash-messages-container">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ 'success' if category == 'success' else ('danger' if category == 'danger' else 'info') }} alert-dismissible fade show shadow-sm"
+                    role="alert" style="border-radius: 8px;">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+            </div>
+
+            <!-- Block Content -->
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- GLOBAL SYSTEM MODALS (Defined in base.html so they are openable from any sidebar page) -->
+    {% if current_user.role == 'admin' %}
+    <!-- Backup Settings Modal -->
+    <div class="modal fade" id="backupSettingsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-white border-secondary">
+                <div class="modal-header border-secondary border-opacity-25 py-3">
+                    <h5 class="modal-title fw-bold fs-5">Automatisches Backup Setup</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="/api/backup/settings/save" method="POST">
+                    <div class="modal-body">
+                        <p class="small text-secondary mb-4">Konfigurieren Sie hier die tÃ¤gliche Sicherung Ihrer Datenbank auf ein externes System (z.B. NAS).</p>
+                        
+                        <div class="form-check form-switch mb-4 p-2 ps-5 rounded border border-white border-opacity-5"
+                            style="background: rgba(255,255,255,0.01);">
+                            <input class="form-check-input" type="checkbox" id="auto_backup_enabled" name="enabled" 
+                                {% if backup_config and backup_config.enabled %}checked{% endif %}>
+                            <label class="form-check-label small fw-bold" for="auto_backup_enabled">Autom. Backup aktiv</label>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="small text-secondary fw-bold mb-1">NAS ZIELPFAD (Absolut)</label>
+                            <input type="text" class="form-control form-control-sm" name="nas_path" 
+                                placeholder="z.B. \\NAS\Backups oder Z:\Bot-Backups"
+                                value="{{ backup_config.nas_path if backup_config else '' }}">
+                            <div class="form-text small text-muted">Stellen Sie sicher, dass der Bot-Prozess Schreibrechte auf diesen Pfad hat.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="small text-secondary fw-bold mb-1">UHRZEIT (TÃ¤glich)</label>
+                            <input type="time" class="form-control form-control-sm" name="backup_time" 
+                                value="{{ backup_config.backup_time if backup_config else '06:55' }}">
+                            <div class="form-text small text-muted">StandardmÃ¤ÃŸig um 06:55 Uhr.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="small text-secondary fw-bold mb-1">REDUNDANZ (Lokale Kopie)</label>
+                            <select class="form-select form-select-sm" name="local_retention">
+                                <option value="7" {% if backup_config and backup_config.local_retention == 7 %}selected{% endif %}>Letzte 7 Tage behalten</option>
+                                <option value="30" {% if backup_config and backup_config.local_retention == 30 %}selected{% endif %}>Letzte 30 Tage behalten</option>
+                                <option value="0" {% if backup_config and backup_config.local_retention == 0 %}selected{% endif %}>Keine lokale Redundanz</option>
+                            </select>
+                        </div>
+
+                        <hr class="border-secondary opacity-25 my-4">
+                        <h6 class="small fw-bold text-secondary mb-3 text-uppercase">Telegram Benachrichtigungen</h6>
+
+                        <div class="form-check form-switch mb-3 p-2 ps-5 rounded border border-white border-opacity-5"
+                            style="background: rgba(255,255,255,0.01);">
+                            <!-- Notice we default to checked if key is missing (silent by default) -->
+                            <input class="form-check-input" type="checkbox" id="silent_notifications" name="silent_notifications" 
+                                {% if not backup_config or backup_config.get('silent_notifications', True) %}checked{% endif %}>
+                            <label class="form-check-label small fw-bold" for="silent_notifications">Benachrichtigungen stummschalten (ohne Ton)</label>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="small text-secondary fw-bold mb-1">TELEGRAM GRUPPEN-ID FÃœR BACKUPS</label>
+                            <input type="text" class="form-control form-control-sm" name="backup_group_id" 
+                                placeholder="z.B. -100123456789"
+                                value="{{ backup_config.backup_group_id if backup_config else '' }}">
+                            <div class="form-text small text-muted">Wenn leer, wird automatisch die <strong>Admin-Log-Gruppe</strong> (aus dem ID-Finder) verwendet.</div>
+                        </div>
+
+                        <hr class="border-secondary opacity-25 my-4">
+                        <h6 class="small fw-bold text-secondary mb-3 text-uppercase">Google Drive Integration</h6>
+
+                        <div class="form-check form-switch mb-4 p-2 ps-5 rounded border border-white border-opacity-5"
+                            style="background: rgba(255,255,255,0.01);">
+                            <input class="form-check-input" type="checkbox" id="auto_gdrive_enabled" name="gdrive_enabled" 
+                                {% if backup_config and backup_config.gdrive_enabled %}checked{% endif %}>
+                            <label class="form-check-label small fw-bold" for="auto_gdrive_enabled">Google Drive Backup aktiv</label>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="small text-secondary fw-bold mb-1">GOOGLE DRIVE ORDNER-ID</label>
+                            <input type="text" class="form-control form-control-sm" name="gdrive_folder_id" 
+                                placeholder="z.B. 1mfRBZOoIvrhT5G8DxyWbGdG8pOzgCnmo"
+                                value="{{ backup_config.gdrive_folder_id if backup_config else '' }}">
+                            <div class="form-text small text-muted">Die ID aus der Google Drive Ordner-URL.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="small text-secondary fw-bold mb-1">GOOGLE DRIVE ZUGANGSDATEN (JSON-SCHLÃœSSEL)</label>
+                            <textarea class="form-control form-control-sm bg-dark text-white border-secondary" name="gdrive_credentials_json" rows="4" 
+                                placeholder='{"type": "service_account", ...}'
+                                style="font-family: monospace; font-size: 0.75rem;">{{ backup_config.gdrive_credentials_json if backup_config else '' }}</textarea>
+                            <div class="form-text small text-muted">Inhalt der Service-Account-JSON-Datei. Leer lassen, um die lokale <code>google_drive_credentials.json</code> zu nutzen.</div>
+                        </div>
+
+                        <div class="mb-4 d-flex justify-content-between align-items-center">
+                            <button type="button" onclick="testGoogleDriveConnection(event)" class="btn btn-outline-info btn-sm fw-bold">
+                                <i class="bi bi-cloud-check me-1"></i> VERBINDUNG PRÃœFEN
+                            </button>
+                            <div id="gdrive_connection_status" class="small fw-bold text-secondary">Noch nicht geprÃ¼ft</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="small text-secondary fw-bold mb-1">REDUNDANZ (Google Drive)</label>
+                            <select class="form-select form-select-sm" name="gdrive_retention">
+                                <option value="7" {% if backup_config and backup_config.gdrive_retention == 7 %}selected{% endif %}>Letzte 7 Tage behalten</option>
+                                <option value="30" {% if backup_config and backup_config.gdrive_retention == 30 %}selected{% endif %}>Letzte 30 Tage behalten</option>
+                                <option value="0" {% if backup_config and backup_config.gdrive_retention == 0 %}selected{% endif %}>Unbegrenzt behalten</option>
+                            </select>
+                        </div>
+
+                        <div class="alert alert-info py-2" style="font-size: 0.75rem;">
+                            <i class="bi bi-info-circle me-1"></i> Backups werden zusÃ¤tzlich in <code>/instance/backups/</code> gesichert.
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0 pb-4 px-4">
+                        <button type="button" class="btn btn-secondary fw-bold px-4" data-bs-dismiss="modal">Abbrechen</button>
+                        <button type="submit" class="btn btn-primary fw-bold px-4">Einstellungen speichern</button>
+                    </div>
+                    <!-- Manual Trigger Area -->
+                    <div class="px-4 pb-4 mt-2">
+                        <hr class="border-secondary opacity-25">
+                        <div class="d-grid gap-2">
+                            <button type="button" onclick="triggerManualNasBackup(event)" class="btn btn-outline-warning fw-bold">
+                                <i class="bi bi-hdd-network me-1"></i> SOFORT AUF NAS SICHERN
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Restore / Import Modal -->
+    <div class="modal fade" id="restoreModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content bg-dark text-white border-secondary">
+                <div class="modal-header border-secondary border-opacity-25 py-3">
+                    <h5 class="modal-title fw-bold fs-5"><i class="bi bi-cloud-upload-fill me-2"></i>Datenbank Wiederherstellen</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <ul class="nav nav-pills mb-4" id="restoreTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="nas-tab" data-bs-toggle="pill" data-bs-target="#nasPanel" type="button" role="tab">
+                                <i class="bi bi-hdd-network me-1"></i> Von NAS (Synology)
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="local-tab" data-bs-toggle="pill" data-bs-target="#localPanel" type="button" role="tab">
+                                <i class="bi bi-pc-display me-1"></i> Von PC hochladen
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="restoreTabsContent">
+                        <!-- NAS Panel -->
+                        <div class="tab-pane fade show active" id="nasPanel" role="tabpanel">
+                            <div class="nas-backup-list" id="nasBackupList">
+                                <div class="text-center py-5">
+                                    <div class="spinner-border text-info" role="status"></div>
+                                    <p class="mt-2 text-secondary">Suche Backups auf NAS...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Local Panel -->
+                        <div class="tab-pane fade" id="localPanel" role="tabpanel">
+                            <div class="upload-zone p-5 text-center border border-2 border-dashed border-secondary rounded-4 bg-opacity-10 bg-white" 
+                                 id="dropZone" onclick="document.getElementById('fileInput').click()">
+                                <i class="bi bi-cloud-arrow-up display-4 text-rose mb-3"></i>
+                                <h5>Datei hier ablegen oder klicken</h5>
+                                <p class="text-secondary small">.db Dateien oder .zip (Voll-Backup) erlaubt</p>
+                                <input type="file" id="fileInput" hidden accept=".db,.zip" onchange="previewLocalBackup(this)">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Preview Area -->
+                    <div id="restorePreview" class="mt-4 p-4 border border-rose border-opacity-25 rounded-4 bg-rose bg-opacity-5" style="display: none;">
+                        <div id="restoreErrorArea" class="alert alert-danger mb-3 small py-2" style="display: none;"></div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold mb-0">Backup Analyse Ergebnis:</h6>
+                            <div id="fullBackupBadge" class="badge bg-success py-2 px-3 me-2" style="display: none;">
+                                <i class="bi bi-shield-check-fill me-1"></i> VOLL-BACKUP (ZIP)
+                            </div>
+                            <div id="restoreAgeBadge" class="badge bg-rose bg-opacity-25 text-rose border border-rose border-opacity-25 py-2 px-3">
+                                <i class="bi bi-clock-history me-1"></i> <span id="statAgeText">Unbekannt</span>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 row-cols-2 row-cols-md-5 mb-4">
+                            <div class="col text-center border-end border-white border-opacity-10">
+                                <div class="small text-secondary" style="font-size: 0.65rem;">Admins</div>
+                                <div class="h5 mb-0 fw-bold" id="statAdmins">-</div>
+                            </div>
+                            <div class="col text-center border-end border-white border-opacity-10">
+                                <div class="small text-secondary" style="font-size: 0.65rem;">Nutzer</div>
+                                <div class="h5 mb-0 fw-bold" id="statUsers">-</div>
+                            </div>
+                            <div class="col text-center border-end border-white border-opacity-10">
+                                <div class="small text-secondary" style="font-size: 0.65rem;">Bots</div>
+                                <div class="h5 mb-0 fw-bold" id="statBots">-</div>
+                            </div>
+                            <div class="col text-center border-end border-white border-opacity-10">
+                                <div class="small text-secondary" style="font-size: 0.65rem;">Profile</div>
+                                <div class="h5 mb-0 fw-bold" id="statProfiles">-</div>
+                            </div>
+                            <div class="col text-center">
+                                <div class="small text-secondary" style="font-size: 0.65rem;">Messages</div>
+                                <div class="h5 mb-0 fw-bold" id="statMessages">-</div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-12">
+                                <div class="p-3 rounded bg-dark bg-opacity-50 border border-white border-opacity-10 h-100">
+                                    <div class="row g-2">
+                                        <div class="col-md-4">
+                                            <div class="small text-rose fw-bold" style="font-size: 0.65rem;"><i class="bi bi-key-fill me-1"></i>TOKEN</div>
+                                            <div id="restoreTokens" class="small text-white opacity-75 mt-1" style="font-size: 0.7rem;">-</div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="small text-info fw-bold" style="font-size: 0.65rem;"><i class="bi bi-chat-left-dots-fill me-1"></i>GRUPPEN-IDS</div>
+                                            <div id="restoreGroups" class="small text-white opacity-75 mt-1" style="font-size: 0.7rem;">-</div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="small text-success fw-bold" style="font-size: 0.65rem;"><i class="bi bi-calendar-event me-1"></i>ERSTELLT AM</div>
+                                            <div id="restoreCreatedAt" class="small text-white opacity-75 mt-1" style="font-size: 0.7rem;">-</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning mt-3 small py-2 mb-0 border-0 bg-warning bg-opacity-10 text-warning">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i> 
+                            Diese Aktion Ã¼berschreibt die aktuelle Datenbank vollstÃ¤ndig. Der Server startet danach neu.
+                        </div>
+                        <div class="d-grid mt-4">
+                            <button id="btnConfirmRestore" onclick="handleRestoreClick(this)" data-state="initial" class="btn btn-rose fw-bold py-2">
+                                JETZT ÃœBERSCHREIBEN & WIEDERHERSTELLEN
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Settings Modal -->
+    <div class="modal fade" id="systemSettingsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-white border-secondary">
+                <div class="modal-header border-secondary border-opacity-25 py-3">
+                    <h5 class="modal-title fw-bold fs-5"><i class="bi bi-gear-fill me-2 text-primary"></i>GitHub Integration Settings</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="alert alert-primary border-0 small mb-4" style="background: rgba(34, 158, 240, 0.1);">
+                        <i class="bi bi-info-circle-fill me-2 text-primary"></i> Konfigurieren Sie hier den Zugriff auf Ihr privates GitHub Repository fÃ¼r automatisierte Updates.
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="small text-secondary fw-bold mb-1 d-block">GITHUB TOKEN (PAT)</label>
+                        <input type="password" class="form-control form-control-dark" id="modal_github_token" placeholder="ghp_xxxxxxxxxxxx">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="small text-secondary fw-bold mb-1 d-block">REPOSITORY OWNER</label>
+                        <input type="text" class="form-control form-control-dark" id="modal_github_repo_owner" placeholder="z.B. killerronnym">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="small text-secondary fw-bold mb-1 d-block">REPOSITORY NAME</label>
+                        <input type="text" class="form-control form-control-dark" id="modal_github_repo_name" placeholder="z.B. Telegramm-Bot...">
+                    </div>
+
+                    <hr class="my-4 border-secondary border-opacity-25">
+
+                    <h6 class="small fw-bold text-secondary mb-3 text-uppercase">Automatisierung</h6>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="modal_auto_update_enabled">
+                        <label class="form-check-label small fw-bold text-white" for="modal_auto_update_enabled">Automatisches Update aktivieren</label>
+                        <p class="text-muted small mt-1 mb-0" style="font-size: 0.75rem;">PrÃ¼ft alle 6 Stunden auf neue Versionen und installiert diese automatisch.</p>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top border-white border-opacity-5">
+                        <span class="small text-secondary">Letzter Check:</span>
+                        <span id="modal_last_check_status" class="small fw-bold text-info">Lade...</span>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 pb-4 px-4">
+                    <button type="button" class="btn btn-secondary fw-bold px-4" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="button" id="btnSaveModalSystem" class="btn btn-primary fw-bold px-4">Speichern</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endif %}
+
+    {% block modals %}{% endblock %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+        
+    <script>
+        // Global Photo Mode Logic
+        (function() {
+            const btn = document.getElementById('global-photo-mode-btn');
+            if (!btn) return;
+            
+            let isPhoto = localStorage.getItem('globalPhotoMode') === 'true';
+            
+            function updateUI() {
+                if (isPhoto) {
+                    document.body.classList.add('photo-mode');
+                    btn.classList.add('active');
+                    btn.querySelector('i').className = 'bi bi-camera-reels-fill';
+                } else {
+                    document.body.classList.remove('photo-mode');
+                    btn.classList.remove('active');
+                    btn.querySelector('i').className = 'bi bi-camera-fill';
+                }
+                localStorage.setItem('globalPhotoMode', isPhoto);
+            }
+            
+            btn.addEventListener('click', () => {
+                isPhoto = !isPhoto;
+                updateUI();
+            });
+            
+            updateUI();
+        })();
+
+        {% if current_user.is_authenticated %}
+        // Sidebar Collapse Logic
+        (function() {
+            const sidebar = document.getElementById('appSidebar');
+            const collapseBtn = document.getElementById('sidebarCollapseBtn');
+            const collapseIcon = document.getElementById('collapseIcon');
+            if (!sidebar || !collapseBtn) return;
+
+            let isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+
+            function updateSidebarUI() {
+                if (isCollapsed) {
+                    sidebar.classList.add('collapsed');
+                    collapseIcon.classList.replace('bi-chevron-left', 'bi-chevron-right');
+                } else {
+                    sidebar.classList.remove('collapsed');
+                    collapseIcon.classList.replace('bi-chevron-right', 'bi-chevron-left');
+                }
+                localStorage.setItem('sidebarCollapsed', isCollapsed);
+            }
+
+            collapseBtn.addEventListener('click', () => {
+                isCollapsed = !isCollapsed;
+                updateSidebarUI();
+            });
+
+            updateSidebarUI();
+        })();
+
+        // Mobile Sidebar Drawer Logic
+        (function() {
+            const sidebar = document.getElementById('appSidebar');
+            const mobileToggle = document.getElementById('sidebarMobileToggle');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (!sidebar || !mobileToggle || !overlay) return;
+
+            mobileToggle.addEventListener('click', () => {
+                sidebar.classList.add('show');
+                overlay.classList.add('show');
+            });
+
+            overlay.addEventListener('click', () => {
+                sidebar.classList.remove('show');
+                overlay.classList.remove('show');
+            });
+        })();
+
+        // Global Unified Search Logic
+        (function() {
+            const searchIndex = [
+                { keys: ["Ã¼bersicht", "dashboard", "home", "startseite", "hauptseite"], title: "Dashboard Ãœbersicht", url: "{{ url_for('dashboard.index') }}", icon: "bi-speedometer2" },
+                { keys: ["live moderation", "live mod", "chat", "moderation", "nachrichten", "verlauf", "chatlog"], title: "Live Moderation", url: "{{ url_for('dashboard.live_moderation') }}", icon: "bi-chat-dots" },
+                { keys: ["nutzer-sperren", "sperren", "bannen", "entsperren", "kicken", "blacklist", "stumm"], title: "Nutzer-Sperren / Banns", url: "{{ url_for('dashboard.user_management') }}", icon: "bi-person-x" },
+                { keys: ["beleidigungsfilter", "schimpfwort", "schmutzwort", "beleidigung", "filter", "badwords"], title: "Beleidigungsfilter", url: "{{ url_for('dashboard.profanity_filter') }}", icon: "bi-shield-slash" },
+                { keys: ["melde-system", "melden", "report", "beschwerde"], title: "Melde-System", url: "{{ url_for('dashboard.report_settings') }}", icon: "bi-flag" },
+                {% if current_user.role == 'admin' %}
+                { keys: ["sicherheits-center", "ip lock", "sicherheit", "admin locks"], title: "Sicherheits-Center", url: "{{ url_for('dashboard.ip_locks') }}", icon: "bi-shield-lock" },
+                { keys: ["einladungs-bot", "einladung", "steckbrief", "anmelden", "willkommen"], title: "Einladungs-Bot", url: "{{ url_for('dashboard.bot_settings') }}", icon: "bi-apple" },
+                {% endif %}
+                { keys: ["id-finder bot", "id finder", "userliste", "user liste", "suche", "mitglieder", "datenbank", "telegram id"], title: "ID-Finder Bot", url: "{{ url_for('dashboard.id_finder_dashboard') }}", icon: "bi-search" },
+                { keys: ["outfit-contest", "outfit", "contest", "kleidung", "voting", "bewertung"], title: "Outfit-Contest", url: "{{ url_for('dashboard.outfit_bot_dashboard') }}", icon: "bi-person-badge" },
+                { keys: ["auto-responder", "auto reply", "autoresponder", "antwort", "triggern"], title: "Auto-Responder", url: "{{ url_for('dashboard.auto_responder') }}", icon: "bi-chat-right-text" },
+                { keys: ["reaktionen", "effekte", "emoji", "react"], title: "Reaktionen & Effekte", url: "{{ url_for('dashboard.reaction_settings') }}", icon: "bi-stars" },
+                {% if current_user.role == 'admin' %}
+                { keys: ["geburtstags-bot", "geburtstag", "gb", "alter", "glÃ¼ckwunsch", "auto-lÃ¶schen"], title: "Geburtstags-Bot", url: "{{ url_for('dashboard.birthday_settings') }}", icon: "bi-gift" },
+                {% endif %}
+                { keys: ["event planer", "events", "kalender", "termine"], title: "Event Planer", url: "{{ url_for('dashboard.event_settings') }}", icon: "bi-calendar-event" },
+                { keys: ["quiz bot", "quiz", "fragen", "spiel", "punkte"], title: "Quiz Bot", url: "{{ url_for('dashboard.quiz_settings') }}", icon: "bi-question-circle" },
+                { keys: ["umfrage bot", "umfrage", "umfragen", "vote", "abstimmen"], title: "Umfrage Bot", url: "{{ url_for('dashboard.umfrage_settings') }}", icon: "bi-bar-chart" },
+                { keys: ["broadcast-manager", "broadcast", "rundnachricht", "durchsage"], title: "Broadcast-Manager", url: "{{ url_for('dashboard.broadcast_manager') }}", icon: "bi-megaphone" },
+                { keys: ["analytics", "statistik", "auswertung", "top nutzer", "ranking"], title: "ID-Finder Analytics", url: "{{ url_for('dashboard.id_finder_analytics') }}", icon: "bi-graph-up" },
+                {% if current_user.role == 'admin' %}
+                { keys: ["steckbrief-katalog", "katalog", "steckbriefe", "profile", "user profile"], title: "Steckbrief-Katalog", url: "{{ url_for('dashboard.id_finder_profiles') }}", icon: "bi-people" },
+                { keys: ["teamverwaltung", "team", "mitarbeiter", "rechte"], title: "Teamverwaltung", url: "{{ url_for('dashboard.team_management') }}" , icon: "bi-people-fill" },
+                { keys: ["kritische logs", "errors", "fehler", "logs", "crash"], title: "Kritische System-Logs", url: "{{ url_for('dashboard.critical_errors') }}", icon: "bi-exclamation-triangle" },
+                {% endif %}
+                { keys: ["hilfe-center", "wiki", "faq", "erklÃ¤rung", "dokumentation", "wikipedia", "fragen", "anleitung"], title: "Hilfe-Center & Wiki", url: "{{ url_for('dashboard.wiki') }}", icon: "bi-book-half" }
+            ];
+
+            function setupSearchInput(inputEl, dropdownEl) {
+                if (!inputEl || !dropdownEl) return;
+                
+                inputEl.addEventListener('input', () => {
+                    const query = inputEl.value.toLowerCase().trim();
+                    if (!query) {
+                        dropdownEl.style.display = 'none';
+                        return;
+                    }
+
+                    const matches = searchIndex.filter(item => 
+                        item.title.toLowerCase().includes(query) || 
+                        item.keys.some(k => k.includes(query))
+                    );
+
+                    if (matches.length === 0) {
+                        dropdownEl.innerHTML = `<div class="text-muted p-2 text-center small">Keine Ãœbereinstimmung</div>`;
+                    } else {
+                        dropdownEl.innerHTML = matches.map(item => `
+                            <a href="${item.url}" class="dropdown-item d-flex align-items-center py-2 border-bottom border-secondary border-opacity-10">
+                                <i class="bi ${item.icon} me-2 text-primary"></i>
+                                <div>
+                                    <div class="fw-bold text-white">${item.title}</div>
+                                    <div class="text-muted" style="font-size: 0.65rem;">Suchbegriffe: ${item.keys.slice(0, 3).join(', ')}</div>
+                                </div>
+                            </a>
+                        `).join('');
+                    }
+                    dropdownEl.style.display = 'block';
+                });
+
+                inputEl.addEventListener('focus', () => {
+                    if (inputEl.value.trim()) {
+                        dropdownEl.style.display = 'block';
+                    }
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!inputEl.contains(e.target) && !dropdownEl.contains(e.target)) {
+                        dropdownEl.style.display = 'none';
+                    }
+                });
+            }
+
+            // Setup Desktop
+            const topInput = document.getElementById('topSearchInput');
+            const topDropdown = document.getElementById('topSearchDropdown');
+            setupSearchInput(topInput, topDropdown);
+
+            // Setup Mobile
+            const mobileInput = document.getElementById('mobileSearchInput');
+            const mobileDropdown = document.getElementById('mobileSearchDropdown');
+            setupSearchInput(mobileInput, mobileDropdown);
+
+            // Toggle Mobile Search Bar
+            window.toggleMobileSearch = function() {
+                const container = document.getElementById('mobileSearchContainer');
+                if (container) {
+                    if (container.style.display === 'none') {
+                        container.style.display = 'block';
+                        if (mobileInput) mobileInput.focus();
+                    } else {
+                        container.style.display = 'none';
+                    }
+                }
+            };
+
+            // Keyboard shortcut to focus desktop search (Ctrl + K)
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+                    e.preventDefault();
+                    if (topInput) topInput.focus();
+                }
+            });
+        })();
+
+        // Global Photo Mode Logic
+        (function() {
+            let isPhoto = localStorage.getItem('globalPhotoMode') === 'true';
+            
+            window.togglePhotoMode = function() {
+                isPhoto = !isPhoto;
+                localStorage.setItem('globalPhotoMode', isPhoto ? 'true' : 'false');
+                updateUI();
+            };
+            
+            function updateUI() {
+                const btns = [
+                    document.getElementById('global-photo-mode-btn'),
+                    document.getElementById('top-photo-mode-btn')
+                ];
+                
+                if (isPhoto) {
+                    document.body.classList.add('photo-mode');
+                    btns.forEach(btn => {
+                        if (btn) {
+                            btn.classList.add('active');
+                            const icon = btn.querySelector('i');
+                            if (icon) icon.className = 'bi bi-camera-reels-fill';
+                        }
+                    });
+                } else {
+                    document.body.classList.remove('photo-mode');
+                    btns.forEach(btn => {
+                        if (btn) {
+                            btn.classList.remove('active');
+                            const icon = btn.querySelector('i');
+                            if (icon) icon.className = 'bi bi-camera-fill';
+                        }
+                    });
+                }
+            }
+            
+            updateUI();
+        })();
+
+        // Global Backup & Restore Logic
+        {% if current_user.role == 'admin' %}
+        let selectedRestoreFile = null;
+        let restoreFrom = null;
+
+        window.openRestoreModal = function() {
+            const modalEl = document.getElementById('restoreModal');
+            if (modalEl) {
+                const modal = new bootstrap.Modal(modalEl);
+                modal.show();
+                loadNasBackups();
+            }
+        };
+
+        async function loadNasBackups() {
+            const list = document.getElementById('nasBackupList');
+            if (!list) return;
+            list.innerHTML = `<div class="text-center py-4"><span class="spinner-border spinner-border-sm text-info"></span></div>`;
+            try {
+                const res = await fetch('/api/backup/list-nas');
+                const backups = await res.json();
+                
+                if (backups.length === 0) {
+                    list.innerHTML = `<div class="text-center py-4 text-secondary small">Keine Backups auf NAS gefunden.</div>`;
+                    return;
+                }
+
+                list.innerHTML = backups.map(b => `
+                    <div class="nas-item p-3 mb-2 rounded-3 d-flex justify-content-between align-items-center" onclick="previewNasBackup('${b.filename}')" id="nas-${b.filename}">
+                        <div>
+                            <div class="fw-bold text-white small">${b.filename}</div>
+                            <div class="text-secondary" style="font-size: 0.7rem;">${b.date} â€¢ ${b.size} KB</div>
+                        </div>
+                        <i class="bi bi-chevron-right text-secondary small"></i>
+                    </div>
+                `).join('');
+            } catch (e) {
+                list.innerHTML = `<div class="alert alert-danger small py-2">Fehler beim Laden der NAS-Liste.</div>`;
+            }
+        }
+
+        window.previewNasBackup = function(filename) {
+            document.querySelectorAll('.nas-item').forEach(el => el.classList.remove('border-info', 'bg-info', 'bg-opacity-10'));
+            const activeItem = document.getElementById(`nas-${filename}`);
+            if (activeItem) activeItem.classList.add('border-info', 'bg-info', 'bg-opacity-10');
+            
+            selectedRestoreFile = filename;
+            restoreFrom = 'nas';
+            
+            document.getElementById('restorePreview').style.display = 'block';
+            document.getElementById('statUsers').innerText = '?';
+            document.getElementById('statBots').innerText = '?';
+            document.getElementById('statProfiles').innerText = '?';
+        };
+
+        window.previewLocalBackup = async function(input) {
+            if (!input.files || input.files.length === 0) return;
+            const file = input.files[0];
+            selectedRestoreFile = file;
+            restoreFrom = 'local';
+
+            const preview = document.getElementById('restorePreview');
+            const errArea = document.getElementById('restoreErrorArea');
+            if (preview) preview.style.display = 'block';
+            if (errArea) errArea.style.display = 'none';
+            
+            const loader = '<span class="spinner-border spinner-border-sm text-secondary"></span>';
+            ['statUsers', 'statBots', 'statProfiles', 'statAdmins', 'statMessages'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = loader;
+            });
+            
+            const formData = new FormData();
+            formData.append('backup_file', file);
+
+            try {
+                const res = await fetch('/api/backup/validate', { method: 'POST', body: formData });
+                const data = await res.json();
+                if (data.success) {
+                    const s = data.stats;
+                    document.getElementById('statUsers').innerText = s.users;
+                    document.getElementById('statBots').innerText = s.bots;
+                    document.getElementById('statProfiles').innerText = s.profiles;
+                    document.getElementById('statAdmins').innerText = s.admins || '0';
+                    document.getElementById('statMessages').innerText = s.messages || '0';
+                    document.getElementById('statAgeText').innerText = s.age_str || 'Neu';
+                    document.getElementById('restoreTokens').innerText = s.tokens.join(', ') || 'Keine';
+                    document.getElementById('restoreGroups').innerText = s.groups.join(' | ') || 'Keine';
+                    document.getElementById('restoreCreatedAt').innerText = s.created_at || '-';
+
+                    if(document.getElementById('fullBackupBadge')) 
+                        document.getElementById('fullBackupBadge').style.display = s.is_full ? 'block' : 'none';
+                } else {
+                    errArea.innerText = data.error;
+                    errArea.style.display = 'block';
+                }
+            } catch (e) {
+                errArea.innerText = "Fehler bei der Analyse.";
+                errArea.style.display = 'block';
+            }
+        };
+
+        window.handleRestoreClick = function(btn) {
+            if (btn.dataset.state === 'initial') {
+                btn.dataset.state = 'confirm';
+                btn.innerHTML = 'âš ï¸ BIST DU SICHER? (NOCHMAL KLICKEN)';
+                btn.className = 'btn btn-danger fw-bold py-2';
+                
+                setTimeout(() => {
+                    if (btn.dataset.state === 'confirm') {
+                        btn.dataset.state = 'initial';
+                        btn.innerHTML = 'JETZT ÃœBERSCHREIBEN & WIEDERHERSTELLEN';
+                        btn.className = 'btn btn-rose fw-bold py-2';
+                    }
+                }, 5000);
+            } else {
+                window.startSystemRestore(btn);
+            }
+        };
+
+        window.startSystemRestore = async function(btn) {
+            try {
+                if (!selectedRestoreFile) {
+                    alert("ðŸ›‘ FEHLER: Keine Datei ausgewÃ¤hlt.");
+                    btn.dataset.state = 'initial';
+                    btn.innerHTML = 'JETZT ÃœBERSCHREIBEN & WIEDERHERSTELLEN';
+                    btn.className = 'btn btn-rose fw-bold py-2';
+                    return;
+                }
+
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>ÃœBERTRAGE...';
+
+                let res;
+                if (restoreFrom === 'nas') {
+                    res = await fetch('/api/backup/restore-nas', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ filename: selectedRestoreFile })
+                    });
+                } else {
+                    const formData = new FormData();
+                    formData.append('backup_file', selectedRestoreFile);
+                    res = await fetch('/api/backup/upload', { method: 'POST', body: formData });
+                }
+
+                const data = await res.json();
+                if (data.success) {
+                    btn.className = "btn btn-success fw-bold w-100 py-3";
+                    btn.innerHTML = 'âœ… ERFOLGREICH ÃœBERTRAGEN';
+                    alert("ðŸš€ Erfolg! System startet neu...");
+                    setTimeout(() => window.location.href = '/', 5000);
+                } else {
+                    alert("âŒ SERVER-FEHLER: " + data.error);
+                    location.reload(); 
+                }
+            } catch (err) {
+                console.error("RESTORE ERROR:", err);
+                alert("ðŸš¨ ÃœBERTRAGUNGS-FEHLER: " + err.message);
+                btn.disabled = false;
+            }
+        };
+
+        window.triggerManualNasBackup = async function(event) {
+            if (!confirm("MÃ¶chten Sie jetzt sofort ein Voll-Backup (Lokal, NAS und Google Drive) durchfÃ¼hren?")) return;
+            
+            const btn = event.target.closest('button');
+            const originalContent = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-arrow-repeat spin me-1"></i> BACKUP LÃ„UFT...';
+
+            try {
+                const res = await fetch('/api/backup/trigger', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    alert(data.message);
+                } else {
+                    alert("Fehler: " + (data.error || "Unbekannter Fehler"));
+                }
+            } catch (e) {
+                alert("Netzwerkfehler.");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+            }
+        };
+
+        window.testGoogleDriveConnection = async function(event) {
+            const btn = event.target.closest('button');
+            const statusEl = document.getElementById('gdrive_connection_status');
+            const folderId = document.querySelector('input[name="gdrive_folder_id"]').value;
+            const credsJson = document.querySelector('textarea[name="gdrive_credentials_json"]').value;
+
+            if (!folderId) {
+                alert("Bitte gib zuerst die Google Drive Ordner-ID ein!");
+                return;
+            }
+
+            btn.disabled = true;
+            statusEl.innerHTML = '<span class="spinner-border spinner-border-sm text-info me-1"></span>PrÃ¼fe...';
+            statusEl.className = 'small fw-bold text-info';
+
+            try {
+                const res = await fetch('/api/backup/test-gdrive', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ folder_id: folderId, credentials_json: credsJson })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    statusEl.innerHTML = 'ðŸŸ¢ Verbunden (Ordner erreichbar)';
+                    statusEl.className = 'small fw-bold text-success';
+                } else {
+                    statusEl.innerHTML = 'ðŸ”´ Fehler: ' + data.error;
+                    statusEl.className = 'small fw-bold text-danger';
+                }
+            } catch (e) {
+                statusEl.innerHTML = 'ðŸ”´ Netzwerkfehler';
+                statusEl.className = 'small fw-bold text-danger';
+            } finally {
+                btn.disabled = false;
+            }
+        };
+
+        // System Settings Github Modal Logic
+        const sysModal = document.getElementById('systemSettingsModal');
+        if (sysModal) {
+            sysModal.addEventListener('show.bs.modal', async () => {
+                try {
+                    const res = await fetch('/api/system/settings');
+                    const data = await res.json();
+                    document.getElementById('modal_github_token').value = data.github_token || '';
+                    document.getElementById('modal_github_repo_owner').value = data.github_repo_owner || '';
+                    document.getElementById('modal_github_repo_name').value = data.github_repo_name || '';
+                    document.getElementById('modal_auto_update_enabled').checked = !!data.auto_update_enabled;
+                    
+                    const lastCheckEl = document.getElementById('modal_last_check_status');
+                    if (lastCheckEl) {
+                        if (data.last_check_at) {
+                            lastCheckEl.textContent = new Date(data.last_check_at).toLocaleString('de-DE');
+                        } else {
+                            lastCheckEl.textContent = 'Noch nie geprÃ¼ft';
+                        }
+                    }
+                } catch (e) { console.error("Error loading system settings", e); }
+            });
+        }
+
+        const btnSaveModalSys = document.getElementById('btnSaveModalSystem');
+        if (btnSaveModalSys) {
+            btnSaveModalSys.onclick = async () => {
+                const payload = {
+                    github_token: document.getElementById('modal_github_token').value,
+                    github_repo_owner: document.getElementById('modal_github_repo_owner').value,
+                    github_repo_name: document.getElementById('modal_github_repo_name').value,
+                    auto_update_enabled: document.getElementById('modal_auto_update_enabled').checked
+                };
+
+                try {
+                    const res = await fetch('/api/system/settings/save', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        alert('System-Einstellungen erfolgreich gespeichert! âœ…');
+                        bootstrap.Modal.getInstance(sysModal).hide();
+                        // If we are on index/cockpit, sync the cockpit auto-update toggle state and last check status
+                        const cockpitToggle = document.getElementById('checkAutoUpdate');
+                        if (cockpitToggle) {
+                            cockpitToggle.checked = payload.auto_update_enabled;
+                        }
+                    } else {
+                        alert('Fehler: ' + (data.error || 'Unbekannt'));
+                    }
+                } catch (e) { alert("Netzwerkfehler."); }
+            };
+        }
+        {% endif %}
+        {% endif %}
+    </script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

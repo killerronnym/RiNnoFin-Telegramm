@@ -1,0 +1,32 @@
+# Core Dependencies
+flask
+flask-sqlalchemy
+flask-login
+python-dotenv
+requests
+waitress
+pytz
+
+# Bot Framework & Helpers
+python-telegram-bot
+APScheduler
+flask-apscheduler
+schedule
+
+# Plugin Specific
+TikTokLive
+websockets
+pymysql
+cryptography
+
+# Utilities
+Pillow
+cryptography
+gunicorn
+
+# Google Cloud Backup Integration
+google-api-python-client
+google-auth
+
+# SYSTEM REQUIREMENT (Not a pip package)
+# FFmpeg must be installed on the system path for birthday video generation.

@@ -1,0 +1,347 @@
+{% extends "base.html" %}
+
+{% block title %}Topic Cleanup | Bot Steuerung{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-white mb-1"><i class="bi bi-trash3 text-danger me-2"></i>Topic 24h Löschen</h2>
+            <p class="text-secondary small">Automatisches Aufräumen von Nachrichten nach Ablauf einer definierten Zeitspanne.</p>
+        </div>
+        <div>
+            <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline-secondary me-2">
+                <i class="bi bi-arrow-left me-1"></i> ZURÜCK
+            </a>
+            <button onclick="openCleanupModal()" class="btn btn-blue-action">
+                <i class="bi bi-plus-lg me-1"></i> TOPIC HINZUFÜGEN
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Configuration List -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-list-task me-2 text-blue"></i>Konfigurierte Topics</h5>
+                    <span class="badge bg-dark border border-secondary border-opacity-25 text-dim">{{ configs|length }} Topics</span>
+                </div>
+                <div class="card-body p-0">
+                    <div id="cleanupList" class="list-group list-group-flush">
+                        {% if configs %}
+                            {% for c in configs %}
+                            <div class="list-group-item bg-transparent border-secondary border-opacity-10 py-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-danger bg-opacity-10 p-2 me-3">
+                                            <i class="bi bi-chat-left-dots text-danger fs-5"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-white">{{ c.topic_name or 'Unbenannt' }} <span class="badge bg-dark text-secondary fw-normal ms-1">#{{ c.topic_id }}</span></div>
+                                            <div class="text-dim small mt-1">
+                                                <i class="bi bi-clock me-1 text-secondary"></i> Delay: {{ (c.delay_minutes // 60) }}h {{ (c.delay_minutes % 60) }}m
+                                                <span class="mx-2 text-secondary">|</span>
+                                                <i class="bi {{ 'bi-trash text-danger' if c.delete_admins else 'bi-shield-check text-success' }} me-1"></i> 
+                                                Admins: {{ 'Löschen' if c.delete_admins else 'Sicher' }}
+                                                <span class="mx-2 text-secondary">|</span>
+                                                <span class="{{ 'text-success' if c.is_active else 'text-danger' }} fw-medium">
+                                                    {{ 'AKTIV' if c.is_active else 'DEAKTIVIERT' }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-sm btn-outline-secondary" onclick='openCleanupModal({{ {"id": c.id, "topic_id": c.topic_id, "topic_name": c.topic_name, "delay_minutes": c.delay_minutes, "delete_admins": c.delete_admins, "is_active": c.is_active}|tojson }})'>
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteCleanup({{ c.id }})">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-5">
+                                <i class="bi bi-inboxes text-dim display-4 mb-3 d-block"></i>
+                                <p class="text-dim">Keine Topics für die automatische Reinigung konfiguriert.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-time Queue / Preview -->
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header bg-danger bg-opacity-10 border-danger border-opacity-10">
+                    <h5 class="mb-0 fw-bold text-danger"><i class="bi bi-hourglass-split me-2"></i>Lösch-Warteschlange</h5>
+                </div>
+                <div class="card-body">
+                    <div id="cleanupQueue">
+                        <div class="text-center py-3">
+                            <div class="spinner-border spinner-border-sm text-danger" role="status"></div>
+                            <p class="text-dim small mt-2">Lade Status...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-secondary bg-opacity-10 border-secondary border-opacity-10">
+                    <h5 class="mb-0 fw-bold text-white"><i class="bi bi-clock-history me-2"></i>Zuletzt gelöscht</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div id="cleanupHistory" class="list-group list-group-flush" style="max-height: 300px; overflow-y: auto;">
+                        <div class="text-center py-3">
+                            <p class="text-dim small mb-0">Lade Verlauf...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card bg-blue bg-opacity-5 border-blue border-opacity-10 overflow-hidden">
+                <div class="card-body">
+                    <h6 class="fw-bold text-white mb-3">Wie funktioniert es?</h6>
+                    <ul class="small text-dim ps-3 mb-0">
+                        <li class="mb-2">Der Bot überwacht permanent alle konfigurierten Topics.</li>
+                        <li class="mb-2">Jede neue Nachricht wird erfasst und ein Lösch-Timer gesetzt.</li>
+                        <li class="mb-2">Nach Ablauf der Zeit (z.B. 24h) wird die Nachricht automatisch gelöscht.</li>
+                        <li>Bot-Nachrichten werden grundsätzlich ignoriert und niemals gelöscht.</li>
+                    </ul>
+                </div>
+                <div style="height: 4px; background: linear-gradient(90deg, #3b82f6, #06b6d4, #10b981);"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal für Config -->
+<div class="modal fade" id="cleanupModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border-secondary shadow-lg">
+            <div class="modal-header border-secondary border-opacity-25 py-3 bg-black bg-opacity-20">
+                <h5 class="modal-title fw-bold fs-5"><i class="bi bi-trash3 me-2 text-danger"></i>Topic Setup</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" id="cleanup_id">
+
+                <!-- Auto Discovery Quick Select -->
+                <div id="discoveryQuickSelect" class="mb-4" style="display: none;">
+                    <label class="small text-blue fw-bold mb-2 d-block"><i class="bi bi-magic me-1"></i> SCHNELLAUSWAHL (ENTDECKTE TOPICS)</label>
+                    <select class="form-select border-blue border-opacity-25 bg-blue bg-opacity-10" id="discovery_select" onchange="applyDiscoverySelection(this)">
+                        <option value="">-- Topic wählen --</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="small text-secondary fw-bold mb-2 d-block">TOPIC ID</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-black border-secondary border-opacity-50 text-dim">#</span>
+                        <input type="number" class="form-control" id="cleanup_topic_id" placeholder="z.B. 872">
+                    </div>
+                    <div class="form-text small opacity-50 mt-1">Die ID des Telegram Topics (siehe ID-Finder).</div>
+                </div>
+                <div class="mb-4">
+                    <label class="small text-secondary fw-bold mb-2 d-block">BEZEICHNUNG</label>
+                    <input type="text" class="form-control" id="cleanup_topic_name" placeholder="z.B. News & Feedback">
+                </div>
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-6">
+                        <label class="small text-secondary fw-bold mb-2 d-block">VERZÖGERUNG (STUNDEN)</label>
+                        <input type="number" class="form-control text-center" id="cleanup_h" value="24" min="0">
+                    </div>
+                    <div class="col-6">
+                        <label class="small text-secondary fw-bold mb-2 d-block">VERZÖGERUNG (MINUTEN)</label>
+                        <input type="number" class="form-control text-center" id="cleanup_m" value="0" min="0" max="59">
+                    </div>
+                </div>
+
+                <div class="p-3 rounded bg-black bg-opacity-20 border border-secondary border-opacity-10">
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="cleanup_delete_admins">
+                        <label class="form-check-label small fw-bold" for="cleanup_delete_admins">Admins ebenfalls löschen</label>
+                        <div class="form-text small opacity-50">Wenn deaktiviert, werden Nachrichten von Administratoren ignoriert.</div>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="cleanup_is_active" checked>
+                        <label class="form-check-label small fw-bold" for="cleanup_is_active">Überwachung Aktiv</label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0 pb-4 px-4">
+                <button type="button" class="btn btn-outline-secondary fw-bold px-4" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="button" id="btnSaveCleanup" class="btn btn-danger fw-bold px-4">KONFIGURATION SICHERN</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const cleanupModal = new bootstrap.Modal(document.getElementById('cleanupModal'));
+    const btnSaveCleanup = document.getElementById('btnSaveCleanup');
+
+    window.loadCleanupQueue = async function() {
+        const queueBox = document.getElementById('cleanupQueue');
+        if(!queueBox) return;
+
+        try {
+            const res = await fetch('/api/cleanup/queue');
+            const data = await res.json();
+
+            if(data.length > 0) {
+                queueBox.innerHTML = data.map(t => `
+                    <div class="d-flex justify-content-between align-items-center p-2 mb-2 rounded bg-black bg-opacity-20 border border-secondary border-opacity-10">
+                        <div>
+                            <div class="small fw-bold text-white">Nachricht #${t.message_id}</div>
+                            <div class="text-dim" style="font-size: 0.7rem;">Chat: ${t.chat_id}</div>
+                        </div>
+                        <span class="badge ${t.seconds_left < 60 ? 'bg-danger animate__animated animate__pulse animate__infinite' : 'bg-secondary'} rounded-pill px-3">
+                            ${t.seconds_left > 0 ? formatTime(t.seconds_left) : 'Lösche...'}
+                        </span>
+                    </div>
+                `).join('');
+            } else {
+                queueBox.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="bi bi-check2-circle text-success fs-2 mb-2 d-block"></i>
+                        <p class="text-dim small mb-0">Keine anstehenden Löschungen.</p>
+                    </div>
+                `;
+            }
+        } catch (e) { 
+            queueBox.innerHTML = '<div class="alert alert-danger small p-2">Fehler beim Laden der Queue.</div>';
+        }
+    };
+
+    window.loadCleanupHistory = async function() {
+        const historyBox = document.getElementById('cleanupHistory');
+        if(!historyBox) return;
+
+        try {
+            const res = await fetch('/api/cleanup/history');
+            const data = await res.json();
+
+            if(data.length > 0) {
+                historyBox.innerHTML = data.map(t => {
+                    const date = new Date(t.cleaned_at);
+                    return `
+                    <div class="list-group-item bg-transparent border-secondary border-opacity-10 py-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="small text-white">#${t.message_id}</span>
+                            <span class="text-dim" style="font-size: 0.65rem;">${date.toLocaleTimeString('de-DE')}</span>
+                        </div>
+                    </div>
+                `}).join('');
+            } else {
+                historyBox.innerHTML = '<div class="text-center py-3 text-dim small">Kein Verlauf verfügbar.</div>';
+            }
+        } catch (e) {
+            historyBox.innerHTML = '<div class="text-center py-3 text-danger small">Fehler...</div>';
+        }
+    };
+
+    window.loadDiscoveredTopics = async function() {
+        const select = document.getElementById('discovery_select');
+        const container = document.getElementById('discoveryQuickSelect');
+        if(!select) return;
+
+        try {
+            const res = await fetch('/api/cleanup/discovered-topics');
+            const data = await res.json();
+
+            if(data.length > 0) {
+                const currentVal = select.value;
+                select.innerHTML = '<option value="">-- Gefundenes Topic wählen --</option>' + 
+                    data.map(t => `<option value="${t.topic_id}" data-name="${t.topic_name}">${t.topic_name} (#${t.topic_id})</option>`).join('');
+                select.value = currentVal;
+                container.style.display = document.getElementById('cleanup_id').value ? 'none' : 'block';
+            } else {
+                container.style.display = 'none';
+            }
+        } catch (e) { console.error(e); }
+    };
+
+    window.applyDiscoverySelection = function(select) {
+        const option = select.options[select.selectedIndex];
+        if(!option.value) return;
+        
+        document.getElementById('cleanup_topic_id').value = option.value;
+        document.getElementById('cleanup_topic_name').value = option.getAttribute('data-name');
+    };
+
+    window.formatTime = function(seconds) {
+        if (seconds < 0) return 'Lösche...';
+        if (seconds < 60) return `${seconds}s`;
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${m}m ${s}s`;
+    }
+
+    window.openCleanupModal = function(config = null) {
+        document.getElementById('cleanup_id').value = config ? config.id : '';
+        document.getElementById('cleanup_topic_id').value = config ? config.topic_id : '';
+        document.getElementById('cleanup_topic_name').value = config ? config.topic_name : '';
+        
+        const totalMin = config ? config.delay_minutes : 1440;
+        document.getElementById('cleanup_h').value = Math.floor(totalMin / 60);
+        document.getElementById('cleanup_m').value = totalMin % 60;
+        
+        document.getElementById('cleanup_delete_admins').checked = config ? config.delete_admins : false;
+        document.getElementById('cleanup_is_active').checked = config ? config.is_active : true;
+        
+        // Show/Hide discovery select based on if it's a new or existing config
+        document.getElementById('discoveryQuickSelect').style.display = config && config.id ? 'none' : 'block';
+        if(!(config && config.id)) loadDiscoveredTopics();
+        
+        cleanupModal.show();
+    };
+
+    btnSaveCleanup.onclick = async function() {
+        const h = parseInt(document.getElementById('cleanup_h').value) || 0;
+        const m = parseInt(document.getElementById('cleanup_m').value) || 0;
+        const payload = {
+            id: document.getElementById('cleanup_id').value,
+            topic_id: document.getElementById('cleanup_topic_id').value,
+            topic_name: document.getElementById('cleanup_topic_name').value,
+            delay_minutes: (h * 60) + m,
+            delete_admins: document.getElementById('cleanup_delete_admins').checked,
+            is_active: document.getElementById('cleanup_is_active').checked
+        };
+        
+        if(!payload.topic_id) return alert("Topic ID fehlt.");
+        
+        try {
+            const res = await fetch('/api/cleanup/config/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if(data.success) {
+                location.reload();
+            } else alert("Fehler: " + data.error);
+        } catch (e) { alert("Netzwerkfehler."); }
+    };
+
+    window.deleteCleanup = async function(id) {
+        if(!confirm("Dieses Topic wirklich aus der Überwachung entfernen?")) return;
+        try {
+            const res = await fetch(`/api/cleanup/config/delete/${id}`, { method: 'POST' });
+            if(res.ok) location.reload();
+        } catch (e) { console.error(e); }
+    };
+
+    // Initial load and intervals
+    loadCleanupQueue();
+    loadCleanupHistory();
+    setInterval(loadCleanupQueue, 5000);
+    setInterval(loadCleanupHistory, 10000);
+</script>
+{% endblock %}

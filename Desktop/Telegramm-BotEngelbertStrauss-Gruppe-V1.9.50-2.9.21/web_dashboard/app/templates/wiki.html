@@ -1,0 +1,469 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{{ url_for('dashboard.index') }}" class="btn btn-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> Zurück
+    </a>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="h3 mb-2 text-white"><i class="bi bi-book-half text-primary"></i> Hilfe-Center & System-Wiki</h2>
+        <p class="text-secondary mb-4">Hier findest du detaillierte Erklärungen zu jedem einzelnen Abschnitt und Modul der Bot-Steuerung.</p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Left Navigation Sidebar for Wiki -->
+    <div class="col-lg-4 mb-4">
+        <div class="card p-3 shadow border-0" style="background: rgba(10, 16, 28, 0.6); max-height: 80vh; overflow-y: auto; border: 1px solid rgba(255,255,255,0.05);">
+            <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                
+                <div class="text-secondary small fw-bold px-3 mt-2 mb-1 text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">1. Dashboard Sektion</div>
+                <button class="nav-link active text-start py-2 px-3 mb-2 fw-semibold small" id="v-pills-overview-tab" data-bs-toggle="pill" data-bs-target="#v-pills-overview" type="button" role="tab" aria-selected="true">
+                    <i class="bi bi-speedometer2 me-2"></i> Übersicht
+                </button>
+                
+                <div class="text-secondary small fw-bold px-3 mt-3 mb-1 text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">2. Moderation & Sicherheit</div>
+                <button class="nav-link text-start py-2 px-3 mb-1 fw-semibold small" id="v-pills-livemod-tab" data-bs-toggle="pill" data-bs-target="#v-pills-livemod" type="button" role="tab" aria-selected="false">
+                    <i class="bi bi-chat-dots me-2"></i> Live Moderation
+                </button>
+                <button class="nav-link text-start py-2 px-3 mb-1 fw-semibold small" id="v-pills-bans-tab" data-bs-toggle="pill" data-bs-target="#v-pills-bans" type="button" role="tab" aria-selected="false">
+                    <i class="bi bi-person-x me-2"></i> Nutzer-Sperren
+                </button>
+                <button class="nav-link text-start py-2 px-3 mb-1 fw-semibold small" id="v-pills-profanity-tab" data-bs-toggle="pill" data-bs-target="#v-pills-profanity" type="button" role="tab" aria-selected="false">
+                    <i class="bi bi-shield-slash me-2"></i> Beleidigungsfilter
+                </button>
+                <button class="nav-link text-start py-2 px-3 mb-1 fw-semibold small" id="v-pills-reports-tab" data-bs-toggle="pill" data-bs-target="#v-pills-reports" type="button" role="tab" aria-selected="false">
+                    <i class="bi bi-flag me-2"></i> Melde-System
+                </button>
+                <button class="nav-link text-start py-2 px-3 mb-2 fw-semibold small" id="v-pills-seccenter-tab" data-bs-toggle="pill" data-bs-target="#v-pills-seccenter" type="button" role="tab" aria-selected="false">
+                    <i class="bi bi-shield-lock me-2"></i> Sicherheits-Center
+                </button>
+                
+                <div class="text-secondary small fw-bold px-3 mt-3 mb-1 text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">3. Bot-Module</div>
+                <button class="nav-link text-start py-2 px-3 mb-1 fw-semibold small" id="v-pills-invite-tab" data-bs-toggle="pill" data-bs-target="#v-pills-invite" type="button" role="tab" aria-selected="false">
+                    <i class="bi bi-apple me-2"></i> Einladungs-Bot
+                </button>
+                <button class="nav-link text-start py-2 px-3 mb-1 fw-semibold small" id="v-pills-idfinder-tab" data-bs-toggle="pill" data-bs-target="#v-pills-idfinder" type="button" role="tab" aria-selected="false">
+                    <i class="bi bi-search me-2"></i> ID-Finder Bot
+                </button>
+                <button class="nav-link text-start py-2 px-3 mb-1 fw-semibold small" id="v-pills-outfit-tab" data-bs-toggle="pill" data-bs-target="#v-pills-outfit" type="button" role="tab" aria-selected="false">
+                    <i class="bi bi-person-badge me-2"></i> Outfit-Contest
+                </button>
+                <button class="nav-link text-start py-2 px-3 mb-1 fw-semibold small" id="v-pills-autoresponder-tab" data-bs-toggle="pill" data-bs-target="#v-pills-autoresponder" type="button" role="tab" aria-selected="false">
+                    <i class="bi bi-chat-right-text me-2"></i> Auto-Responder
+                </button>
+                <button class="nav-link text-start py-2 px-3 mb-1 fw-semibold small" id="v-pills-reactions-tab" data-bs-toggle="pill" data-bs-target="#v-pills-reactions" type="button" role="tab" aria-selected="false">
+                    <i class="bi bi-stars me-2"></i> Reaktionen & Effekte
+                </button>
+                <button class="nav-link text-start py-2 px-3 mb-1 fw-semibold small" id="v-pills-birthday-tab" data-bs-toggle="pill" data-bs-target="#v-pills-birthday" type="button" role="tab" aria-selected="false">
+                    <i class="bi bi-gift me-2"></i> Geburtstags-Bot
+                </button>
+                <button class="nav-link text-start py-2 px-3 mb-1 fw-semibold small" id="v-pills-event-tab" data-bs-toggle="pill" data-bs-target="#v-pills-event" type="button" role="tab" aria-selected="false">
+                    <i class="bi bi-calendar-event me-2"></i> Event Planer
+                </button>
+                <button class="nav-link text-start py-2 px-3 mb-1 fw-semibold small" id="v-pills-quiz-tab" data-bs-toggle="pill" data-bs-target="#v-pills-quiz" type="button" role="tab" aria-selected="false">
+                    <i class="bi bi-question-circle me-2"></i> Quiz Bot
+                </button>
+                <button class="nav-link text-start py-2 px-3 mb-1 fw-semibold small" id="v-pills-umfrage-tab" data-bs-toggle="pill" data-bs-target="#v-pills-umfrage" type="button" role="tab" aria-selected="false">
+                    <i class="bi bi-bar-chart me-2"></i> Umfrage Bot
+                </button>
+                <button class="nav-link text-start py-2 px-3 mb-2 fw-semibold small" id="v-pills-broadcast-tab" data-bs-toggle="pill" data-bs-target="#v-pills-broadcast" type="button" role="tab" aria-selected="false">
+                    <i class="bi bi-megaphone me-2"></i> Broadcast-Manager
+                </button>
+                
+                <div class="text-secondary small fw-bold px-3 mt-3 mb-1 text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">4. Statistiken & Logs</div>
+                <button class="nav-link text-start py-2 px-3 mb-1 fw-semibold small" id="v-pills-analytics-tab" data-bs-toggle="pill" data-bs-target="#v-pills-analytics" type="button" role="tab" aria-selected="false">
+                    <i class="bi bi-graph-up me-2"></i> Analytics
+                </button>
+                <button class="nav-link text-start py-2 px-3 mb-1 fw-semibold small" id="v-pills-profiles-tab" data-bs-toggle="pill" data-bs-target="#v-pills-profiles" type="button" role="tab" aria-selected="false">
+                    <i class="bi bi-people me-2"></i> Steckbrief-Katalog
+                </button>
+                <button class="nav-link text-start py-2 px-3 mb-2 fw-semibold small" id="v-pills-minecraft-tab" data-bs-toggle="pill" data-bs-target="#v-pills-minecraft" type="button" role="tab" aria-selected="false">
+                    <i class="bi bi-controller me-2"></i> Minecraft Status
+                </button>
+                
+                <div class="text-secondary small fw-bold px-3 mt-3 mb-1 text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">5. System-Verwaltung</div>
+                <button class="nav-link text-start py-2 px-3 mb-1 fw-semibold small" id="v-pills-team-tab" data-bs-toggle="pill" data-bs-target="#v-pills-team" type="button" role="tab" aria-selected="false">
+                    <i class="bi bi-people-fill me-2"></i> Teamverwaltung
+                </button>
+                <button class="nav-link text-start py-2 px-3 mb-1 fw-semibold small" id="v-pills-backup-tab" data-bs-toggle="pill" data-bs-target="#v-pills-backup" type="button" role="tab" aria-selected="false">
+                    <i class="bi bi-database-check me-2"></i> Backup & Recovery
+                </button>
+                <button class="nav-link text-start py-2 px-3 mb-1 fw-semibold small" id="v-pills-setup-tab" data-bs-toggle="pill" data-bs-target="#v-pills-setup" type="button" role="tab" aria-selected="false">
+                    <i class="bi bi-gear-wide-connected me-2"></i> Software Setup
+                </button>
+                <button class="nav-link text-start py-2 px-3 mb-1 fw-semibold small" id="v-pills-logs-tab" data-bs-toggle="pill" data-bs-target="#v-pills-logs" type="button" role="tab" aria-selected="false">
+                    <i class="bi bi-exclamation-triangle me-2"></i> Kritische Logs
+                </button>
+                <button class="nav-link text-start py-2 px-3 mb-1 fw-semibold small" id="v-pills-wiki-tab" data-bs-toggle="pill" data-bs-target="#v-pills-wiki" type="button" role="tab" aria-selected="false">
+                    <i class="bi bi-book-half me-2"></i> Hilfe & Wiki
+                </button>
+                <button class="nav-link text-start py-2 px-3 fw-semibold small" id="v-pills-photo-tab" data-bs-toggle="pill" data-bs-target="#v-pills-photo" type="button" role="tab" aria-selected="false">
+                    <i class="bi bi-camera-fill me-2"></i> Fotomodus
+                </button>
+                
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Content Panel -->
+    <div class="col-lg-8">
+        <div class="tab-content" id="v-pills-tabContent">
+            
+            <!-- 1. Dashboard Sektion -->
+            <div class="tab-pane fade show active" id="v-pills-overview" role="tabpanel" aria-labelledby="v-pills-overview-tab">
+                <div class="card shadow p-4 mb-4 border-0" style="background: rgba(20, 30, 50, 0.45);">
+                    <h4 class="text-white mb-3"><i class="bi bi-speedometer2 text-primary me-2"></i> Übersicht</h4>
+                    <p class="text-white-50">Die zentrale Schaltzentrale und das Cockpit der gesamten Bot-Steuerung.</p>
+                    <h5 class="text-white mt-4 small fw-bold text-uppercase text-primary">Hauptfunktionen:</h5>
+                    <ul class="text-secondary small">
+                        <li><strong>Systemauslastung:</strong> Echtzeit-Monitore für RAM- und CPU-Nutzung des Servers.</li>
+                        <li><strong>Online-Status:</strong> Visueller Indikator, ob der Bot-Prozess läuft.</li>
+                        <li><strong>Schnellstatistik:</strong> Anzahl der Mitglieder, registrierten Steckbriefe und anstehenden Geburtstage.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 2. Live Moderation -->
+            <div class="tab-pane fade" id="v-pills-livemod" role="tabpanel" aria-labelledby="v-pills-livemod-tab">
+                <div class="card shadow p-4 mb-4 border-0" style="background: rgba(20, 30, 50, 0.45);">
+                    <h4 class="text-white mb-3"><i class="bi bi-chat-dots text-primary me-2"></i> Live Moderation</h4>
+                    <p class="text-white-50">Echtzeit-Ansicht und Management des Telegram-Gruppenchats direkt über den Webbrowser.</p>
+                    <h5 class="text-white mt-4 small fw-bold text-uppercase text-primary">Hauptfunktionen:</h5>
+                    <ul class="text-secondary small">
+                        <li><strong>Echtzeit-Feed:</strong> Eingehende Nachrichten werden ohne Verzögerung im Dashboard gestreamt.</li>
+                        <li><strong>Schnellauswahl:</strong> Direktes Anklicken eines Nutzers, um Details anzuzeigen oder administrative Aktionen auszuführen.</li>
+                        <li><strong>Direkteingriff:</strong> Nachrichten löschen, Verwarnungen aussprechen oder temporäre Stummschaltungen aktivieren.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 3. Nutzer-Sperren -->
+            <div class="tab-pane fade" id="v-pills-bans" role="tabpanel" aria-labelledby="v-pills-bans-tab">
+                <div class="card shadow p-4 mb-4 border-0" style="background: rgba(20, 30, 50, 0.45);">
+                    <h4 class="text-white mb-3"><i class="bi bi-person-x text-primary me-2"></i> Nutzer-Sperren</h4>
+                    <p class="text-white-50">Schnittstelle zur Administration und Protokollierung aller Einschränkungen im Chat.</p>
+                    <h5 class="text-white mt-4 small fw-bold text-uppercase text-primary">Hauptfunktionen:</h5>
+                    <ul class="text-secondary small">
+                        <li><strong>Bannliste:</strong> Übersicht aller dauerhaft gesperrten Nutzer samt Grund und Admin-Kommentar.</li>
+                        <li><strong>Mute-Verwaltung:</strong> Verwaltung temporär stummgeschalteter Nutzer mit Ablauf-Timer.</li>
+                        <li><strong>Sofort-Aktionen:</strong> Manuelles Entsperren (Unban) von Nutzern direkt per Knopfdruck.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 4. Beleidigungsfilter -->
+            <div class="tab-pane fade" id="v-pills-profanity" role="tabpanel" aria-labelledby="v-pills-profanity-tab">
+                <div class="card shadow p-4 mb-4 border-0" style="background: rgba(20, 30, 50, 0.45);">
+                    <h4 class="text-white mb-3"><i class="bi bi-shield-slash text-primary me-2"></i> Beleidigungsfilter</h4>
+                    <p class="text-white-50">Automatischer Spam- und Profanitäts-Schutz.</p>
+                    <h5 class="text-white mt-4 small fw-bold text-uppercase text-primary">Hauptfunktionen:</h5>
+                    <ul class="text-secondary small">
+                        <li><strong>Wort-Blacklist:</strong> Dynamische Liste von Schimpfwörtern, die im Chat blockiert sind.</li>
+                        <li><strong>Auto-Löschen:</strong> Erreichte Nachrichten mit verbotenen Begriffen werden in Millisekunden gelöscht.</li>
+                        <li><strong>Strafverfolgung:</strong> Automatische Verwarnungen für auffällige Nutzer bis hin zur automatischen Sperre.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 5. Melde-System -->
+            <div class="tab-pane fade" id="v-pills-reports" role="tabpanel" aria-labelledby="v-pills-reports-tab">
+                <div class="card shadow p-4 mb-4 border-0" style="background: rgba(20, 30, 50, 0.45);">
+                    <h4 class="text-white mb-3"><i class="bi bi-flag text-primary me-2"></i> Melde-System</h4>
+                    <p class="text-white-50">Verwaltung der von Gruppenmitgliedern gemeldeten Beiträge.</p>
+                    <h5 class="text-white mt-4 small fw-bold text-uppercase text-primary">Hauptfunktionen:</h5>
+                    <ul class="text-secondary small">
+                        <li><strong>Nutzer-Meldungen:</strong> Chatspezifische Meldungen per `/report` werden sofort hier aufgelistet.</li>
+                        <li><strong>Beweissicherung:</strong> Zeigt den gemeldeten Text, den Verfasser und den meldenden User an.</li>
+                        <li><strong>Entscheidungs-Buttons:</strong> Meldung als erledigt markieren, ignorieren oder direkt sanktionieren.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 6. Sicherheits-Center -->
+            <div class="tab-pane fade" id="v-pills-seccenter" role="tabpanel" aria-labelledby="v-pills-seccenter-tab">
+                <div class="card shadow p-4 mb-4 border-0" style="background: rgba(20, 30, 50, 0.45);">
+                    <h4 class="text-white mb-3"><i class="bi bi-shield-lock text-primary me-2"></i> Sicherheits-Center</h4>
+                    <p class="text-white-50">Sicherheitsüberwachung für das administrative Webinterface.</p>
+                    <h5 class="text-white mt-4 small fw-bold text-uppercase text-primary">Hauptfunktionen:</h5>
+                    <ul class="text-secondary small">
+                        <li><strong>IP-Sperren (IP Locks):</strong> Verwaltung gesperrter IP-Adressen nach fehlgeschlagenen Anmeldeversuchen.</li>
+                        <li><strong>Login-Überwachung:</strong> Audit-Logs der erfolgreichen und fehlgeschlagenen Anmeldungen inklusive Geodaten/IP-Adressen.</li>
+                        <li><strong>Telegram Security Alerts:</strong> Einstellungen zur Benachrichtigung bei unbefugten Zugriffen.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 7. Einladungs-Bot -->
+            <div class="tab-pane fade" id="v-pills-invite" role="tabpanel" aria-labelledby="v-pills-invite-tab">
+                <div class="card shadow p-4 mb-4 border-0" style="background: rgba(20, 30, 50, 0.45);">
+                    <h4 class="text-white mb-3"><i class="bi bi-apple text-primary me-2"></i> Einladungs-Bot</h4>
+                    <p class="text-white-50">Kontrolliert den Gruppenbeitritt neuer Mitglieder und filtert Bots/Spammer.</p>
+                    <h5 class="text-white mt-4 small fw-bold text-uppercase text-primary">Hauptfunktionen:</h5>
+                    <ul class="text-secondary small">
+                        <li><strong>Willkommensgrüße:</strong> Personalisierte Nachrichten beim Beitritt.</li>
+                        <li><strong>Regelakzeptanz:</strong> Zwingt neue Mitglieder, den Gruppenregeln per Knopfdruck zuzustimmen, bevor sie schreiben dürfen.</li>
+                        <li><strong>Spam-Schutz:</strong> Schutz vor massenhaften Bot-Beitritten.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 8. ID-Finder Bot -->
+            <div class="tab-pane fade" id="v-pills-idfinder" role="tabpanel" aria-labelledby="v-pills-idfinder-tab">
+                <div class="card shadow p-4 mb-4 border-0" style="background: rgba(20, 30, 50, 0.45);">
+                    <h4 class="text-white mb-3"><i class="bi bi-search text-primary me-2"></i> ID-Finder Bot</h4>
+                    <p class="text-white-50">Katalogisiert Steckbriefe und erfasst die Telegram-IDs der Benutzer.</p>
+                    <h5 class="text-white mt-4 small fw-bold text-uppercase text-primary">Hauptfunktionen:</h5>
+                    <ul class="text-secondary small">
+                        <li><strong>Steckbrief-Speicherung:</strong> Verwaltet die vom User erstellten Beschreibungen.</li>
+                        <li><strong>Befehlsunterstützung:</strong> Ermöglicht Befehle wie `/steckbrief`, `/suche` und `/detail` im Chat.</li>
+                        <li><strong>Datenbank-Abgleich:</strong> Verknüpft Telegram-Nutzerdaten mit der lokalen Datenbank.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 9. Outfit-Contest -->
+            <div class="tab-pane fade" id="v-pills-outfit" role="tabpanel" aria-labelledby="v-pills-outfit-tab">
+                <div class="card shadow p-4 mb-4 border-0" style="background: rgba(20, 30, 50, 0.45);">
+                    <h4 class="text-white mb-3"><i class="bi bi-person-badge text-primary me-2"></i> Outfit-Contest</h4>
+                    <p class="text-white-50">Verwaltet das interaktive Outfit-Bewertungs-Event in der Gruppe.</p>
+                    <h5 class="text-white mt-4 small fw-bold text-uppercase text-primary">Hauptfunktionen:</h5>
+                    <ul class="text-secondary small">
+                        <li><strong>Einsendungen steuern:</strong> Fotos der Mitglieder freischalten oder ablehnen.</li>
+                        <li><strong>Voting-Auswertung:</strong> Live-Tabelle der aktuellen Punkte und Rankings.</li>
+                        <li><strong>Gewinner-Ermittlung:</strong> Automatische Auswertung der besten Outfits und Siegerehrung.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 10. Auto-Responder -->
+            <div class="tab-pane fade" id="v-pills-autoresponder" role="tabpanel" aria-labelledby="v-pills-autoresponder-tab">
+                <div class="card shadow p-4 mb-4 border-0" style="background: rgba(20, 30, 50, 0.45);">
+                    <h4 class="text-white mb-3"><i class="bi bi-chat-right-text text-primary me-2"></i> Auto-Responder</h4>
+                    <p class="text-white-50">Ermöglicht automatische Antworten des Bots auf vordefinierte Wörter oder Phrasen.</p>
+                    <h5 class="text-white mt-4 small fw-bold text-uppercase text-primary">Hauptfunktionen:</h5>
+                    <ul class="text-secondary small">
+                        <li><strong>Trigger erstellen:</strong> Lege fest, auf welche Text-Ausdrücke reagiert werden soll (z. B. "Regeln").</li>
+                        <li><strong>Antworten formatieren:</strong> Markdown-Antworten inklusive Bildern oder Buttons einrichten.</li>
+                        <li><strong>Statistiken:</strong> Zähler, wie oft ein Trigger bereits ausgelöst wurde.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 11. Reaktionen & Effekte -->
+            <div class="tab-pane fade" id="v-pills-reactions" role="tabpanel" aria-labelledby="v-pills-reactions-tab">
+                <div class="card shadow p-4 mb-4 border-0" style="background: rgba(20, 30, 50, 0.45);">
+                    <h4 class="text-white mb-3"><i class="bi bi-stars text-primary me-2"></i> Reaktionen & Effekte</h4>
+                    <p class="text-white-50">Verwaltet automatische Emojis und Animationen bei Chatnachrichten.</p>
+                    <h5 class="text-white mt-4 small fw-bold text-uppercase text-primary">Hauptfunktionen:</h5>
+                    <ul class="text-secondary small">
+                        <li><strong>Auto-Emojis:</strong> Reagiert automatisch mit passenden Emojis (z. B. Feuer bei Outfitbildern).</li>
+                        <li><strong>Animations-Trigger:</strong> Sendung von Stickern oder kleinen Effekten bei bestimmten Begriffen.</li>
+                        <li><strong>Konfiguration:</strong> Intensität und Häufigkeit der Reaktionen steuern.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 12. Geburtstags-Bot -->
+            <div class="tab-pane fade" id="v-pills-birthday" role="tabpanel" aria-labelledby="v-pills-birthday-tab">
+                <div class="card shadow p-4 mb-4 border-0" style="background: rgba(20, 30, 50, 0.45);">
+                    <h4 class="text-white mb-3"><i class="bi bi-gift text-primary me-2"></i> Geburtstags-Bot</h4>
+                    <p class="text-white-50">Automatische Gratulationsnachrichten für Gruppenmitglieder.</p>
+                    <h5 class="text-white mt-4 small fw-bold text-uppercase text-primary">Hauptfunktionen:</h5>
+                    <ul class="text-secondary small">
+                        <li><strong>Terminkalender:</strong> Übersicht aller erfassten Geburtsdaten.</li>
+                        <li><strong>Automatische Löschung:</strong> Konfiguriere die Löschung der Glückwünsche nach Tagen, Stunden und Minuten.</li>
+                        <li><strong>Individuelle Vorlagen:</strong> Bearbeitung der Glückwunschnachrichten und GIFs.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 13. Event Planer -->
+            <div class="tab-pane fade" id="v-pills-event" role="tabpanel" aria-labelledby="v-pills-event-tab">
+                <div class="card shadow p-4 mb-4 border-0" style="background: rgba(20, 30, 50, 0.45);">
+                    <h4 class="text-white mb-3"><i class="bi bi-calendar-event text-primary me-2"></i> Event Planer</h4>
+                    <p class="text-white-50">Werkzeug zur Erstellung und Koordination von Gruppentreffen oder Events.</p>
+                    <h5 class="text-white mt-4 small fw-bold text-uppercase text-primary">Hauptfunktionen:</h5>
+                    <ul class="text-secondary small">
+                        <li><strong>Event-Erstellung:</strong> Titel, Datum, Uhrzeit, Beschreibung und Ort eintragen.</li>
+                        <li><strong>Teilnehmer-Tracker:</strong> Nutzer können im Chat per Klick zu- oder absagen.</li>
+                        <li><strong>Zusammenfassung:</strong> Listenansicht der angemeldeten Teilnehmer im Dashboard.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 14. Quiz Bot -->
+            <div class="tab-pane fade" id="v-pills-quiz" role="tabpanel" aria-labelledby="v-pills-quiz-tab">
+                <div class="card shadow p-4 mb-4 border-0" style="background: rgba(20, 30, 50, 0.45);">
+                    <h4 class="text-white mb-3"><i class="bi bi-question-circle text-primary me-2"></i> Quiz Bot</h4>
+                    <p class="text-white-50">Unterhaltungstool zur Durchführung von Quizspielen im Chat.</p>
+                    <h5 class="text-white mt-4 small fw-bold text-uppercase text-primary">Hauptfunktionen:</h5>
+                    <ul class="text-secondary small">
+                        <li><strong>Fragen-Katalog:</strong> Fragen, Antwortmöglichkeiten und Punktewerte einrichten.</li>
+                        <li><strong>Spielrunden:</strong> Quizze manuell oder zeitgesteuert starten.</li>
+                        <li><strong>Ranglisten:</strong> Punktestände der Mitglieder einsehen und verwalten.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 15. Umfrage Bot -->
+            <div class="tab-pane fade" id="v-pills-umfrage" role="tabpanel" aria-labelledby="v-pills-umfrage-tab">
+                <div class="card shadow p-4 mb-4 border-0" style="background: rgba(20, 30, 50, 0.45);">
+                    <h4 class="text-white mb-3"><i class="bi bi-bar-chart text-primary me-2"></i> Umfrage Bot</h4>
+                    <p class="text-white-50">Erleichtert das Erstellen und Auswerten von Abstimmungen.</p>
+                    <h5 class="text-white mt-4 small fw-bold text-uppercase text-primary">Hauptfunktionen:</h5>
+                    <ul class="text-secondary small">
+                        <li><strong>Umfragen gestalten:</strong> Fragen und Antwortoptionen definieren.</li>
+                        <li><strong>Umfragetypen:</strong> Anonyme Umfragen oder offene Abstimmungen starten.</li>
+                        <li><strong>Live-Ergebnisse:</strong> Grafische Verläufe und Prozentwerte direkt im Dashboard.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 16. Broadcast-Manager -->
+            <div class="tab-pane fade" id="v-pills-broadcast" role="tabpanel" aria-labelledby="v-pills-broadcast-tab">
+                <div class="card shadow p-4 mb-4 border-0" style="background: rgba(20, 30, 50, 0.45);">
+                    <h4 class="text-white mb-3"><i class="bi bi-megaphone text-primary me-2"></i> Broadcast-Manager</h4>
+                    <p class="text-white-50">Verteiler für Sammelbenachrichtigungen in der Gruppe.</p>
+                    <h5 class="text-white mt-4 small fw-bold text-uppercase text-primary">Hauptfunktionen:</h5>
+                    <ul class="text-secondary small">
+                        <li><strong>Massenversand:</strong> Sende wichtige Neuigkeiten an alle Mitglieder oder an spezifische Chat-Themen (Topics).</li>
+                        <li><strong>Planer-Funktion:</strong> Nachrichten vorschreiben und zu einer bestimmten Uhrzeit senden lassen.</li>
+                        <li><strong>Formatierung:</strong> Unterstützt Rich-Text, Links, Markdown und Bilder.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 17. Analytics -->
+            <div class="tab-pane fade" id="v-pills-analytics" role="tabpanel" aria-labelledby="v-pills-analytics-tab">
+                <div class="card shadow p-4 mb-4 border-0" style="background: rgba(20, 30, 50, 0.45);">
+                    <h4 class="text-white mb-3"><i class="bi bi-graph-up text-primary me-2"></i> Analytics</h4>
+                    <p class="text-white-50">Detaillierte Statistiken über die Aktivität in der Telegram-Gruppe.</p>
+                    <h5 class="text-white mt-4 small fw-bold text-uppercase text-primary">Hauptfunktionen:</h5>
+                    <ul class="text-secondary small">
+                        <li><strong>Aktivitätskurve:</strong> Diagramme über die tägliche Nachrichtenanzahl.</li>
+                        <li><strong>Top-Nutzer:</strong> Listen der aktivsten Mitglieder (der Bot selbst wird dabei ausgefiltert).</li>
+                        <li><strong>Datenexport:</strong> Lade Aktivitätsdaten zur Weiterverarbeitung im Excel/JSON-Format herunter.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 18. Steckbrief-Katalog -->
+            <div class="tab-pane fade" id="v-pills-profiles" role="tabpanel" aria-labelledby="v-pills-profiles-tab">
+                <div class="card shadow p-4 mb-4 border-0" style="background: rgba(20, 30, 50, 0.45);">
+                    <h4 class="text-white mb-3"><i class="bi bi-people text-primary me-2"></i> Steckbrief-Katalog</h4>
+                    <p class="text-white-50">Visuelle Galerie aller erstellten Mitglieder-Steckbriefe.</p>
+                    <h5 class="text-white mt-4 small fw-bold text-uppercase text-primary">Hauptfunktionen:</h5>
+                    <ul class="text-secondary small">
+                        <li><strong>Galerie-Ansicht:</strong> Profile übersichtlich sortiert mit Foto und Text.</li>
+                        <li><strong>Profilbearbeitung:</strong> Admins können veraltete Angaben oder unpassende Fotos korrigieren.</li>
+                        <li><strong>Filteroptionen:</strong> Suche nach Namen, Wohnort oder Interessen.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 19. Minecraft Status -->
+            <div class="tab-pane fade" id="v-pills-minecraft" role="tabpanel" aria-labelledby="v-pills-minecraft-tab">
+                <div class="card shadow p-4 mb-4 border-0" style="background: rgba(20, 30, 50, 0.45);">
+                    <h4 class="text-white mb-3"><i class="bi bi-controller text-primary me-2"></i> Minecraft Status</h4>
+                    <p class="text-white-50">Statusüberwachung des gemeinsamen Gaming-Servers.</p>
+                    <h5 class="text-white mt-4 small fw-bold text-uppercase text-primary">Hauptfunktionen:</h5>
+                    <ul class="text-secondary small">
+                        <li><strong>Serverstatus:</strong> Online-/Offline-Status und Ping-Zeiten.</li>
+                        <li><strong>Spieler-Liste:</strong> Zeigt an, welche Spieler aktuell online sind.</li>
+                        <li><strong>MOTD:</strong> Auslesen der aktuellen Server-Nachricht.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 20. Teamverwaltung -->
+            <div class="tab-pane fade" id="v-pills-team" role="tabpanel" aria-labelledby="v-pills-team-tab">
+                <div class="card shadow p-4 mb-4 border-0" style="background: rgba(20, 30, 50, 0.45);">
+                    <h4 class="text-white mb-3"><i class="bi bi-people-fill text-primary me-2"></i> Teamverwaltung</h4>
+                    <p class="text-white-50">Accounts und Berechtigungen für das Dashboard verwalten.</p>
+                    <h5 class="text-white mt-4 small fw-bold text-uppercase text-primary">Hauptfunktionen:</h5>
+                    <ul class="text-secondary small">
+                        <li><strong>Zugänge anlegen:</strong> Logins für neue Teammitglieder konfigurieren.</li>
+                        <li><strong>Rollenverteilung:</strong> Unterscheide zwischen Admin (Vollzugriff) und Moderator (eingeschränkt).</li>
+                        <li><strong>Sicherheit:</strong> Passwortänderungen erzwingen und veraltete Accounts löschen.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 21. Backup & Recovery -->
+            <div class="tab-pane fade" id="v-pills-backup" role="tabpanel" aria-labelledby="v-pills-backup-tab">
+                <div class="card shadow p-4 mb-4 border-0" style="background: rgba(20, 30, 50, 0.45);">
+                    <h4 class="text-white mb-3"><i class="bi bi-database-check text-primary me-2"></i> Backup & Recovery</h4>
+                    <p class="text-white-50">Sicherung der sqlite-Datenbank und aller hochgeladenen Dateien.</p>
+                    <h5 class="text-white mt-4 small fw-bold text-uppercase text-primary">Hauptfunktionen:</h5>
+                    <ul class="text-secondary small">
+                        <li><strong>Ziele:</strong> Backups lokal, auf das Synology NAS oder Google Drive laden.</li>
+                        <li><strong>Restore-Vorschau:</strong> Analysiert ein Backup vor dem Zurückspielen und zeigt Statistiken an.</li>
+                        <li><strong>Tägliche Automatisierung:</strong> Zeitgesteuerte Backups (z. B. jede Nacht).</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 22. Software Setup -->
+            <div class="tab-pane fade" id="v-pills-setup" role="tabpanel" aria-labelledby="v-pills-setup-tab">
+                <div class="card shadow p-4 mb-4 border-0" style="background: rgba(20, 30, 50, 0.45);">
+                    <h4 class="text-white mb-3"><i class="bi bi-gear-wide-connected text-primary"></i> Software Setup</h4>
+                    <p class="text-white-50">Aktualisierung und Konfiguration der Bot-Software.</p>
+                    <h5 class="text-white mt-4 small fw-bold text-uppercase text-primary">Hauptfunktionen:</h5>
+                    <ul class="text-secondary small">
+                        <li><strong>Versions-Info:</strong> Zeigt die aktuelle Release-Version und das Datum an.</li>
+                        <li><strong>GitHub-Kopplung:</strong> Anbindung des Repositories für automatisierte System-Updates.</li>
+                        <li><strong>Neustarts:</strong> Systemdienste oder Container neu starten.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 23. Kritische Logs -->
+            <div class="tab-pane fade" id="v-pills-logs" role="tabpanel" aria-labelledby="v-pills-logs-tab">
+                <div class="card shadow p-4 mb-4 border-0" style="background: rgba(20, 30, 50, 0.45);">
+                    <h4 class="text-white mb-3"><i class="bi bi-exclamation-triangle text-primary me-2"></i> Kritische Logs</h4>
+                    <p class="text-white-50">Überwachung von Fehlermeldungen und Systemabstürzen.</p>
+                    <h5 class="text-white mt-4 small fw-bold text-uppercase text-primary">Hauptfunktionen:</h5>
+                    <ul class="text-secondary small">
+                        <li><strong>Fehlerberichte:</strong> Log-Einträge von Python-Exceptions und API-Fehlern.</li>
+                        <li><strong>Zeitverlauf:</strong> Wann ist welcher Fehler aufgetreten.</li>
+                        <li><strong>Bereinigen:</strong> Logs löschen, sobald die Fehler behoben wurden.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 24. Hilfe & Wiki -->
+            <div class="tab-pane fade" id="v-pills-wiki" role="tabpanel" aria-labelledby="v-pills-wiki-tab">
+                <div class="card shadow p-4 mb-4 border-0" style="background: rgba(20, 30, 50, 0.45);">
+                    <h4 class="text-white mb-3"><i class="bi bi-book-half text-primary me-2"></i> Hilfe & Wiki</h4>
+                    <p class="text-white-50">Das interaktive Wikipedia-Handbuch zur Erklärung aller Dashboard-Features.</p>
+                    <h5 class="text-white mt-4 small fw-bold text-uppercase text-primary">Hauptfunktionen:</h5>
+                    <ul class="text-secondary small">
+                        <li><strong>Bedienungshilfen:</strong> Schritt-für-Schritt-Anleitungen für Admins und Moderatoren.</li>
+                        <li><strong>Befehlsübersicht:</strong> Auflistung aller Telegram-Chatbefehle für Gruppenmitglieder.</li>
+                        <li><strong>Schnellzugriff:</strong> Dieses Handbuch dient als schnelle Referenz zur Fehlerbehebung.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 25. Fotomodus -->
+            <div class="tab-pane fade" id="v-pills-photo" role="tabpanel" aria-labelledby="v-pills-photo-tab">
+                <div class="card shadow p-4 mb-4 border-0" style="background: rgba(20, 30, 50, 0.45);">
+                    <h4 class="text-white mb-3"><i class="bi bi-camera-fill text-primary me-2"></i> Fotomodus</h4>
+                    <p class="text-white-50">Schützt die Privatsphäre der Gruppenmitglieder bei Screenshots oder Präsentationen.</p>
+                    <h5 class="text-white mt-4 small fw-bold text-uppercase text-primary">Hauptfunktionen:</h5>
+                    <ul class="text-secondary small">
+                        <li><strong>Anonymisierung:</strong> Verpixelt/blurt sensible Nutzerdaten wie Telegram-IDs, Telefonnummern, Klarnamen und Profilbilder.</li>
+                        <li><strong>Globale Umschaltung:</strong> Kann per Sidebar-Button oder Top-Header-Button ein- und ausgeschaltet werden.</li>
+                        <li><strong>Datenschutz-konform:</strong> Ideal, um Fehlerberichte als Foto zu teilen, ohne personenbezogene Daten offenzulegen.</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

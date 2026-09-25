@@ -1,0 +1,1448 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Invite Bot | Administration{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        console.log("Bot Settings JS Initializing...");
+        const tableBody = document.getElementById('fields-sortable');
+        if (!tableBody) {
+            console.error("ERROR: #fields-sortable not found!");
+            return;
+        }
+        console.log("Found #fields-sortable with", tableBody.rows.length, "rows.");
+
+        function updateAllPositionsAndSave() {
+            const rows = Array.from(tableBody.querySelectorAll('tr[data-id]'));
+            const fieldIds = rows.map(r => r.getAttribute('data-id')).filter(id => !!id);
+
+            console.log("Updating positions for ids:", fieldIds);
+            rows.forEach((row, idx) => {
+                const input = row.querySelector('.pos-input');
+                if (input) {
+                    input.value = idx + 1;
+                    // Reset validity/style if needed
+                    input.style.borderColor = "rgba(255,255,255,0.1)";
+                }
+            });
+
+            console.log("Saving new field order to backend:", fieldIds);
+            fetch("{{ url_for('dashboard.invite_bot_reorder_fields') }}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ field_ids: fieldIds })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success) {
+                        console.error("Backend Save Failed:", data.error);
+                        alert("Speichern fehlgeschlagen: " + data.error);
+                    } else {
+                        console.log("Backend Save Success.");
+                    }
+                })
+                .catch(err => console.error("Fetch Error:", err));
+        }
+
+        // Initialize SortableJS
+        if (typeof Sortable !== 'undefined') {
+            console.log("Initializing SortableJS...");
+            Sortable.create(tableBody, {
+                animation: 150,
+                handle: '.move-arrow',
+                ghostClass: 'sortable-ghost',
+                onEnd: function () {
+                    console.log("Sortable Drag End detected.");
+                    updateAllPositionsAndSave();
+                }
+            });
+        } else {
+            console.error("ERROR: Sortable library not loaded!");
+        }
+
+        // Handle numeric input change (manual reordering)
+        tableBody.addEventListener('change', function (e) {
+            if (e.target.classList.contains('pos-input')) {
+                console.log("POS input change detected:", e.target.value);
+                const row = e.target.closest('tr');
+                const rows = Array.from(tableBody.querySelectorAll('tr[data-id]'));
+                const oldIdx = rows.indexOf(row);
+                const newPos = parseInt(e.target.value);
+                const newIdx = newPos - 1;
+
+                // Validate input
+                if (isNaN(newPos) || newIdx === oldIdx || newIdx < 0 || newIdx >= rows.length) {
+                    console.warn("Invalid position requested:", newPos, "Resetting to", oldIdx + 1);
+                    e.target.value = oldIdx + 1;
+                    return;
+                }
+
+                console.log("Moving row from", oldIdx, "to", newIdx);
+                // Visual move in DOM
+                if (newIdx > oldIdx) {
+                    // Moving down: insert after the target sibling
+                    tableBody.insertBefore(row, rows[newIdx].nextSibling);
+                } else {
+                    // Moving up: insert before the target row
+                    tableBody.insertBefore(row, rows[newIdx]);
+                }
+
+                // Sync all numbers and save to DB
+                updateAllPositionsAndSave();
+            }
+        });
+
+        // --- Other UI Helpers ---
+        function toggleWhitelistSection() {
+            const cb = document.getElementById('whitelist_enabled');
+            const sec = document.getElementById('whitelist_section');
+            if (cb && sec) sec.style.display = cb.checked ? 'block' : 'none';
+        }
+
+        function toggleAgeFields(prefix) {
+            const sel = document.getElementById(prefix + '_type');
+            const sec = document.getElementById(prefix + '_age_section');
+            if (sel && sec) {
+                const show = (sel.value === 'number' || sel.value === 'puppy_age' || sel.value === 'birthday');
+                sec.style.display = show ? 'block' : 'none';
+            }
+        }
+
+        // Whitelist Toggle
+        const wlCb = document.getElementById('whitelist_enabled');
+        if (wlCb) {
+            toggleWhitelistSection();
+            wlCb.addEventListener('change', toggleWhitelistSection);
+        }
+
+        // Add Field Modal
+        const addSel = document.querySelector('#addFieldModal select[name="type"]');
+        if (addSel) {
+            addSel.id = 'add_type';
+            addSel.addEventListener('change', () => toggleAgeFields('add'));
+            toggleAgeFields('add');
+        }
+
+        // Edit Field Modal
+        const editSel = document.getElementById('edit_type');
+        if (editSel) {
+            editSel.addEventListener('change', () => toggleAgeFields('edit'));
+        }
+
+        document.querySelectorAll('.edit-field-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const d = this.dataset;
+                document.getElementById('edit_field_id').value = d.id;
+                document.getElementById('edit_label').value = d.label;
+                document.getElementById('edit_type').value = d.type;
+                document.getElementById('edit_required').checked = d.required === 'true';
+                document.getElementById('edit_enabled').checked = d.enabled === 'true';
+                document.getElementById('edit_internal').checked = d.internal === 'true';
+                document.getElementById('edit_emoji').value = d.emoji;
+                document.getElementById('edit_display_name').value = d.display_name;
+                document.getElementById('edit_min_age').value = d.min_age || '';
+                document.getElementById('edit_min_age_error').value = d.min_age_error || '';
+                toggleAgeFields('edit');
+                new bootstrap.Modal(document.getElementById('editFieldModal')).show();
+            });
+        });
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<style>
+    .dashboard-container {
+        padding: 2.5rem;
+    }
+
+    .btn-back {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border-muted);
+        color: var(--text-secondary);
+        font-weight: 500;
+        border-radius: 8px;
+        padding: 0.6rem 1.25rem;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-size: 0.85rem;
+    }
+
+    .btn-back:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: #fff;
+        border-color: var(--blue-accent);
+    }
+
+    .status-badge-container {
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid var(--border-muted);
+        padding: 0.4rem 1.2rem;
+        border-radius: 30px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    .log-display {
+        background: #000;
+        color: #a5b4fc;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.75rem;
+        padding: 1rem;
+        border-radius: 8px;
+        border: 1px solid #1e293b;
+        line-height: 1.5;
+    }
+
+    .move-arrow {
+        color: rgba(255, 255, 255, 0.4);
+        cursor: grab;
+        padding: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: color 0.2s;
+    }
+
+    .move-arrow:active {
+        cursor: grabbing;
+    }
+
+    .move-arrow:hover {
+        color: #3b82f6;
+    }
+
+    .pos-input {
+        width: 42px !important;
+        height: 28px !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #fff !important;
+        font-size: 0.85rem !important;
+        font-weight: 700 !important;
+        text-align: center;
+        padding: 0 !important;
+        border-radius: 4px !important;
+    }
+
+    .sortable-ghost {
+        opacity: 0.3;
+        background: rgba(59, 130, 246, 0.2) !important;
+    }
+
+    .badge-id {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.75rem;
+    }
+
+    .btn-green {
+        background: #10b981;
+        border: none;
+        color: white;
+    }
+
+    .btn-green:hover {
+        background: #059669;
+        color: white;
+    }
+
+    .btn-blue-action {
+        background: #2563eb;
+        border: none;
+        color: white;
+    }
+
+    .btn-blue-action:hover {
+        background: #1d4ed8;
+        color: white;
+    }
+
+    .table th {
+        letter-spacing: 0.05em;
+        padding-bottom: 1rem !important;
+    }
+
+    .modal-content {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .modal-header {
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .form-control-dark {
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+
+    .form-control-dark:focus {
+        background: rgba(0, 0, 0, 0.3);
+        border-color: #3b82f6;
+        color: white;
+        box-shadow: none;
+    }
+
+    /* Fix for white-on-white text in selects and inputs */
+    .modal-content select.form-control-dark,
+    .modal-content input.form-control-dark,
+    .modal-content textarea.form-control-dark {
+        color: #fff !important;
+        background-color: #1a1f2e !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    }
+
+    .modal-content select.form-control-dark option {
+        background-color: #1a1f2e;
+        color: #fff;
+    }
+
+    .modal-content select.form-control-dark:focus,
+    .modal-content input.form-control-dark:focus,
+    .modal-content textarea.form-control-dark:focus {
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3) !important;
+    }
+</style>
+
+<div class="dashboard-container">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-5">
+        <div>
+            <a href="{{ url_for('dashboard.index') }}" class="btn-back mb-4"><i class="bi bi-chevron-left"></i> ZURÃœCK
+                ZUR ÃœBERSICHT</a>
+            <h1 class="fw-bold mb-1 h3 text-white">Invite <span class="text-blue">Zentrale</span></h1>
+            <p class="text-secondary small">Systemkonfiguration & Interaktionsanalyse</p>
+        </div>
+        <div class="status-badge-container mt-2">
+            {% if is_invite_running %}
+            <span class="rounded-circle bg-success"
+                style="width: 8px; height: 8px; box-shadow: 0 0 8px #10b981;"></span>
+            <span class="small fw-bold text-success tracking-wider">AKTIV</span>
+            {% else %}
+            <span class="rounded-circle bg-danger" style="width: 8px; height: 8px;"></span>
+            <span class="small fw-bold text-danger tracking-wider">OFFLINE</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Linke Spalte: Konfigurationen & Texte -->
+        <div class="col-lg-4 col-md-12">
+            {% if current_user.role == 'admin' %}
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center cursor-pointer collapsed" 
+                    data-bs-toggle="collapse" data-bs-target="#inviteConfigCollapse" 
+                    aria-expanded="false" aria-controls="inviteConfigCollapse" style="cursor: pointer;">
+                    <h6><i class="bi bi-gear-fill me-2 text-warning"></i> Steuerung & Basis-Konfiguration</h6>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-warning text-dark"><i class="bi bi-lock-fill me-1"></i> Admin-Bereich</span>
+                        <i class="bi bi-chevron-down"></i>
+                    </div>
+                </div>
+                <div class="collapse" id="inviteConfigCollapse">
+                    <div class="card-body">
+                        <div class="d-flex gap-2 mb-4 pb-4 border-bottom border-white border-opacity-5">
+                            <form action="{{ url_for('dashboard.bot_settings') }}" method="POST" class="flex-grow-1">
+                                <input type="hidden" name="action" value="start_invite_bot">
+                                <button type="submit" class="btn btn-success w-100 fw-bold py-2 shadow-sm" {% if
+                                    is_invite_running %}disabled{% endif %}>START</button>
+                            </form>
+                            <form action="{{ url_for('dashboard.bot_settings') }}" method="POST" class="flex-grow-1">
+                                <input type="hidden" name="action" value="stop_invite_bot">
+                                <button type="submit" class="btn btn-danger w-100 fw-bold py-2 shadow-sm" {% if not
+                                    is_invite_running %}disabled{% endif %}>STOP</button>
+                            </form>
+                        </div>
+
+                        <form action="{{ url_for('dashboard.bot_settings') }}" method="POST">
+                            <input type="hidden" name="action" value="save_base_config">
+                            <div class="form-check form-switch mb-4 p-2 ps-5 rounded border border-white border-opacity-5"
+                                style="background: rgba(255,255,255,0.01);">
+                                <input class="form-check-input" type="checkbox" id="is_enabled" name="is_enabled" {% if
+                                    config.is_enabled %}checked{% endif %}>
+                                <label class="form-check-label small fw-bold" for="is_enabled">Bot-Dienst aktiv</label>
+                            </div>
+                            <div class="mb-3">
+                                <label class="small text-secondary fw-bold mb-1">BOT TOKEN</label>
+                                <input type="text" class="form-control form-control-sm text-muted bg-light"
+                                    value="Gesperrt (Siehe ID-Finder Bot)" disabled readonly>
+                                <small class="text-muted" style="font-size: 0.75rem;">Alle Module teilen sich den Token des
+                                    ID-Finder Bots.</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="small text-secondary fw-bold mb-1">HAUPTGRUPPEN-ID</label>
+                                <input type="text" class="form-control form-control-sm config-value" name="main_chat_id"
+                                    value="{{ config.main_chat_id or '' }}">
+                            </div>
+                            <div class="row g-2 mb-4">
+                                <div class="col-6"><label class="small text-secondary fw-bold mb-1">TOPIC-ID
+                                        (Optional)</label><input type="text"
+                                        class="form-control form-control-sm config-value" name="topic_id"
+                                        value="{{ config.topic_id or '' }}"></div>
+                                <div class="col-6"><label class="small text-secondary fw-bold mb-1">LINK TTL
+                                        (MIN)</label><input type="number" class="form-control form-control-sm"
+                                        name="link_ttl_minutes" value="{{ config.link_ttl_minutes or 15 }}"></div>
+                            </div>
+
+                            <hr class="my-4 border-secondary">
+
+                            <div class="form-check form-switch mb-2 p-2 ps-5">
+                                <input class="form-check-input" type="checkbox" id="whitelist_enabled"
+                                    name="whitelist_enabled" {% if config.whitelist_enabled %}checked{% endif %}
+                                    onchange="toggleWhitelistSection()">
+                                <label class="form-check-label small fw-bold" for="whitelist_enabled">Whitelist-Modus fÃ¼r
+                                    Beitritt</label>
+                            </div>
+
+                            <div id="whitelist_section" class="whitelist-section">
+                                <div class="mb-3">
+                                    <label class="small text-warning fw-bold mb-1">ADMIN FREIGABE-GRUPPEN-ID</label>
+                                    <input type="text" class="form-control form-control-sm config-value"
+                                        name="whitelist_approval_chat_id"
+                                        value="{{ config.whitelist_approval_chat_id or '' }}">
+                                </div>
+                                <div class="mb-2">
+                                    <label class="small text-secondary fw-bold mb-1">FREIGABE-TOPIC-ID (Optional)</label>
+                                    <input type="text" class="form-control form-control-sm config-value"
+                                        name="whitelist_approval_topic_id"
+                                        value="{{ config.whitelist_approval_topic_id or '' }}">
+                                </div>
+                            </div>
+
+
+                            <button type="submit" class="btn-blue-action w-100 mt-4">KONFIGURATION SICHERN</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6>Inhalte & Texte</h6>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('dashboard.save_invite_content') }}" method="POST">
+                        <div class="mb-3">
+                            <label class="small text-secondary fw-bold mb-1">BegrÃ¼ÃŸung (/start)</label>
+                            <textarea class="form-control font-monospace" name="start_message"
+                                rows="3">{{ config.start_message or '' }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="small text-secondary fw-bold mb-1">Regeln (vor Link/Whitelist)</label>
+                            <textarea class="form-control font-monospace" name="rules_message"
+                                rows="3">{{ config.rules_message or '' }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="small text-secondary fw-bold mb-1">Nachricht bei Sperre</label>
+                            <textarea class="form-control font-monospace" name="blocked_message"
+                                rows="3">{{ config.blocked_message or '' }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="small text-secondary fw-bold mb-1">Datenschutz</label>
+                            <textarea class="form-control font-monospace" name="privacy_policy"
+                                rows="4">{{ config.privacy_policy or '' }}</textarea>
+                        </div>
+
+                        <hr class="my-4 border-secondary">
+                        <button type="submit" class="btn-blue-action w-100 mt-4">TEXTE SPEICHERN</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card border-info border-opacity-25 shadow-lg">
+                <div class="card-header d-flex align-items-center gap-2 py-3">
+                    <i class="bi bi-envelope-check-fill text-info fs-5"></i>
+                    <h6 class="mb-0 fw-bold text-uppercase tracking-wider">Automatische Benachrichtigungen (PM)</h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info border-0 shadow-sm mb-4" style="background: rgba(34, 158, 240, 0.1);">
+                        <div class="d-flex gap-3">
+                            <i class="bi bi-info-circle-fill fs-4 text-info"></i>
+                            <div class="small">
+                                <p class="mb-2 fw-bold text-info">ðŸ’¡ Info zu automatischen Nachrichten:</p>
+                                <ul class="mb-0 ps-3">
+                                    <li><b>BegrÃ¼ÃŸungs-PM:</b> Wird gesendet, sobald ein Nutzer der Gruppe beitritt.</li>
+                                    <li><b>Abschieds-PM (Freiwillig):</b> Wird gesendet, wenn ein Nutzer die Gruppe
+                                        verlÃ¤sst (Austritt).</li>
+                                    <li><b>Abschieds-PM (Rauswurf):</b> Wird gesendet, wenn ein Nutzer gesperrt/entfernt
+                                        wurde.</li>
+                                    <li><b>Whitelist-Meldungen:</b> Benachrichtigungen fÃ¼r StatusÃ¤nderungen
+                                        (Warteschlange/Ablehnung).</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <form action="{{ url_for('dashboard.save_invite_content') }}" method="POST">
+                        <div class="mb-3">
+                            <label class="small text-warning fw-bold mb-1">Ablehnung der Anfrage (Whitelist)</label>
+                            <textarea class="form-control font-monospace border-warning border-opacity-25"
+                                name="whitelist_rejection_message" rows="3"
+                                placeholder="Deine Anmeldung wurde leider abgelehnt.">{{ config.whitelist_rejection_message or '' }}</textarea>
+                            <small class="text-muted" style="font-size: 0.75rem;">Wird gesendet, wenn ein Admin die
+                                Anfrage ablehnt.</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="small text-secondary fw-bold mb-1">Warten auf Freischaltung
+                                (Whitelist)</label>
+                            <textarea class="form-control font-monospace" name="whitelist_pending_message" rows="2"
+                                placeholder="Deine Daten wurden zur ÃœberprÃ¼fung gesendet...">{{ config.whitelist_pending_message or '' }}</textarea>
+                        </div>
+
+                        <div class="mb-4 pt-3 border-top border-white border-opacity-10">
+                            <label class="small text-secondary fw-bold mb-1">BegrÃ¼ÃŸung im Privat-Chat (Join)</label>
+                            <textarea class="form-control font-monospace" name="welcome_pm_message" rows="3"
+                                placeholder="Willkommen! Du kannst deinen Steckbrief mit /letsgo bearbeiten...">{{ config.welcome_pm_message or '' }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="small text-secondary fw-bold mb-1">Erfolgsmeldung nach Posting (Live)</label>
+                            <textarea class="form-control font-monospace" name="profile_posted_message" rows="2"
+                                placeholder="Dein Steckbrief wurde erfolgreich gepostet!">{{ config.profile_posted_message or '' }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="small text-secondary fw-bold mb-1">Abschied bei freiwilligem Austritt</label>
+                            <textarea class="form-control font-monospace" name="leave_pm_voluntary" rows="3"
+                                placeholder="Schade, dass du uns verlassen hast!">{{ config.leave_pm_voluntary or '' }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="small text-secondary fw-bold mb-1">Abschied bei Rauswurf / Sperre</label>
+                            <textarea class="form-control font-monospace" name="leave_pm_kicked" rows="3"
+                                placeholder="Du wurdest leider aus der Gruppe entfernt.">{{ config.leave_pm_kicked or '' }}</textarea>
+                        </div>
+
+                        <button type="submit"
+                            class="btn btn-info btn-sm w-100 fw-bold text-white shadow-sm py-2">PM-EINSTELLUNGEN
+                            SPEICHERN</button>
+                    </form>
+                </div>
+            </div>
+            <div class="card border-warning border-opacity-25 shadow-lg mb-4">
+                <div class="card-header d-flex align-items-center gap-2 py-3">
+                    <i class="bi bi-clock-history text-warning fs-5"></i>
+                    <h6 class="mb-0 fw-bold text-uppercase tracking-wider">Steckbrief-Erinnerungen</h6>
+                </div>
+                <div class="card-body">
+                    <form action="/bot-settings" method="POST">
+                        <input type="hidden" name="action" value="save_reminder_config">
+                        <div class="alert alert-warning border-0 shadow-sm mb-4" style="background: rgba(255, 193, 7, 0.1);">
+                            <div class="small text-warning fw-bold">
+                                ðŸ’¡ Benachrichtigt User bei unvollstÃ¤ndigen Profilen (0 = deaktiviert).
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-4">
+                                <label class="small text-secondary fw-bold mb-1">Tage</label>
+                                <input type="number" class="form-control form-control-sm config-value" name="incomplete_rem_days" value="{{ config.incomplete_rem_days or 0 }}" min="0">
+                            </div>
+                            <div class="col-4">
+                                <label class="small text-secondary fw-bold mb-1">Stunden</label>
+                                <input type="number" class="form-control form-control-sm config-value" name="incomplete_rem_hours" value="{{ config.incomplete_rem_hours or 0 }}" min="0">
+                            </div>
+                            <div class="col-4">
+                                <label class="small text-secondary fw-bold mb-1">Minuten</label>
+                                <input type="number" class="form-control form-control-sm config-value" name="incomplete_rem_minutes" value="{{ config.incomplete_rem_minutes or 0 }}" min="0">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="small text-secondary fw-bold mb-1">Max. Anzahl Erinnerungen</label>
+                            <input type="number" class="form-control form-control-sm config-value" name="incomplete_rem_max" value="{{ config.incomplete_rem_max or 1 }}" min="1">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="small text-secondary fw-bold mb-1">Nachricht an den User</label>
+                            <textarea class="form-control font-monospace" name="incomplete_rem_message" rows="3">{{ config.incomplete_rem_message or 'ðŸ‘‹ <b>Erinnerung:</b>\nHey, magst du deinen Steckbrief nicht weiter ausfÃ¼llen? Nutze einfach den Befehl /letsgo, um dort weiterzumachen, wo du aufgehÃ¶rt hast!' }}</textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="small text-secondary fw-bold mb-1">Benachrichtigung an Admins (nach Max.)</label>
+                            <textarea class="form-control font-monospace" name="incomplete_admin_message" rows="3">{{ config.incomplete_admin_message or 'âš ï¸ <b>Nutzer hat Steckbrief nicht beendet</b>\n\nDer Nutzer <a href="tg://user?id={user_id}">{name}</a> (@{username}) hat nach {max_count} Erinnerungen seinen Steckbrief immer noch nicht abgeschlossen.' }}</textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-warning btn-sm w-100 fw-bold shadow-sm py-2 text-dark">ERINNERUNGEN SPEICHERN</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rechte Spalte: Tabs & Logs -->
+        <div class="col-lg-8 col-md-12">
+        <ul class="nav nav-tabs mb-4 border-bottom border-white border-opacity-10" id="inviteTabs" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active fw-bold text-uppercase small tracking-wider" id="profile-tab"
+                    data-bs-toggle="tab" data-bs-target="#profile-panel" type="button"><i
+                        class="bi bi-person-lines-fill me-2"></i>Profil</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link fw-bold text-uppercase small tracking-wider" id="commands-tab"
+                    data-bs-toggle="tab" data-bs-target="#commands-panel" type="button"><i
+                        class="bi bi-terminal me-2"></i>Befehle</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link fw-bold text-uppercase small tracking-wider" id="profiles-tab"
+                    data-bs-toggle="tab" data-bs-target="#profiles-panel" type="button"><i
+                        class="bi bi-people-fill me-2"></i>Steckbriefe</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link fw-bold text-uppercase small tracking-wider" id="blocklist-tab"
+                    data-bs-toggle="tab" data-bs-target="#blocklist-panel" type="button"><i
+                        class="bi bi-shield-slash me-2"></i>Sperrliste</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link fw-bold text-uppercase small tracking-wider text-warning" id="fakecheck-tab"
+                    data-bs-toggle="tab" data-bs-target="#fakecheck-panel" type="button"><i
+                        class="bi bi-shield-check me-2"></i>Fake-Check Texte</button>
+            </li>
+        </ul>
+
+        <div class="tab-content border border-white border-opacity-5 rounded-3 p-4"
+            style="background: rgba(255,255,255,0.01);">
+            <!-- Profil Tab -->
+            <div class="tab-pane fade show active" id="profile-panel" role="tabpanel">
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center py-3 px-4">
+                        <h6 class="mb-0 fw-bold">Anmelde-Formular bearbeiten</h6>
+                        <button class="btn btn-green btn-sm fw-bold px-3 shadow-sm rounded-pill" data-bs-toggle="modal"
+                            data-bs-target="#addFieldModal">+ NEUES FELD</button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover align-middle mb-0"
+                                style="--bs-table-bg: transparent;">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 90px" class="text-center small text-secondary fw-bold">POS
+                                        </th>
+                                        <th style="width: 100px" class="small text-secondary fw-bold">ID</th>
+                                        <th class="small text-secondary fw-bold">BOT-FRAGE / ANZEIGENAME</th>
+                                        <th style="width: 120px" class="small text-secondary fw-bold text-center">
+                                            TYP</th>
+                                        <th style="width: 80px" class="text-center small text-secondary fw-bold">
+                                            REQR</th>
+                                        <th style="width: 100px"
+                                            class="text-end pe-4 small text-secondary fw-bold text-center">AKTION
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody id="fields-sortable">
+                                    {% for field in config.get('form_fields', []) %}
+                                    {% set fid = field.get('id') %}
+                                    {% if fid %}
+                                    <tr class="{% if not field.get('enabled') %}opacity-25{% endif %}"
+                                        data-id="{{ fid }}"
+                                        style="border-bottom: 1px solid rgba(255,255,255,0.03) !important;">
+                                        <td class="text-center">
+                                            <div class="d-flex align-items-center justify-content-center gap-1">
+                                                <div class="move-arrow fs-5"><i class="bi bi-list"></i></div>
+                                                <input type="number"
+                                                    class="form-control form-control-sm pos-input text-center p-0"
+                                                    value="{{ loop.index }}" min="1"
+                                                    max="{{ config.get('form_fields', [])|length }}">
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span
+                                                class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1">{{
+                                                fid }}</span>
+                                            {% set count = [] %}{% for i in config.get('form_fields', []) %}{% if
+                                            i.id == fid %}{% do count.append(1) %}{% endif %}{% endfor %}
+                                            {% if count|length > 1 %}
+                                            <span class="badge bg-danger ms-1"
+                                                title="Doppelte ID! Bitte lÃ¶schen/Ã¤ndern.">âš ï¸ DOPPELT</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="small text-secondary mb-1 opacity-75">{{ field.get('label',
+                                                '') }}
+                                            </div>
+                                            <div class="fw-bold text-info" style="color: #0ea5e9 !important;">{{
+                                                field.get('emoji', 'ðŸ”¹') }} {{
+                                                field.get('display_name', (fid|capitalize if fid else 'Unbenannt'))
+                                                }}</div>
+                                            {% if field.get('is_internal') %}
+                                            <span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-50 mt-1"><i class="bi bi-eye-slash-fill me-1"></i>Nur Intern (Admins)</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="small fw-bold text-uppercase" style="color: #f59e0b;">{{
+                                                field.type
+                                                if field.type != 'number' else 'NUMBER' }}</div>
+                                            {% if field.type == 'number' and field.get('min_age') %}
+                                            <div class="small fw-bold" style="font-size: 0.75rem; color: #f59e0b;">
+                                                Min: {{
+                                                field.min_age }}J</div>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            {% if field.get('required') %}
+                                            <i class="bi bi-check-lg text-success"></i>
+                                            {% else %}
+                                            <i class="bi bi-dash text-secondary opacity-50"></i>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            <div class="d-flex justify-content-center gap-3">
+                                                <button class="btn btn-outline-light btn-sm border-0 edit-field-btn p-1"
+                                                    data-id="{{ fid }}" data-label="{{ field.get('label', '') }}"
+                                                    data-type="{{ field.get('type', 'text') }}"
+                                                    data-required="{{ 'true' if field.get('required') else 'false' }}"
+                                                    data-enabled="{{ 'true' if field.get('enabled') else 'false' }}"
+                                                    data-internal="{{ 'true' if field.get('is_internal') else 'false' }}"
+                                                    data-emoji="{{ field.get('emoji', 'ðŸ”¹') }}"
+                                                    data-display_name="{{ field.get('display_name', '') }}"
+                                                    data-min_age="{{ field.get('min_age', '') }}"
+                                                    data-min_age_error="{{ field.get('min_age_error_msg', '') }}">
+                                                    <i class="bi bi-pencil-square fs-5"></i>
+                                                </button>
+                                                <form action="{{ url_for('dashboard.delete_field') }}" method="POST"
+                                                    style="display:inline;"><input type="hidden" name="field_id"
+                                                        value="{{ fid }}"><button type="submit"
+                                                        class="btn btn-outline-danger btn-sm border-0 p-1"
+                                                        onclick="return confirm('LÃ¶schen?');"><i
+                                                            class="bi bi-trash3 fs-5"></i></button></form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Befehle Tab -->
+            <div class="tab-pane fade" id="commands-panel" role="tabpanel">
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center py-3 px-4">
+                        <h6 class="mb-0 fw-bold">Eigene Slash-Befehle</h6>
+                        <button class="btn btn-blue-action btn-sm fw-bold px-3 shadow-sm rounded-pill"
+                            data-bs-toggle="modal" data-bs-target="#addCommandModal">+ NEUER BEFEHL</button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 150px" class="small text-secondary fw-bold">BEFEHL
+                                        </th>
+                                        <th class="small text-secondary fw-bold">ANTWORT</th>
+                                        <th style="width: 100px" class="text-end pe-4 small text-secondary fw-bold">
+                                            AKTION</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% set cmds = config.get('custom_commands', {}) %}
+                                    {% if cmds %}
+                                    {% for name, resp in cmds.items() %}
+                                    <tr>
+                                        <td class="fw-bold text-info">/{{ name }}</td>
+                                        <td class="small opacity-75">{{ resp|truncate(80) }}</td>
+                                        <td class="text-end pe-4">
+                                            <form action="{{ url_for('dashboard.delete_custom_command') }}"
+                                                method="POST" style="display:inline;">
+                                                <input type="hidden" name="command_name" value="{{ name }}">
+                                                <button type="submit" class="btn btn-outline-danger btn-sm border-0 p-1"
+                                                    onclick="return confirm('Befehl lÃ¶schen?');">
+                                                    <i class="bi bi-trash fs-5"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="3" class="text-center py-4 text-muted small">Noch keine
+                                            eigenen Befehle erstellt.</td>
+                                    </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Steckbriefe Tab -->
+            <div class="tab-pane fade" id="profiles-panel" role="tabpanel">
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center py-3 px-4">
+                        <h6 class="mb-0 fw-bold">Alle User-Steckbriefe</h6>
+                        <span class="badge bg-secondary">{{ profiles|length }} EintrÃ¤ge</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                            <table class="table table-dark table-hover align-middle mb-0">
+                                <thead style="position: sticky; top: 0; background: #1e293b; z-index: 1;">
+                                    <tr>
+                                        <th class="small text-secondary fw-bold text-center" style="width: 60px;">ID
+                                        </th>
+                                        <th class="small text-secondary fw-bold">TELEGRAM USER</th>
+                                        <th class="small text-secondary fw-bold">STATUS</th>
+                                        <th class="small text-secondary fw-bold">LETZTES UPDATE</th>
+                                        <th class="text-end pe-4 small text-secondary fw-bold">AKTION</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if profiles %}
+                                    {% set active_profiles_exist = false %}
+                                    {% for p in profiles if p.status != 'blocked' %}
+                                    {% set active_profiles_exist = true %}
+                                    <tr>
+                                        <td class="text-center font-monospace small text-white-50">{{ p.id }}</td>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-3">
+                                                <img src="/api/avatar/{{ p.telegram_user_id }}" class="ga-avatar avatar"
+                                                    style="width: 40px; height: 40px; border-radius: 8px;"
+                                                    onerror="this.src='https://ui-avatars.com/api/?name={{ p.full_name or p.username }}&background=random&color=fff'">
+                                                <div>
+                                                    <div class="fw-bold text-white user-name">{{ p.full_name or
+                                                        'Unbekannt' }}</div>
+                                                    <div class="small text-info user-handle">@{{ p.username or
+                                                        p.telegram_user_id }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if p.status == 'completed' or p.status == 'accepted' %}
+                                            <span
+                                                class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">AKTIV</span>
+                                            {% elif p.status == 'pending' or p.status == 'pending_existing' %}
+                                            <span
+                                                class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25">WARTET</span>
+                                            {% elif 'incomplete' in p.status %}
+                                            <span
+                                                class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25">UNVOLLSTÃ„NDIG</span>
+                                            {% else %}
+                                            <span
+                                                class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25">{{
+                                                p.status|upper }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="small opacity-75">{{ p.updated_at.strftime('%d.%m.%Y %H:%M') if
+                                            p.updated_at else 'Unbekannt' }}</td>
+                                        <td class="text-end pe-4">
+                                            <div class="d-flex justify-content-end gap-2">
+                                                <button class="btn btn-outline-light btn-sm border-0 view-profile-btn"
+                                                    data-id="{{ p.id }}" data-answers='{{ p.answers_json|safe }}'
+                                                    data-name="{{ p.full_name or p.username }}" title="Bearbeiten">
+                                                    <i class="bi bi-pencil-square"></i>
+                                                </button>
+                                                <form
+                                                    action="{{ url_for('dashboard.profile_repost', profile_id=p.id) }}"
+                                                    method="POST" style="display:inline;">
+                                                    <button type="submit"
+                                                        class="btn btn-outline-primary btn-sm border-0"
+                                                        title="Erneut Posten"
+                                                        onclick="return confirm('Steckbrief wirklich nochmal neu in die Gruppe posten?');">
+                                                        <i class="bi bi-send-fill"></i>
+                                                    </button>
+                                                </form>
+                                                <form
+                                                    action="{{ url_for('dashboard.profile_delete', profile_id=p.id) }}"
+                                                    method="POST" style="display:inline;">
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm border-0"
+                                                        title="LÃ¶schen"
+                                                        onclick="return confirm('Steckbrief wirklich unwiderruflich aus der Datenbank lÃ¶schen?');">
+                                                        <i class="bi bi-trash3"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    {% if not active_profiles_exist %}
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4 text-muted small">Noch keine Steckbriefe
+                                            vorhanden.</td>
+                                    </tr>
+                                    {% endif %}
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4 text-muted small">Noch keine Steckbriefe
+                                            vorhanden.</td>
+                                    </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sperrliste Tab -->
+            <div class="tab-pane fade" id="blocklist-panel" role="tabpanel">
+                <div class="card mb-4 border-danger border-opacity-10 shadow-lg" style="background: #1e293b;">
+                    <div
+                        class="card-header d-flex justify-content-between align-items-center py-3 px-4 border-bottom border-white border-opacity-5">
+                        <h6 class="mb-0 fw-bold text-danger"><i class="bi bi-shield-slash-fill me-2"></i>GESPERRTE
+                            TELEGRAM NUTZER</h6>
+                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">
+                            {% set blocked_count = [] %}
+                            {% for p in profiles if p.status == 'blocked' %}
+                            {% do blocked_count.append(1) %}
+                            {% endfor %}
+                            {{ blocked_count|length }} Gesperrt
+                        </span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                            <table class="table table-dark table-hover align-middle mb-0">
+                                <thead style="position: sticky; top: 0; background: #1e293b; z-index: 1;">
+                                    <tr>
+                                        <th class="small text-secondary fw-bold text-center" style="width: 60px;">ID
+                                        </th>
+                                        <th class="small text-secondary fw-bold">TELEGRAM USER</th>
+                                        <th class="small text-secondary fw-bold">GESPERRT AM</th>
+                                        <th class="text-end pe-4 small text-secondary fw-bold text-center"
+                                            style="width: 150px;">AKTION</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% set ns = namespace(blocked_exist=false) %}
+                                    {% if profiles %}
+                                    {% for p in profiles if p.status == 'blocked' %}
+                                    {% set ns.blocked_exist = true %}
+                                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.03) !important;">
+                                        <td class="text-center font-monospace small text-white-50">{{ p.id }}</td>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-3">
+                                                <img src="/api/avatar/{{ p.telegram_user_id }}" class="ga-avatar avatar"
+                                                    style="width: 40px; height: 40px; border-radius: 8px;"
+                                                    onerror="this.src='https://ui-avatars.com/api/?name={{ p.full_name or p.username }}&background=random&color=fff'">
+                                                <div>
+                                                    <div class="fw-bold text-white user-name">{{ p.full_name or
+                                                        'Unbekannt' }}</div>
+                                                    <div class="small text-info user-handle">@{{ p.username or
+                                                        p.telegram_user_id }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="small opacity-75">{{ p.updated_at.strftime('%d.%m.%Y %H:%M') if
+                                            p.updated_at else 'Unbekannt' }}</td>
+                                        <td class="text-end pe-4 text-center">
+                                            <form action="{{ url_for('dashboard.profile_unblock', profile_id=p.id) }}"
+                                                method="POST" style="display:inline;">
+                                                <button type="submit"
+                                                    class="btn btn-outline-success btn-sm fw-bold px-3 shadow-sm rounded-pill">
+                                                    <i class="bi bi-shield-check me-1"></i> Entsperren
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    {% endif %}
+                                    {% if not ns.blocked_exist %}
+                                    <tr>
+                                        <td colspan="4" class="text-center py-5 text-muted small">
+                                            <i class="bi bi-shield-check fs-2 d-block mb-2 text-success opacity-50"></i>
+                                            Aktuell sind keine Nutzer gesperrt.
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fake-Check Tab -->
+            <div class="tab-pane fade" id="fakecheck-panel" role="tabpanel">
+                <div class="card mb-4 border-warning border-opacity-25 shadow-lg"
+                    style="background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px);">
+                    <div class="card-header py-3 px-4 border-bottom border-white border-opacity-5">
+                        <h6 class="mb-0 fw-bold text-warning"><i class="bi bi-shield-check me-2"></i>FAKE-CHECK TEXTE &
+                            EINSTELLUNGEN</h6>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="alert alert-warning border-0 shadow-sm mb-4"
+                            style="background: rgba(245, 158, 11, 0.1);">
+                            <div class="d-flex gap-3">
+                                <i class="bi bi-shield-exclamation fs-4 text-warning"></i>
+                                <div class="small">
+                                    <p class="mb-2 fw-bold text-warning">ðŸ“¸ Fake-Check Verifizierungstexte verwalten:
+                                    </p>
+                                    <p class="mb-0 text-white-50">Hier kannst du alle Texte anpassen, die der Nutzer
+                                        wÃ¤hrend des Sicherheits- und Fake-Checks vom Bot erhÃ¤lt. Nutze HTML-Tags wie
+                                        <code>&lt;b&gt;Fett&lt;/b&gt;</code> fÃ¼r Formatierungen. Die Variable
+                                        <code>{heutiges_datum}</code> wird automatisch mit dem aktuellen Datum ersetzt.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <form action="{{ url_for('dashboard.save_invite_content') }}" method="POST">
+                            <div class="mb-4">
+                                <label class="small text-warning fw-bold mb-1">1. Fake-Check Aufforderung</label>
+                                <textarea class="form-control font-monospace border-warning border-opacity-25"
+                                    name="fc_request_message" rows="6"
+                                    placeholder="âš ï¸ Wichtige Information zu deiner Anmeldung...">{{ config.fc_request_message or '' }}</textarea>
+                                <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">Wird an den Nutzer
+                                    gesendet, wenn ein Admin auf den ðŸ” Fake-Check Button klickt. Muss
+                                    <code>{heutiges_datum}</code> enthalten.</small>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="small text-success fw-bold mb-1">2. EmpfangsbestÃ¤tigung nach
+                                    Foto-Upload</label>
+                                <textarea class="form-control font-monospace border-success border-opacity-25"
+                                    name="fc_received_message" rows="4"
+                                    placeholder="Vielen Dank, dass du den Verifizierungs-Check durchfÃ¼hrst!...">{{ config.fc_received_message or '' }}</textarea>
+                                <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">Wird sofort gesendet,
+                                    wenn der Nutzer sein Foto hochgeladen hat.</small>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="small text-danger fw-bold mb-1">3. Nachricht bei Fake-Check Blockierung
+                                    (Sperre)</label>
+                                <textarea class="form-control font-monospace border-danger border-opacity-25"
+                                    name="fc_blocked_message" rows="3"
+                                    placeholder="Wir sind uns immer noch unsicher, daher haben wir dich erstmal blockiert...">{{ config.fc_blocked_message or '' }}</textarea>
+                                <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">Wird gesendet, wenn
+                                    ein Admin das Foto ablehnt und auf ðŸš« Blockieren klickt.</small>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="small text-info fw-bold mb-1">4. Nachricht bei Foto-Ablehnung
+                                    (ZurÃ¼ckweisung)</label>
+                                <textarea class="form-control font-monospace border-info border-opacity-25"
+                                    name="fc_rejection_message" rows="3"
+                                    placeholder="Dein Fake-Check Foto wurde leider abgelehnt...">{{ config.fc_rejection_message or '' }}</textarea>
+                                <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">Wird gesendet, wenn
+                                    der Admin das Foto ablehnt, den User aber NICHT blockiert, sondern ihm eine zweite
+                                    Chance gibt.</small>
+                            </div>
+
+                            <button type="submit" class="btn btn-warning w-100 fw-bold text-dark py-2 mt-2">FAKE-CHECK
+                                TEXTE SPEICHERN</button>
+                        </form>
+                    </div>
+                </div>
+</div>
+        </div> <!-- End of Tab Content -->
+
+        <!-- Logs Section -->
+        <div class="card mb-4 mt-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6>User Interaktionen (Live)</h6>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-secondary">{{ user_interaction_logs|length }} EintrÃ¤ge</span>
+                    <form action="{{ url_for('dashboard.clear_user_logs') }}" method="POST">
+                        <button type="submit" class="btn btn-outline-danger btn-sm border-0 p-1" title="Logs lÃ¶schen"
+                            onclick="return confirm('Wirklich alle User-Logs lÃ¶schen?');"><i class="bi bi-trash"></i></button>
+                    </form>
+                </div>
+            </div>
+            <div class="card-body bg-black p-0">
+                <div class="log-display rounded-0 border-0" style="max-height: 400px; overflow-y: auto;">
+                    {% if user_interaction_logs %}
+                    {% for line in user_interaction_logs %}
+                    <div class="border-bottom border-white border-opacity-10 py-1 px-2" style="font-size: 0.8rem;">
+                        {{ line }}
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="text-muted p-4 text-center">Keine aktuellen Interaktionen.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6>System Logs (Technisch)</h6>
+                <form action="{{ url_for('dashboard.clear_system_logs') }}" method="POST">
+                    <button type="submit" class="btn btn-outline-danger btn-sm border-0 p-1" title="Logs lÃ¶schen"
+                        onclick="return confirm('Wirklich alle System-Logs lÃ¶schen?');"><i class="bi bi-trash"></i></button>
+                </form>
+            </div>
+            <div class="card-body bg-black p-0">
+                <div class="log-display rounded-0 border-0" style="max-height: 300px; overflow-y: auto;">
+                    {% if invite_bot_logs %}
+                    {% for line in invite_bot_logs %}
+                    {% if 'ERROR' in line or 'CRITICAL' in line %}
+                    <div class="py-1 px-2 text-wrap bg-danger text-white fw-bold" style="font-size: 0.75rem;">{{
+                        line }}</div>
+                    {% elif 'WARNING' in line %}
+                    <div class="py-1 px-2 text-wrap text-warning fw-bold" style="font-size: 0.75rem;">{{ line }}
+                    </div>
+                    {% else %}
+                    <div class="py-1 px-2 text-wrap" style="font-size: 0.75rem;">{{ line }}</div>
+                    {% endif %}
+                    {% endfor %}
+                    {% else %}
+                    <div class="text-success p-4 text-center fw-bold"><i class="bi bi-check-circle fs-4 d-block mb-2"></i>
+                        Keine Fehler / Logs verfÃ¼gbar.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div> <!-- Ende col-lg-8 col-md-12 (Rechte Spalte) -->
+</div> <!-- Ende row g-4 -->
+</div> <!-- Ende dashboard-container -->
+
+<!-- Add Field Modal -->
+<div class="modal fade" id="addFieldModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary border-opacity-25 py-3">
+                <h5 class="modal-title fw-bold fs-5">Neues Feld hinzufÃ¼gen</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('dashboard.add_field') }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="small text-secondary fw-bold mb-1">Eindeutige ID (z.B. alter, wohnort)</label>
+                        <input type="text" class="form-control form-control-sm form-control-dark" name="field_id"
+                            required placeholder="z.B. age">
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-4">
+                            <label class="small text-secondary fw-bold mb-1">Emoji</label>
+                            <input type="text" class="form-control form-control-sm form-control-dark text-center"
+                                name="emoji" value="ðŸ”¹">
+                        </div>
+                        <div class="col-8">
+                            <label class="small text-secondary fw-bold mb-1">Anzeigename</label>
+                            <input type="text" class="form-control form-control-sm form-control-dark"
+                                name="display_name" placeholder="z.B. Name">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="small text-secondary fw-bold mb-1">Bot-Frage an den User</label>
+                        <textarea class="form-control form-control-sm form-control-dark" name="label" rows="2" required
+                            placeholder="z.B. Wie ist dein Name? Es reicht dein Vorname."></textarea>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="small text-secondary fw-bold mb-1">Typ</label>
+                            <select class="form-select form-select-sm form-control-dark" name="type" id="add_type">
+                                <option value="text">Text</option>
+                                <option value="number">Zahl</option>
+                                <option value="puppy_age">Puppy Alter</option>
+                                <option value="photo">Foto</option>
+                                <option value="boolean_buttons">Ja / Nein Buttons</option>
+                                <option value="header_name">Name im Header anzeigen (Spezial)</option>
+                                <option value="pm_contact">Privatnachricht-Banner (Spezial)</option>
+                                <option value="birthday">Geburtsdatum (Spezial)</option>
+                            </select>
+                        </div>
+                        <div class="col-6 d-flex flex-column justify-content-end gap-1">
+                            <div class="form-check form-switch mb-1">
+                                <input class="form-check-input" type="checkbox" name="required" id="new_req" checked>
+                                <label class="form-check-label small" for="new_req">Pflichtfeld</label>
+                            </div>
+                            <div class="form-check form-switch mb-1">
+                                <input class="form-check-input" type="checkbox" name="is_internal" id="new_internal">
+                                <label class="form-check-label small text-warning" for="new_internal">Nur intern sichtbar (Admins)</label>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- AltersprÃ¼fung (Nur bei Zahl / Geburtsdatum) -->
+                    <div id="add_age_section" style="display: none;"
+                        class="mt-3 p-2 bg-black bg-opacity-25 rounded border border-secondary border-opacity-25">
+                        <p class="small text-secondary mb-2">Bei <b>Geburtsdatum</b>: gilt fÃ¼r die Alters-RÃ¼ckfrage wenn
+                            User NEIN klickt.</p>
+                        <div class="mb-2">
+                            <label class="small text-warning fw-bold mb-1"><i
+                                    class="bi bi-shield-lock me-1"></i>Mindestalter</label>
+                            <input type="number" class="form-control form-control-sm form-control-dark" name="min_age"
+                                placeholder="z.B. 12">
+                        </div>
+                        <div>
+                            <label class="small text-warning fw-bold mb-1">Fehlermeldung bei zu jung</label>
+                            <textarea class="form-control form-control-sm form-control-dark" name="min_age_error_msg"
+                                rows="2" placeholder="âš ï¸ Du musst mindestens X Jahre alt sein."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 pb-4 px-4">
+                    <button type="button" class="btn btn-secondary fw-bold px-4"
+                        data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-success fw-bold px-4">HinzufÃ¼gen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- View/Edit Profile Modal -->
+<div class="modal fade" id="profileModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary border-opacity-25 py-3">
+                <h5 class="modal-title fw-bold fs-5">Steckbrief: <span id="profile_modal_name" class="text-info"></span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="profileEditForm" method="POST">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-lg-8">
+                            <label class="small text-secondary fw-bold mb-1">Rohdaten (JSON System-Format)</label>
+                            <textarea class="form-control form-control-sm form-control-dark font-monospace"
+                                name="answers_json" id="profile_answers_json" rows="20"
+                                style="background:#0f172a; color:#a5b4fc; font-size:13px;"></textarea>
+                        </div>
+                        <div class="col-lg-4">
+                            <label class="small text-secondary fw-bold mb-1">Foto-Vorschau & Verwaltung</label>
+                            <div id="profile_photo_container"
+                                class="bg-black bg-opacity-50 rounded border border-secondary border-opacity-25 p-3 text-center d-flex flex-column align-items-center justify-content-center"
+                                style="min-height: 250px;">
+                                <img id="profile_modal_photo" src="" class="img-fluid rounded shadow-lg mb-3"
+                                    style="max-height: 300px; display: none;">
+                                <div id="profile_no_photo" class="text-muted">
+                                    <i class="bi bi-image fs-1 d-block mb-2"></i>
+                                    <span class="small">Kein Foto vorhanden</span>
+                                </div>
+                                <div id="photo_actions" class="mt-2" style="display: none;">
+                                    <button type="button" class="btn btn-outline-danger btn-sm w-100"
+                                        id="clear_photo_btn">
+                                        <i class="bi bi-trash3 me-1"></i> Foto lÃ¶schen
+                                    </button>
+                                    <p class="small text-secondary mt-2 mb-0">Foto-Ã„nderungen werden erst beim Speichern
+                                        des JSONs aktiv.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary border-opacity-25">
+                    <button type="button" class="btn btn-secondary fw-bold px-4"
+                        data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-success fw-bold px-4"
+                        onclick="return confirm('Ã„nderungen wirklich speichern? Damit diese live umgesetzt werden, muss der Steckbrief danach neu gepostet werden.');">Speichern</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const photoFields = {{ config.form_fields| selectattr('type', 'equalto', 'photo') | map(attribute = 'id') | list | tojson
+    }};
+    const photoImg = document.getElementById('profile_modal_photo');
+    const noPhotoText = document.getElementById('profile_no_photo');
+    const photoActions = document.getElementById('photo_actions');
+    const jsonTextarea = document.getElementById('profile_answers_json');
+
+    document.querySelectorAll('.view-profile-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const d = this.dataset;
+            document.getElementById('profile_modal_name').textContent = d.name;
+            document.getElementById('profileEditForm').action = "{{ url_for('dashboard.profile_edit', profile_id=0) }}".replace('0', d.id);
+
+            photoImg.style.display = 'none';
+            noPhotoText.style.display = 'block';
+            photoActions.style.display = 'none';
+
+            try {
+                const obj = JSON.parse(d.answers);
+                jsonTextarea.value = JSON.stringify(obj, null, 4);
+
+                // Foto-Feld finden
+                let foundFileId = null;
+                photoFields.forEach(fid => {
+                    if (obj[fid] && obj[fid] !== 'n/a' && obj[fid] !== '') {
+                        foundFileId = obj[fid];
+                    }
+                });
+
+                if (foundFileId) {
+                    photoImg.src = `/api/media/${foundFileId}`;
+                    photoImg.style.display = 'block';
+                    noPhotoText.style.display = 'none';
+                    photoActions.style.display = 'block';
+                }
+            } catch (e) {
+                jsonTextarea.value = d.answers;
+            }
+
+            new bootstrap.Modal(document.getElementById('profileModal')).show();
+        });
+    });
+
+    document.getElementById('clear_photo_btn').addEventListener('click', function () {
+        if (!confirm('Foto wirklich aus den Antworten lÃ¶schen?')) return;
+        try {
+            const obj = JSON.parse(jsonTextarea.value);
+            photoFields.forEach(fid => {
+                if (obj[fid]) obj[fid] = 'n/a';
+            });
+            jsonTextarea.value = JSON.stringify(obj, null, 4);
+            photoImg.style.display = 'none';
+            noPhotoText.style.display = 'block';
+            photoActions.style.display = 'none';
+        } catch (e) {
+            alert('Fehler beim Manipulieren des JSONs: ' + e);
+        }
+    });
+});
+</script>
+
+<!-- Edit Field Modal -->
+<div class="modal fade" id="editFieldModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary border-opacity-25 py-3">
+                <h5 class="modal-title fw-bold fs-5">Feld bearbeiten</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('dashboard.edit_field') }}" method="POST">
+                <input type="hidden" name="field_id" id="edit_field_id">
+                <div class="modal-body">
+                    <div class="row g-2 mb-3">
+                        <div class="col-4">
+                            <label class="small text-secondary fw-bold mb-1">Emoji</label>
+                            <input type="text" class="form-control form-control-sm form-control-dark text-center"
+                                name="emoji" id="edit_emoji">
+                        </div>
+                        <div class="col-8">
+                            <label class="small text-secondary fw-bold mb-1">Anzeigename im Post</label>
+                            <input type="text" class="form-control form-control-sm form-control-dark"
+                                name="display_name" id="edit_display_name">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="small text-secondary fw-bold mb-1">Bot-Frage</label>
+                        <textarea class="form-control form-control-sm form-control-dark" name="label" id="edit_label"
+                            rows="2" required></textarea>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="small text-secondary fw-bold mb-1">Typ</label>
+                            <select class="form-select form-select-sm form-control-dark" name="type" id="edit_type">
+                                <option value="text">Text</option>
+                                <option value="number">Zahl</option>
+                                <option value="puppy_age">Puppy Alter</option>
+                                <option value="photo">Foto</option>
+                                <option value="boolean_buttons">Ja / Nein Buttons</option>
+                                <option value="header_name">Name im Header anzeigen (Spezial)</option>
+                                <option value="pm_contact">Privatnachricht-Banner (Spezial)</option>
+                                <option value="birthday">Geburtsdatum (Spezial)</option>
+                            </select>
+                        </div>
+                        <div class="col-6 d-flex flex-column gap-1">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="required" id="edit_required">
+                                <label class="form-check-label small" for="edit_required">Pflichtfeld</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="enabled" id="edit_enabled">
+                                <label class="form-check-label small" for="edit_enabled">Aktiviert</label>
+                            </div>
+                            <div class="form-check form-switch mt-1">
+                                <input class="form-check-input" type="checkbox" name="is_internal" id="edit_internal">
+                                <label class="form-check-label small text-warning" for="edit_internal">Nur intern sichtbar (Admins)</label>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- AltersprÃ¼fung (Edit) -->
+                    <div id="edit_age_section" style="display: none;"
+                        class="mt-3 p-2 bg-black bg-opacity-25 rounded border border-secondary border-opacity-25">
+                        <p class="small text-secondary mb-2">Bei <b>Geburtsdatum</b>: gilt fÃ¼r die Alters-RÃ¼ckfrage wenn
+                            User NEIN klickt.</p>
+                        <div class="mb-2">
+                            <label class="small text-warning fw-bold mb-1"><i
+                                    class="bi bi-shield-lock me-1"></i>Mindestalter</label>
+                            <input type="number" class="form-control form-control-sm form-control-dark" name="min_age"
+                                id="edit_min_age" placeholder="z.B. 12">
+                        </div>
+                        <div>
+                            <label class="small text-warning fw-bold mb-1">Fehlermeldung bei zu jung</label>
+                            <textarea class="form-control form-control-sm form-control-dark" name="min_age_error_msg"
+                                id="edit_min_age_error" rows="2"
+                                placeholder="âš ï¸ Du musst mindestens X Jahre alt sein."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 pb-4 px-4">
+                    <button type="button" class="btn btn-secondary fw-bold px-4"
+                        data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary fw-bold px-4">Ã„nderungen speichern</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Command Modal -->
+<div class="modal fade" id="addCommandModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary border-opacity-25 py-3">
+                <h5 class="modal-title fw-bold fs-5">Neuen Befehl erstellen</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('dashboard.add_custom_command') }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="small text-secondary fw-bold mb-1">Befehl (ohne /)</label>
+                        <input type="text" class="form-control form-control-dark" name="command_name" required
+                            placeholder="z.B. hallo">
+                    </div>
+                    <div class="mb-3">
+                        <label class="small text-secondary fw-bold mb-1">Antwort des Bots</label>
+                        <textarea class="form-control form-control-dark" name="response_text" rows="5" required
+                            placeholder="Was soll der Bot antworten?"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary px-4">Erstellen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary px-4">Erstellen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+        // Restore active tab from location hash (e.g. #blocklist-panel)
+        if (window.location.hash) {
+            const activeTabEl = document.querySelector(`button[data-bs-target="${window.location.hash}"]`);
+            if (activeTabEl) {
+                const tabObj = new bootstrap.Tab(activeTabEl);
+                tabObj.show();
+            }
+        }
+
+        // Update location hash on tab change
+        document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tabBtn => {
+            tabBtn.addEventListener('shown.bs.tab', function (e) {
+                const target = e.target.getAttribute('data-bs-target');
+                history.replaceState(null, null, target);
+            });
+        });
+    });
+</script>
+{% endblock %}
+
+
+

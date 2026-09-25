@@ -1,0 +1,434 @@
+﻿{% extends "base.html" %}
+{% block title %}RSS Feeds | Administration{% endblock %}
+
+{% block content %}
+<div class="dashboard-container p-4">
+
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h1 class="fw-bold mb-1 h3 text-white"><i class="bi bi-rss text-primary me-2"></i>RSS Feeds</h1>
+            <p class="text-secondary small mb-0">Pressemitteilungen automatisch in Telegram-Gruppen posten</p>
+        </div>
+        <button class="btn btn-primary fw-bold px-4 shadow-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#addRssModal">
+            <i class="bi bi-plus-lg me-1"></i> NEUER FEED
+        </button>
+    </div>
+
+    <!-- Feed Konfiguration -->
+    <div class="card mb-4 border-0 shadow-lg" style="background: rgba(255,255,255,0.03);">
+        <div class="card-header border-bottom border-white border-opacity-5 py-3 px-4 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold text-primary"><i class="bi bi-gear me-2"></i>Konfigurierte Feeds</h6>
+        </div>
+        <div class="card-body p-0">
+            {% for feed in rss_feeds %}
+            <div class="border-bottom border-white border-opacity-5 p-4">
+                <div class="row align-items-start g-3">
+                    <!-- Name + URL -->
+                    <div class="col-md-3">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <span class="fw-bold text-white">{{ feed.name }}</span>
+                            {% if feed.is_active %}
+                            <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25" style="font-size:10px;">AKTIV</span>
+                            {% else %}
+                            <span class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-25" style="font-size:10px;">INAKTIV</span>
+                            {% endif %}
+                        </div>
+                        <a href="{{ feed.url }}" target="_blank" class="text-info text-decoration-none small d-block text-truncate" style="max-width:220px;" title="{{ feed.url }}">
+                            <i class="bi bi-link-45deg me-1"></i>{{ feed.url }}
+                        </a>
+                    </div>
+                    <!-- Gruppen -->
+                    <div class="col-md-3">
+                        <div class="small">
+                            <div class="text-secondary mb-1">Admin-Gruppe</div>
+                            <span class="font-monospace text-warning">{{ feed.admin_chat_id }}</span>
+                            {% if feed.admin_topic_id %}<span class="badge bg-secondary ms-1">Topic {{ feed.admin_topic_id }}</span>{% endif %}
+                        </div>
+                        <div class="small mt-2">
+                            <div class="text-secondary mb-1">Ziel-Gruppe</div>
+                            <span class="font-monospace text-success">{{ feed.target_chat_id }}</span>
+                            {% if feed.target_topic_id %}<span class="badge bg-secondary ms-1">Topic {{ feed.target_topic_id }}</span>{% endif %}
+                        </div>
+                    </div>
+                    <!-- Zeitplan -->
+                    <div class="col-md-3">
+                        <div class="small">
+                            <div class="text-secondary mb-1">Prüf-Intervall</div>
+                            <span class="text-white"><i class="bi bi-arrow-repeat me-1 text-info"></i>Alle {{ feed.check_interval_minutes or 30 }} Minuten</span>
+                        </div>
+                        <div class="small mt-2">
+                            <div class="text-secondary mb-1">Uhrzeit für Auto-Post</div>
+                            {% if feed.post_time %}
+                            <span class="text-white"><i class="bi bi-clock me-1 text-warning"></i>{{ feed.post_time }} Uhr</span>
+                            {% else %}
+                            <span class="text-muted"><i class="bi bi-lightning me-1"></i>Sofort nach Genehmigung</span>
+                            {% endif %}
+                        </div>
+                        <div class="small mt-2">
+                            <span class="text-secondary">Auto-Post nach:</span>
+                            <span class="text-white ms-1">{{ feed.auto_post_timeout_hours }}h</span>
+                            <span class="text-secondary ms-2">Bilder:</span>
+                            {% if feed.include_images %}<span class="text-success ms-1">Ja</span>{% else %}<span class="text-danger ms-1">Nein</span>{% endif %}
+                        </div>
+                    </div>
+                    <!-- Aktionen -->
+                    <div class="col-md-3 d-flex gap-2 justify-content-md-end flex-wrap">
+                        <button class="btn btn-sm btn-outline-secondary px-3" onclick="editFeed({{ feed.id }}, '{{ feed.name }}', '{{ feed.url }}', '{{ feed.admin_chat_id }}', '{{ feed.admin_topic_id or '' }}', '{{ feed.target_chat_id }}', '{{ feed.target_topic_id or '' }}', {{ feed.auto_post_timeout_hours }}, {{ 'true' if feed.include_images else 'false' }}, {{ feed.check_interval_minutes or 30 }}, '{{ feed.post_time or '' }}')">
+                            <i class="bi bi-pencil me-1"></i>Bearbeiten
+                        </button>
+                        <form action="{{ url_for('dashboard.toggle_rss_feed') }}" method="POST" class="d-inline">
+                            <input type="hidden" name="feed_id" value="{{ feed.id }}">
+                            <button type="submit" class="btn btn-sm {% if feed.is_active %}btn-outline-warning{% else %}btn-outline-success{% endif %} px-3">
+                                <i class="bi {% if feed.is_active %}bi-pause-fill{% else %}bi-play-fill{% endif %} me-1"></i>
+                                {{ 'Pausieren' if feed.is_active else 'Aktivieren' }}
+                            </button>
+                        </form>
+                        <form action="{{ url_for('dashboard.delete_rss_feed') }}" method="POST" class="d-inline" onsubmit="return confirm('Feed wirklich lÃ¶schen?');">
+                            <input type="hidden" name="feed_id" value="{{ feed.id }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger px-2" title="LÃ¶schen"><i class="bi bi-trash"></i></button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-rss display-6 d-block mb-3 opacity-25"></i>
+                <p>Noch keine RSS Feeds konfiguriert.<br><small>Klicke auf "NEUER FEED" um loszulegen.</small></p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Artikel-Ãœbersicht -->
+    <div class="card border-0 shadow-lg" style="background: rgba(255,255,255,0.03);">
+        <div class="card-header border-bottom border-white border-opacity-5 py-3 px-4 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold text-white"><i class="bi bi-newspaper me-2 text-info"></i>Neueste Artikel</h6>
+            <div class="d-flex gap-2">
+                <select class="form-select form-select-sm bg-dark text-white border-secondary" id="filterFeed" onchange="filterArticles()" style="width:auto;">
+                    <option value="">Alle Feeds</option>
+                    {% for feed in rss_feeds %}
+                    <option value="{{ feed.id }}">{{ feed.name }}</option>
+                    {% endfor %}
+                </select>
+                <select class="form-select form-select-sm bg-dark text-white border-secondary" id="filterStatus" onchange="filterArticles()" style="width:auto;">
+                    <option value="">Alle Status</option>
+                    <option value="pending_approval">Ausstehend</option>
+                    <option value="posted">Gepostet</option>
+                    <option value="timeout_posted">Auto-Gepostet</option>
+                    <option value="rejected">Abgelehnt</option>
+                </select>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle mb-0" style="--bs-table-bg: transparent;" id="articlesTable">
+                    <thead>
+                        <tr>
+                            <th class="ps-4 small text-secondary fw-bold">ARTIKEL</th>
+                            <th class="small text-secondary fw-bold">FEED</th>
+                            <th class="small text-secondary fw-bold">DATUM</th>
+                            <th class="text-center small text-secondary fw-bold">STATUS</th>
+                            <th class="text-end pe-4 small text-secondary fw-bold">AKTION</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in rss_items %}
+                        <tr data-feed="{{ item.feed_id }}" data-status="{{ item.status }}">
+                            <td class="ps-4" style="max-width: 320px;">
+                                <div class="fw-bold text-white text-truncate" title="{{ item.title }}">{{ item.title or '(kein Titel)' }}</div>
+                                {% if item.link %}
+                                <a href="{{ item.link }}" target="_blank" class="text-info text-decoration-none small text-truncate d-block" style="max-width:300px;">
+                                    <i class="bi bi-box-arrow-up-right me-1"></i>{{ item.link }}
+                                </a>
+                                {% endif %}
+                            </td>
+                            <td><span class="small text-secondary">{{ item.feed.name if item.feed else 'â€“' }}</span></td>
+                            <td><span class="small text-secondary">{{ item.created_at.strftime('%d.%m.%Y %H:%M') if item.created_at else 'â€“' }}</span></td>
+                            <td class="text-center">
+                                {% if item.status == 'pending_approval' %}
+                                <span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-25">â³ Ausstehend</span>
+                                {% elif item.status == 'posted' %}
+                                <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25">âœ… Gepostet</span>
+                                {% elif item.status == 'timeout_posted' %}
+                                <span class="badge bg-info bg-opacity-25 text-info border border-info border-opacity-25">â± Auto-Gepostet</span>
+                                {% elif item.status == 'rejected' %}
+                                <span class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-25">âŒ Abgelehnt</span>
+                                {% else %}
+                                <span class="badge bg-secondary">{{ item.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                {% if item.status == 'pending_approval' %}
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-outline-info" title="Vorschau ansehen" onclick="showPreview({{ item.id }})">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <form action="{{ url_for('dashboard.manual_post_rss') }}" method="POST" class="d-inline" onsubmit="return confirm('Artikel jetzt genehmigen und posten?');">
+                                        <input type="hidden" name="item_id" value="{{ item.id }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-success" title="Genehmigen">
+                                            <i class="bi bi-check-lg"></i>
+                                        </button>
+                                    </form>
+                                    <form action="{{ url_for('dashboard.reject_rss_item') }}" method="POST" class="d-inline" onsubmit="return confirm('Artikel wirklich ablehnen?');">
+                                        <input type="hidden" name="item_id" value="{{ item.id }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Ablehnen">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                                {% elif item.status == 'rejected' %}
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-outline-info" title="Vorschau ansehen" onclick="showPreview({{ item.id }})">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <form action="{{ url_for('dashboard.manual_post_rss') }}" method="POST" class="d-inline" onsubmit="return confirm('Abgelehnten Artikel trotzdem genehmigen und posten?');">
+                                        <input type="hidden" name="item_id" value="{{ item.id }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-success px-3" title="Doch noch posten">
+                                            <i class="bi bi-arrow-counterclockwise me-1"></i>Genehmigen
+                                        </button>
+                                    </form>
+                                </div>
+                                {% else %}
+                                <button class="btn btn-sm btn-outline-secondary" title="Vorschau ansehen" onclick="showPreview({{ item.id }})">
+                                    <i class="bi bi-eye"></i> Vorschau
+                                </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox display-6 d-block mb-2 opacity-25"></i>
+                                Noch keine Artikel gefunden.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add RSS Modal -->
+<div class="modal fade" id="addRssModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-dark text-white border-primary">
+            <div class="modal-header border-primary border-opacity-25 py-3">
+                <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle text-primary me-2"></i>Neuen RSS Feed hinzufÃ¼gen</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('dashboard.add_rss_feed') }}" method="POST">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="small text-secondary fw-bold mb-1">Name</label>
+                            <input type="text" class="form-control form-control-dark" name="name" required placeholder="z.B. ðŸ¢ Strauss Unternehmen">
+                        </div>
+                        <div class="col-12">
+                            <label class="small text-secondary fw-bold mb-1">RSS URL</label>
+                            <input type="url" class="form-control form-control-dark" name="url" required placeholder="https://presse.strauss.com/blogs/news.atom">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small text-warning fw-bold mb-1"><i class="bi bi-shield-check me-1"></i>Admin Chat ID</label>
+                            <input type="text" class="form-control form-control-dark" name="admin_chat_id" required placeholder="-1003372573784">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small text-warning fw-bold mb-1">Admin Topic ID (optional)</label>
+                            <input type="text" class="form-control form-control-dark" name="admin_topic_id" placeholder="2136">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small text-success fw-bold mb-1"><i class="bi bi-people me-1"></i>Ziel Chat ID</label>
+                            <input type="text" class="form-control form-control-dark" name="target_chat_id" required placeholder="-1002206300882">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small text-success fw-bold mb-1">Ziel Topic ID (optional)</label>
+                            <input type="text" class="form-control form-control-dark" name="target_topic_id" placeholder="26231">
+                        </div>
+                        <div class="col-12"><hr class="border-secondary border-opacity-25 my-1"></div>
+                        <div class="col-md-4">
+                            <label class="small text-secondary fw-bold mb-1"><i class="bi bi-arrow-repeat me-1 text-info"></i>Prüf-Intervall (Minuten)</label>
+                            <input type="number" class="form-control form-control-dark" name="check_interval_minutes" value="30" min="5" max="1440">
+                            <small class="text-muted" style="font-size:10px;">Min: 5, Empfehlung: 30</small>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="small text-secondary fw-bold mb-1"><i class="bi bi-clock me-1 text-warning"></i>Uhrzeit für Auto-Post</label>
+                            <input type="time" class="form-control form-control-dark" name="post_time" placeholder="09:00">
+                            <small class="text-muted" style="font-size:10px;">Leer = sofort nach Genehmigung</small>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="small text-secondary fw-bold mb-1"><i class="bi bi-hourglass me-1"></i>Auto-Post Timeout (Std.)</label>
+                            <input type="number" class="form-control form-control-dark" name="auto_post_timeout_hours" value="24" min="0">
+                            <small class="text-muted" style="font-size:10px;">0 = Nie automatisch</small>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="include_images" id="add_include_images" checked>
+                                <label class="form-check-label small" for="add_include_images">Bilder aus Artikeln mitposten</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary fw-bold px-4">Erstellen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Feed Modal -->
+<div class="modal fade" id="editRssModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary border-opacity-25 py-3">
+                <h5 class="modal-title fw-bold"><i class="bi bi-pencil text-warning me-2"></i>Feed bearbeiten</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('dashboard.update_rss_feed') }}" method="POST">
+                <input type="hidden" name="feed_id" id="edit_feed_id">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="small text-secondary fw-bold mb-1">Name</label>
+                            <input type="text" class="form-control form-control-dark" name="name" id="edit_name" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="small text-secondary fw-bold mb-1">RSS URL</label>
+                            <input type="url" class="form-control form-control-dark" name="url" id="edit_url" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small text-warning fw-bold mb-1">Admin Chat ID</label>
+                            <input type="text" class="form-control form-control-dark" name="admin_chat_id" id="edit_admin_chat_id" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small text-warning fw-bold mb-1">Admin Topic ID (optional)</label>
+                            <input type="text" class="form-control form-control-dark" name="admin_topic_id" id="edit_admin_topic_id">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small text-success fw-bold mb-1">Ziel Chat ID</label>
+                            <input type="text" class="form-control form-control-dark" name="target_chat_id" id="edit_target_chat_id" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small text-success fw-bold mb-1">Ziel Topic ID (optional)</label>
+                            <input type="text" class="form-control form-control-dark" name="target_topic_id" id="edit_target_topic_id">
+                        </div>
+                        <div class="col-12"><hr class="border-secondary border-opacity-25 my-1"></div>
+                        <div class="col-md-4">
+                            <label class="small text-secondary fw-bold mb-1">Prüf-Intervall (Minuten)</label>
+                            <input type="number" class="form-control form-control-dark" name="check_interval_minutes" id="edit_interval" min="5" max="1440">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="small text-secondary fw-bold mb-1">Uhrzeit für Auto-Post</label>
+                            <input type="time" class="form-control form-control-dark" name="post_time" id="edit_post_time">
+                            <small class="text-muted" style="font-size:10px;">Leer = sofort</small>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="small text-secondary fw-bold mb-1">Auto-Post Timeout (Std.)</label>
+                            <input type="number" class="form-control form-control-dark" name="auto_post_timeout_hours" id="edit_timeout" min="0">
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="include_images" id="edit_include_images">
+                                <label class="form-check-label small" for="edit_include_images">Bilder mitposten</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-warning fw-bold px-4 text-dark">Speichern</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function editFeed(id, name, url, adminChat, adminTopic, targetChat, targetTopic, timeout, includeImages, interval, postTime) {
+    document.getElementById('edit_feed_id').value = id;
+    document.getElementById('edit_name').value = name;
+    document.getElementById('edit_url').value = url;
+    document.getElementById('edit_admin_chat_id').value = adminChat;
+    document.getElementById('edit_admin_topic_id').value = adminTopic;
+    document.getElementById('edit_target_chat_id').value = targetChat;
+    document.getElementById('edit_target_topic_id').value = targetTopic;
+    document.getElementById('edit_timeout').value = timeout;
+    document.getElementById('edit_include_images').checked = includeImages;
+    document.getElementById('edit_interval').value = interval;
+    document.getElementById('edit_post_time').value = postTime;
+    new bootstrap.Modal(document.getElementById('editRssModal')).show();
+}
+
+function filterArticles() {
+    const feedFilter = document.getElementById('filterFeed').value;
+    const statusFilter = document.getElementById('filterStatus').value;
+    const rows = document.querySelectorAll('#articlesTable tbody tr[data-feed]');
+    rows.forEach(row => {
+        const feedMatch = !feedFilter || row.dataset.feed === feedFilter;
+        const statusMatch = !statusFilter || row.dataset.status === statusFilter;
+        row.style.display = (feedMatch && statusMatch) ? '' : 'none';
+    });
+}
+</script>
+
+<!-- Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-dark text-white border-info">
+            <div class="modal-header border-info border-opacity-25 py-3">
+                <h5 class="modal-title fw-bold"><i class="bi bi-telegram text-info me-2"></i>Telegram Vorschau</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="background-color: #0e1621; background-image: url('https://telegram.org/img/t_logo.png'); background-size: 200px; background-position: center; background-repeat: no-repeat; background-blend-mode: overlay;">
+                <div id="previewContent" class="py-2">
+                    <div class="text-center py-4 text-white-50">
+                        <div class="spinner-border spinner-border-sm me-2"></div> Lade Vorschau...
+                    </div>
+                </div>
+                <div class="small text-white-50 mt-2">
+                    <i class="bi bi-info-circle me-1"></i> So wird der Text formatiert in Telegram angezeigt (inklusive aller neuen Rich-Text-Features).
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Schließen</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+function showPreview(itemId) {
+    let modalEl = document.getElementById('previewModal');
+    let modal = bootstrap.Modal.getInstance(modalEl);
+    if (!modal) {
+        modal = new bootstrap.Modal(modalEl);
+    }
+    modal.show();
+    
+    document.getElementById('previewContent').innerHTML = '<div class="text-center py-4 text-white-50"><div class="spinner-border spinner-border-sm me-2"></div> Lade Vorschau...</div>';
+    
+    fetch('/rss-feed/preview/' + itemId)
+        .then(response => response.json())
+        .then(data => {
+            if (data.html) {
+                document.getElementById('previewContent').innerHTML = data.html;
+            } else {
+                document.getElementById('previewContent').innerHTML = '<div class="text-danger">Fehler beim Laden.</div>';
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById('previewContent').innerHTML = '<div class="text-danger">Netzwerkfehler.</div>';
+        });
+}
+</script>
+{% endblock %}
+
+{% endblock %}
+
+
+

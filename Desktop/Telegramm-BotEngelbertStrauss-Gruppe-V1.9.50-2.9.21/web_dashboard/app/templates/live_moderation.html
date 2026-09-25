@@ -1,0 +1,1191 @@
+{% extends "base.html" %}
+
+{% block title %}Live Moderation | Bot Dashboard{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --tg-bg: #0b141d;
+        --tg-sidebar: #151f28;
+        --tg-accent: #34b7f1;
+        --tg-text: #ffffff;
+        --tg-text-muted: #8a99a4;
+        --glass-bg: rgba(255, 255, 255, 0.03);
+        --glass-border: rgba(255, 255, 255, 0.08);
+        --tg-danger: #ef4444;
+        --tg-warning: #fbbf24;
+        --tg-success: #22c55e;
+        --admin-accent: #ff4757;
+    }
+
+    html, body {
+        height: 100vh !important;
+        height: 100dvh !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+        background: #000;
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* Reset central app-content container padding & height for a full-bleed Telegram layout */
+    .app-content {
+        padding: 0 !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+        background: #000 !important;
+    }
+
+    @media (max-width: 767.98px) {
+        .app-content {
+            padding: 0 !important;
+            padding-top: 60px !important; /* Clears fixed 60px mobile header in base.html */
+            margin-left: 0 !important;
+            height: 100vh !important;
+            height: 100dvh !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
+        }
+    }
+
+    .navbar {
+        display: none !important;
+    }
+
+    .moderation-main-layout {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        width: 100% !important; /* Fits parent container without horizontal overflow */
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden;
+        min-height: 0;
+    }
+
+    .dashboard-viewport {
+        flex: 1;
+        display: flex;
+        overflow: hidden;
+        border-top: none !important;
+        height: 100% !important;
+        width: 100% !important;
+    }
+
+    /* --- SIDEBAR --- */
+    .sidebar {
+        width: 340px;
+        background: var(--tg-sidebar);
+        border-right: 1px solid var(--glass-border);
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+        z-index: 1000;
+        box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @media (max-width: 991px) {
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            transform: translateX(-100%);
+            width: 85vw;
+            max-width: 320px;
+            z-index: 1100 !important; /* Sits above standard mobile header */
+        }
+        .sidebar.mobile-active {
+            transform: translateX(0);
+        }
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            z-index: 1095 !important;
+        }
+        .sidebar.mobile-active + .sidebar-overlay {
+            display: block;
+        }
+    }
+    .sidebar-header {
+        padding: 1.5rem;
+        background: rgba(0,0,0,0.2);
+        border-bottom: 1px solid var(--glass-border);
+    }
+    .topic-list-area {
+        flex: 1;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--glass-border) transparent;
+    }
+    .cat-head {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        color: var(--tg-accent);
+        padding: 1.5rem 1.25rem 0.5rem;
+        font-weight: 800;
+        letter-spacing: 0.15em;
+        opacity: 0.8;
+    }
+    .topic-card {
+        display: flex;
+        align-items: center;
+        padding: 0.85rem 1.25rem;
+        margin: 0 0.75rem 0.25rem;
+        border-radius: 12px;
+        color: var(--tg-text-muted);
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid transparent;
+        position: relative;
+    }
+    .topic-card:hover {
+        background: var(--glass-bg);
+        color: #fff;
+        transform: translateX(5px);
+    }
+    .topic-card.active {
+        background: linear-gradient(90deg, rgba(52, 183, 241, 0.15), rgba(52, 183, 241, 0.05));
+        color: var(--tg-accent);
+        font-weight: 600;
+        border-color: rgba(52, 183, 241, 0.3);
+    }
+    .topic-card.active::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 20%;
+        bottom: 20%;
+        width: 4px;
+        background: var(--tg-accent);
+        border-radius: 0 4px 4px 0;
+        box-shadow: 0 0 10px var(--tg-accent);
+    }
+    .topic-card.admin-topic.active {
+        background: linear-gradient(90deg, rgba(255, 71, 87, 0.15), rgba(255, 71, 87, 0.05));
+        color: var(--admin-accent);
+        border-color: rgba(255, 71, 87, 0.3);
+    }
+    .topic-card.admin-topic.active::before { background: var(--admin-accent); box-shadow: 0 0 10px var(--admin-accent); }
+    
+    .topic-card.inactive { opacity: 0.4; font-style: italic; }
+    .topic-card .gear-icon { opacity: 0; transition: 0.2s; margin-left: auto; }
+    .topic-card:hover .gear-icon { opacity: 0.6; }
+    .topic-card .gear-icon:hover { opacity: 1; color: #fff; }
+
+    /* --- CHAT VIEW --- */
+    .chat-view {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: var(--tg-bg);
+        min-width: 0;
+        position: relative;
+    }
+    .chat-head {
+        height: 75px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 2rem;
+        background: rgba(11, 20, 29, 0.85);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid var(--glass-border);
+        z-index: 5;
+    }
+    .msg-feed {
+        flex: 1;
+        overflow-y: auto;
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        background-color: var(--tg-bg);
+        background-image: 
+            radial-gradient(circle at 2px 2px, rgba(255,255,255,0.02) 1px, transparent 0);
+        background-size: 40px 40px;
+        scroll-behavior: smooth;
+    }
+    
+    @media (max-width: 768px) {
+        .msg-feed { padding: 0.75rem !important; gap: 0.75rem; }
+        .chat-head { padding: 0 1rem; height: 65px; }
+        .msg-bubble { padding: 0.6rem 0.8rem; font-size: 0.9rem; border-radius: 0 16px 16px 16px !important; }
+        .chat-mode-dm .msg-item.own-msg .msg-bubble { border-radius: 16px 0 16px 16px !important; }
+        .msg-avatar { width: 32px; height: 32px; }
+        .msg-user-name { font-size: 0.85rem; }
+        .input-system { padding: 0.5rem 0.75rem; }
+        .input-bar-inner { padding: 0.4rem 0.75rem; }
+        .send-btn { padding: 0.4rem 1.25rem; font-size: 0.9rem; }
+        .msg-media { max-width: 100% !important; }
+        .audio-player { min-width: 100% !important; }
+        .msg-group-container { gap: 0.5rem !important; max-width: 95% !important; }
+        .chat-mode-dm .msg-item.own-msg { max-width: 95% !important; }
+    }
+
+    @media (max-width: 576px) {
+        .chat-head {
+            padding: 0 0.5rem !important;
+            height: 60px !important;
+        }
+        #current-title-box {
+            font-size: 1rem !important;
+            max-width: 110px !important;
+        }
+        #pause-bot-btn {
+            padding: 0.25rem 0.5rem !important;
+            font-size: 0.75rem !important;
+        }
+        /* Hide reload button on small mobile screens since it auto-polls anyway */
+        .chat-head button.btn-outline-danger {
+            display: none !important;
+        }
+        .chat-head .btn-dark {
+            padding: 0.25rem 0.5rem !important;
+        }
+        .input-system {
+            padding: 0.5rem !important;
+        }
+        .input-bar-inner {
+            padding: 0.35rem 0.75rem !important;
+        }
+        .input-bar-inner input {
+            font-size: 0.85rem !important;
+        }
+        .send-btn {
+            padding: 0.35rem 0.85rem !important;
+            font-size: 0.8rem !important;
+        }
+        .input-bar-inner label {
+            margin-right: 0.5rem !important;
+        }
+        /* Hide session details footer on mobile for maximum chat area height */
+        .chat-view > div.bg-black.bg-opacity-40 {
+            display: none !important;
+        }
+    }
+
+    /* Usability on touchscreens: Action buttons always visible instead of hover-only */
+    @media (max-width: 991px) {
+        .msg-action-btn {
+            opacity: 0.8 !important;
+            margin-left: 0.5rem !important;
+        }
+    }
+    /* .msg-feed.chat-mode-dm wurde entfernt für einheitliche Sortierung */
+    
+    /* --- MESSAGE ITEMS --- */
+    .msg-group-container {
+        display: flex;
+        gap: 1rem;
+        max-width: 90%;
+        animation: fadeIn 0.4s ease-out;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .msg-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        border: 2px solid var(--glass-border);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+    .msg-bubble {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--glass-border);
+        padding: 0.75rem 1rem;
+        border-radius: 0 20px 20px 20px;
+        position: relative;
+        transition: all 0.2s;
+    }
+    .msg-bubble:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255,255,255,0.15);
+    }
+    /* --- Edited & Deleted Styling --- */
+    .msg-edited-tag {
+        font-size: 0.6rem;
+        background: rgba(251, 191, 36, 0.2);
+        color: var(--tg-warning);
+        padding: 1px 6px;
+        border-radius: 4px;
+        margin-left: 8px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border: 1px solid rgba(251, 191, 36, 0.3);
+    }
+    .msg-deleted-bubble {
+        background: rgba(239, 68, 68, 0.03) !important;
+        border: 1px dashed rgba(239, 68, 68, 0.3) !important;
+        opacity: 0.8;
+    }
+    .msg-deleted-text {
+        text-decoration: line-through;
+        opacity: 0.5;
+        font-style: italic;
+    }
+    .msg-action-btn {
+        opacity: 0;
+        transition: 0.2s;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+    }
+    .msg-bubble:hover .msg-action-btn { opacity: 0.6; }
+    .msg-action-btn:hover { opacity: 1 !important; background: rgba(255,255,255,0.1); }
+    .msg-action-btn.delete-btn:hover { color: var(--tg-danger); }
+
+    /* --- Chat Simulation (Alignment) --- */
+    .chat-mode-dm .msg-item.own-msg {
+        flex-direction: row-reverse;
+        align-self: flex-end;
+        max-width: 85%;
+    }
+    .chat-mode-dm .msg-item.own-msg .msg-group-container {
+        flex-direction: row-reverse;
+    }
+    .chat-mode-dm .msg-item.own-msg .msg-bubble {
+        border-radius: 20px 0 20px 20px;
+        background: rgba(52, 183, 241, 0.1);
+        border-color: rgba(52, 183, 241, 0.2);
+    }
+    .chat-mode-dm .msg-item.own-msg .msg-user-info {
+        flex-direction: row-reverse;
+    }
+    .chat-mode-dm .msg-item.own-msg .msg-time {
+        margin-left: 0;
+        margin-right: auto;
+    }
+
+    .msg-user-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.25rem;
+    }
+    .msg-user-name { font-weight: 700; color: var(--tg-accent); font-size: 0.9rem; cursor: pointer; }
+    .msg-user-rank {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        background: rgba(255,255,255,0.1);
+        padding: 2px 8px;
+        border-radius: 50px;
+        color: #fff;
+        opacity: 0.8;
+    }
+    .rank-inhaber { background: linear-gradient(45deg, #f1c40f, #f39c12); color: #000; font-weight: 900; }
+    .rank-admin { background: #ff4757; }
+    .rank-polizist { background: #3742fa; }
+    .rank-developer { background: #2f3542; border: 1px solid #70a1ff; }
+
+    .msg-text { font-size: 0.95rem; line-height: 1.5; color: #e1e1e1; white-space: pre-wrap; word-break: break-word; }
+    .msg-time { font-size: 0.7rem; color: var(--tg-text-muted); opacity: 0.6; margin-left: auto; }
+
+    .msg-failed .msg-bubble {
+        background: rgba(239, 68, 68, 0.1) !important;
+        border: 1px solid rgba(239, 68, 68, 0.3) !important;
+    }
+    .msg-failed-tag {
+        color: #f87171;
+        font-size: 0.65rem;
+        font-weight: bold;
+        text-transform: uppercase;
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    /* --- SPECIAL CONTENT --- */
+    .reply-preview {
+        background: rgba(0,0,0,0.2);
+        border-left: 3px solid var(--tg-accent);
+        padding: 0.4rem 0.75rem;
+        border-radius: 6px;
+        margin-bottom: 0.5rem;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+    .reply-preview:hover { background: rgba(255,255,255,0.05); }
+
+    .msg-media { margin-top: 0.75rem; border-radius: 12px; overflow: hidden; max-width: 400px; display: block; }
+    .msg-media img, .msg-media video { width: 100%; display: block; }
+    
+    .msg-sticker { width: 140px; margin-top: 0.5rem; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.4)); transition: transform 0.2s; }
+    .msg-sticker:hover { transform: scale(1.1); }
+
+    .audio-player {
+        background: rgba(255,255,255,0.05);
+        padding: 0.5rem 1rem;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 0.5rem;
+        min-width: 240px;
+    }
+
+    .service-bubble {
+        align-self: center;
+        background: rgba(0,0,0,0.3);
+        backdrop-filter: blur(5px);
+        padding: 4px 16px;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        color: var(--tg-text-muted);
+        border: 1px solid var(--glass-border);
+        margin: 1rem 0;
+    }
+
+    /* --- INPUT AREA --- */
+    .input-system {
+        padding: 1.5rem 2rem;
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(20px);
+        border-top: 1px solid var(--glass-border);
+        z-index: 10;
+        position: relative;
+    }
+    .input-system::before {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, var(--tg-accent), transparent);
+    }
+    
+    .input-bar-inner {
+        display: flex;
+        align-items: center;
+        background: rgba(30, 41, 59, 0.6);
+        padding: 0.75rem 1.5rem;
+        border-radius: 50px;
+        border: 1px solid var(--glass-border);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    .input-bar-inner input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: #fff;
+        outline: none;
+        font-size: 1rem;
+    }
+    .send-btn {
+        background: var(--tg-accent);
+        color: #fff;
+        border: none;
+        padding: 0.6rem 1.75rem;
+        border-radius: 50px;
+        font-weight: 700;
+        transition: 0.3s;
+        box-shadow: 0 4px 15px rgba(52, 183, 241, 0.4);
+    }
+    .send-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(52, 183, 241, 0.6);
+    }
+
+    /* --- UTILS --- */
+    .pulse { animation: pulseAnim 2s infinite; }
+    @keyframes pulseAnim { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    
+    .msg-action-btn { 
+        cursor: pointer; 
+        transition: 0.2s; 
+        opacity: 0.4; /* Better visibility */
+        font-size: 1.25rem; /* Larger */
+        padding: 4px;
+        border-radius: 6px;
+    }
+    .msg-action-btn:hover { background: rgba(255,255,255,0.1); }
+    .msg-bubble:hover .msg-action-btn { opacity: 1; }
+    .delete-btn:hover { color: #ff4444; transform: scale(1.1); }
+    .warn-btn:hover { color: #ffbb33; transform: scale(1.1); }
+
+    .msg-deleted { opacity: 0.6; }
+    .msg-deleted .msg-bubble { background: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.2); }
+</style>
+
+<div class="moderation-main-layout" id="mod-layout-root">
+    <div class="dashboard-viewport">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-header d-flex align-items-center justify-content-between">
+                <div>
+                    <h5 class="mb-0 fw-bold text-white">Live-Control</h5>
+                    <small class="text-muted"><span id="active-user-count">...</span> Mitglieder aktiv</small>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-dark btn-sm rounded-circle p-2" onclick="loadTopics(true)">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm rounded-circle p-2 d-lg-none" onclick="toggleSidebar()">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="topic-list-area" id="topic-list-content">
+                <!-- Topics will be rendered here -->
+            </div>
+            
+            <div class="p-3 border-top border-white border-opacity-10 bg-black bg-opacity-20">
+                <button class="btn btn-outline-info btn-sm w-100 rounded-pill" data-bs-toggle="modal" data-bs-target="#settingsModal">
+                    <i class="bi bi-gear-fill me-2"></i>Dashboard Settings
+                </button>
+            </div>
+        </aside>
+        <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+        <!-- MAIN VIEW -->
+        <main class="chat-view">
+            <header class="chat-head">
+                <div class="d-flex align-items-center gap-2 gap-md-3">
+                    <button class="btn btn-outline-light btn-sm d-lg-none border-0 px-2" onclick="toggleSidebar()">
+                        <i class="bi bi-list fs-3"></i>
+                    </button>
+                    <div id="topic-icon-box" class="fs-4 text-info d-none d-sm-block"><i class="bi bi-hash"></i></div>
+                    <div class="text-truncate" style="max-width: 150px;">
+                        <h5 class="mb-0 fw-bold text-white text-truncate" id="current-title-box">Moderation</h5>
+                        <small class="text-success pulse d-none d-md-inline-block"><i class="bi bi-broadcast me-1"></i> ECHTZEIT</small>
+                    </div>
+                </div>
+                <div class="d-flex gap-1 gap-md-2">
+                    {% if current_user.role == 'admin' %}
+                    <button id="pause-bot-btn" class="btn btn-outline-warning btn-sm rounded-pill px-2 px-md-4 d-none" onclick="togglePause()">
+                        <i class="bi bi-pause-fill"></i><span class="d-none d-md-inline ms-1">Bot Pausieren</span>
+                    </button>
+                    {% endif %}
+                    <button class="btn btn-outline-danger btn-sm rounded-pill px-2 px-md-4" onclick="window.location.reload()"><i class="bi bi-arrow-repeat"></i></button>
+                    <a href="{{ url_for('dashboard.index') }}" class="btn btn-dark btn-sm rounded-pill px-2 px-md-4"><i class="bi bi-x-lg"></i></a>
+                </div>
+            </header>
+
+            <div class="msg-feed" id="chat-messages-box">
+                <!-- Messages will be rendered here -->
+            </div>
+
+            <div class="input-system">
+                <form id="send-form" class="input-bar-inner">
+                    <label class="btn btn-link text-muted p-0 me-3" for="file-up">
+                        <i class="bi bi-paperclip fs-4"></i>
+                    </label>
+                    <input type="file" id="file-up" hidden onchange="previewMedia(this)">
+                    <input type="text" id="chat-input" placeholder="Nachricht an Gruppe schreiben..." autocomplete="off">
+                    <button type="submit" class="send-btn ms-3">
+                        <i class="bi bi-send-fill"></i>
+                    </button>
+                </form>
+                <div id="media-prev" class="mt-3 d-none animate__animated animate__fadeInUp">
+                    <div class="position-relative d-inline-block">
+                        <img id="prev-img" class="rounded border-2 border-info shadow" style="height: 60px; object-fit: cover;">
+                        <button class="btn btn-sm btn-danger rounded-circle position-absolute" style="top: -10px; right: -10px;" onclick="clearMedia()">×</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-1 px-4 bg-black bg-opacity-40 text-muted d-flex justify-content-between align-items-center" style="font-size: 0.65rem; letter-spacing: 0.1em;">
+                <div>STATUS: <span class="text-success">ONLINE</span></div>
+                <div id="session-time">00:00:00</div>
+                <div>LOADED: <span id="stat-info">0</span> MSGS</div>
+            </div>
+        </main>
+    </div>
+</div>
+
+{% include 'modals_moderation.html' %}
+
+<script>
+    let currentTopic = 'all';
+    let messagesList = [];
+    let knownMsgIds = new Set();
+    window.topicsData = [];
+    let fetching = false;
+    let endHistory = false;
+    let lastTs = null;
+
+    const mainGroupId = -1002206300882;
+    const adminGroupId = -1003372573784;
+
+    function esc(s) { return s ? s.toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])) : ''; }
+    
+    function getTime(iso) { 
+        if(!iso) return '';
+        const d = new Date(iso);
+        return d.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
+    }
+
+    function formatDateDivider(iso) {
+        const d = new Date(iso);
+        const today = new Date();
+        const yesterday = new Date();
+        yesterday.setDate(today.getDate() - 1);
+
+        const isSameDay = (d1, d2) => 
+            d1.getDate() === d2.getDate() && 
+            d1.getMonth() === d2.getMonth() && 
+            d1.getFullYear() === d2.getFullYear();
+
+        if (isSameDay(d, today)) return "Heute";
+        if (isSameDay(d, yesterday)) return "Gestern";
+        
+        return d.toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+
+    async function loadTopics(force = false) {
+        try {
+            const r = await fetch('/api/topics');
+            topicsData = await r.json();
+            renderTopicsList();
+        } catch(e) { console.error("Topic Load Error:", e); }
+    }
+
+    function renderTopicsList() {
+        const list = document.getElementById('topic-list-content');
+        const sections = {
+            'Allgemein': [{id: 'all', name: 'Zentrale (Alle)', icon: 'bi-grid-1x2-fill'}],
+            'Hauptgruppe': [],
+            'Admins & Team': [],
+            'User Steckbriefe': [],
+            'Bot & Privat (DMs)': [{id: 'private', name: 'Alle Nachrichten', icon: 'bi-chat-dots-fill'}],
+            'Archiv': []
+        };
+
+        topicsData.forEach(t => {
+            if (t.id === 'all' || t.id === 'private') return;
+            const nm = (t.name || '').toLowerCase();
+            const cid = t.chat_id;
+            const cat = t.category || '';
+
+            // Hierarchische Einordnung
+            if (t.is_deleted) {
+                sections['Archiv'].push(t);
+            }
+            else if (cat === 'Admins & Team' || cid == adminGroupId) {
+                sections['Admins & Team'].push(t);
+            }
+            else if (cat === 'User Steckbriefe' || nm.includes('steckbrief') || nm.includes('vorstellung')) {
+                sections['User Steckbriefe'].push(t);
+            }
+            else if (cat === 'Bot & Privat (DMs)') {
+                sections['Bot & Privat (DMs)'].push(t);
+            }
+            else {
+                // Hauptgruppe
+                sections['Hauptgruppe'].push(t);
+            }
+        });
+
+        // Spezielle Sortierung für Hauptgruppe (Zentrale immer zuerst)
+        sections['Hauptgruppe'].sort((a,b) => {
+            if(a.is_pinned && !b.is_pinned) return -1;
+            if(!a.is_pinned && b.is_pinned) return 1;
+            return (a.id == 1 ? -1 : (b.id == 1 ? 1 : 0));
+        });
+        
+        // DMs sortieren nach Aktivität (neueste zuerst)
+        sections['Bot & Privat (DMs)'].sort((a,b) => {
+            return new Date(b.last_activity || 0) - new Date(a.last_activity || 0);
+        });
+
+        let h = '';
+        const order = ['Allgemein', 'Hauptgruppe', 'Admins & Team', 'User Steckbriefe', 'Bot & Privat (DMs)', 'Archiv'];
+        order.forEach(key => {
+            const items = sections[key];
+            if (items.length > 0) {
+                const label = key === 'Archiv' ? 'Archiv / Gelöscht' : key;
+                h += `<div class="cat-head">${label}</div>`;
+                items.forEach(t => {
+                    const active = t.id == currentTopic ? 'active' : '';
+                    const isAdminZone = key === 'Admins & Team';
+                    const icon = t.icon || (t.id == 1 ? 'bi-chat-heart-fill' : 'bi-hash');
+                    
+                    h += `
+                        <div class="topic-card ${active} ${isAdminZone ? 'admin-topic' : ''} ${t.is_deleted ? 'inactive' : ''}" onclick="switchTopic('${t.id}')">
+                            <i class="bi ${icon} me-3 ${t.is_pinned?'text-warning':''}"></i>
+                            <span class="text-truncate flex-grow-1 ${t.is_deleted?'text-decoration-line-through':''}">${esc(t.name)}</span>
+                            
+                            <div class="d-flex gap-1 align-items-center">
+                                ${t.is_closed ? '<i class="bi bi-lock-fill text-dim small" title="Geschlossen"></i>' : ''}
+                                ${t.is_pinned ? '<i class="bi bi-pin-angle-fill text-warning small" title="Angepinnt"></i>' : ''}
+                                {% if current_user.role == 'admin' %}
+                                <i class="bi bi-pencil-square gear-icon ms-2" title="Einstellungen" onclick="event.stopPropagation(); openTopicModal('${t.id}')"></i>
+                                {% endif %}
+                            </div>
+                        </div>`;
+                });
+            }
+        });
+        list.innerHTML = h;
+    }
+
+    async function quickArchive(tid, archive) {
+        try {
+            const res = await fetch('/api/moderation/topics/update', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ topic_id: tid, is_archived: archive })
+            });
+            if(res.ok) {
+                showToast(archive ? "Verschoben ins Archiv" : "Wiederhergestellt", "info");
+                loadTopics(true);
+            }
+        } catch(e) { console.error(e); }
+    }
+
+    // Delegated listener for all chat actions
+    document.getElementById('chat-messages-box').addEventListener('click', async (e) => {
+        const target = e.target.closest('.msg-action-btn, .warn-badge, .msg-user-name');
+        if (!target) return;
+
+        if (target.classList.contains('delete-btn')) {
+            const dbId = target.dataset.dbId;
+            if (!confirm("Nachricht wirklich löschen?")) return;
+            try {
+                const res = await fetch('/api/moderation/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: dbId })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast("Nachricht gelöscht", "success");
+                    const m = messagesList.find(x => x.id == dbId);
+                    if(m) { m.is_deleted = true; m.deleted_by_name = "Dashboard Admin"; renderChat(); }
+                } else {
+                    alert("Fehler: " + (data.error || "Unbekannt"));
+                }
+            } catch(err) { console.error(err); alert("Systemfehler beim Löschen."); }
+        }
+
+        if (target.classList.contains('warn-btn')) {
+            window.openModModal(target.dataset.dbId);
+        }
+
+        if (target.classList.contains('warn-badge') || target.classList.contains('msg-user-name')) {
+            const userId = target.dataset.userId;
+            if (userId) window.openResetModal(userId);
+        }
+    });
+
+    function switchTopic(tid) {
+        if(currentTopic === tid) return;
+        currentTopic = tid;
+        knownMsgIds.clear();
+        messagesList = [];
+        endHistory = false;
+        
+        // Mobile Sidebar schließen
+        const sidebar = document.querySelector('.sidebar');
+        if (sidebar.classList.contains('mobile-active')) {
+            toggleSidebar();
+        }
+
+        document.getElementById('chat-messages-box').innerHTML = '<div class="text-center p-5"><div class="spinner-border text-info"></div><p class="mt-2 opacity-50">Synchronisiere Verlauf...</p></div>';
+        fetchFlow(true);
+        renderTopicsList();
+        const t = topicsData.find(x => x.id == tid);
+        document.getElementById('current-title-box').innerText = tid === 'all' ? 'Zentrale (Alle)' : (tid === 'private' ? 'Alle Nutzer-DMs' : (t ? t.name : tid));
+        
+        // Chat Mode class for DM simulation
+        const box = document.getElementById('chat-messages-box');
+        if(tid === 'private' || tid.toString().startsWith('dm_')) {
+            box.classList.add('chat-mode-dm');
+        } else {
+            box.classList.remove('chat-mode-dm');
+        }
+
+        // Update header icon
+        const iconBox = document.getElementById('topic-icon-box');
+        if(tid.toString().startsWith('dm_')) iconBox.innerHTML = '<i class="bi bi-person-fill"></i>';
+        else if(tid === 'private') iconBox.innerHTML = '<i class="bi bi-chat-dots"></i>';
+        else if(tid === 'all') iconBox.innerHTML = '<i class="bi bi-grid-1x2"></i>';
+        else iconBox.innerHTML = '<i class="bi bi-hash"></i>';
+
+        // Update placeholder
+        const inp = document.getElementById('chat-input');
+        if(tid === 'all' || tid === 'private') {
+            inp.placeholder = tid === 'all' ? "In Zentrale (Alle) kann nicht direkt gepostet werden..." : "Wähle einen User aus, um ihm zu schreiben...";
+            inp.disabled = true;
+        } else if(tid.toString().startsWith('dm_')) {
+            inp.placeholder = `Nachricht direkt an ${t ? t.name : tid} senden...`;
+            inp.disabled = false;
+        } else {
+            inp.placeholder = `Nachricht an Topic "${t ? t.name : tid}" senden...`;
+            inp.disabled = false;
+        }
+
+        // Handle Bot Pause Button
+        const pBtn = document.getElementById('pause-bot-btn');
+        if (tid.toString().startsWith('dm_')) {
+            const uid = tid.replace('dm_', '');
+            pBtn.classList.remove('d-none');
+            // Fetch status
+            fetch(`/api/get-user-status/${uid}`)
+                .then(r => r.json())
+                .then(data => {
+                    updatePauseButtonUI(data.is_steckbrief_paused);
+                });
+        } else {
+            pBtn.classList.add('d-none');
+        }
+    }
+
+    function updatePauseButtonUI(isPaused) {
+        const pBtn = document.getElementById('pause-bot-btn');
+        if (!pBtn) return;
+        if (isPaused) {
+            pBtn.innerHTML = '<i class="bi bi-play-fill me-1"></i>Bot Fortsetzen';
+            pBtn.classList.remove('btn-outline-warning');
+            pBtn.classList.add('btn-warning');
+        } else {
+            pBtn.innerHTML = '<i class="bi bi-pause-fill me-1"></i>Bot Pausieren';
+            pBtn.classList.remove('btn-warning');
+            pBtn.classList.add('btn-outline-warning');
+        }
+    }
+
+    async function togglePause() {
+        if (!currentTopic.startsWith('dm_')) return;
+        const uid = currentTopic.replace('dm_', '');
+        const pBtn = document.getElementById('pause-bot-btn');
+        if (!pBtn) return;
+        const currentlyPaused = pBtn.classList.contains('btn-warning');
+        
+        const res = await fetch('/api/toggle-bot-pause', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: uid, paused: !currentlyPaused })
+        });
+        const data = await res.json();
+        if (data.success) {
+            updatePauseButtonUI(data.paused);
+            showToast(data.paused ? "Bot wurde pausiert." : "Bot wurde fortgesetzt.", "warning");
+        }
+    }
+
+    async function fetchFlow(initial = false, history = false) {
+        if (fetching && !history) return;
+        if (history && endHistory) return;
+        if (initial) { endHistory = false; lastTs = null; }
+        if (!history) fetching = true;
+
+        const offset = history ? messagesList.length : 0;
+        try {
+            const res = await fetch(`/api/live-messages?topic_id=${currentTopic}&limit=40&offset=${offset}`);
+            const data = await res.json();
+            
+            if (history && data.length === 0) endHistory = true;
+
+            let updated = false;
+            let newMsgs = false;
+            data.forEach(m => {
+                if(!knownMsgIds.has(m.id)) {
+                    knownMsgIds.add(m.id);
+                    messagesList.push(m);
+                    updated = true;
+                    newMsgs = true;
+                } else {
+                    const ex = messagesList.find(x => x.id === m.id);
+                    if(ex && (ex.text !== m.text || ex.is_deleted !== m.is_deleted || ex.is_edited !== m.is_edited || ex.edited_by !== m.edited_by || ex.deleted_by_name !== m.deleted_by_name)) {
+                        Object.assign(ex, m);
+                        updated = true;
+                    }
+                }
+            });
+
+            if(newMsgs && !initial) {
+                // Wenn neue Nachrichten kamen, Sidebar aktualisieren um Sortierung zu prüfen
+                loadTopics();
+            }
+
+            if(updated || initial) {
+                // Keep history chronological? Actually Telegram has newest at bottom.
+                // Our API returns newest first. So we sort by timestamp.
+                // Telegram Style: Oldest top, Newest bottom
+                messagesList.sort((a, b) => new Date(a.ts_str).getTime() - new Date(b.ts_str).getTime());
+                renderChat(initial);
+            }
+            document.getElementById('stat-info').innerText = messagesList.length;
+        } catch(e) { console.error("Fetch Error:", e); } finally { fetching = false; }
+    }
+
+    function toggleSidebar() {
+        document.querySelector('.sidebar').classList.toggle('mobile-active');
+    }
+
+    function renderChat(initial) {
+        const box = document.getElementById('chat-messages-box');
+        if (!box) return;
+
+        try {
+            // DEFINITIVE SORTIERUNG (Älteste oben, Neueste unten)
+            messagesList.sort((a, b) => {
+                const timeA = new Date(a.ts_str).getTime();
+                const timeB = new Date(b.ts_str).getTime();
+                return timeA - timeB; 
+            });
+
+            let html = '';
+            let lastDate = '';
+            messagesList.forEach(m => {
+                try {
+                    const currentDate = new Date(m.ts_str).toDateString();
+                    if (currentDate !== lastDate) {
+                        html += `<div class="service-bubble fw-bold px-4">${formatDateDivider(m.ts_str)}</div>`;
+                        lastDate = currentDate;
+                    }
+                    html += renderSingleMessage(m);
+                } catch(msgErr) {
+                    console.error("Message Render Error:", msgErr, m);
+                    html += `<div class="alert alert-warning m-2 p-1 small">Render-Fehler bei Nachricht ID ${m.id}: ${msgErr.message}</div>`;
+                }
+            });
+
+            box.innerHTML = html;
+            
+            // FORCIERTER SCROLL NACH UNTEN
+            if (initial) {
+                const scrollDown = () => { box.scrollTop = box.scrollHeight; };
+                scrollDown();
+                setTimeout(scrollDown, 100);
+                setTimeout(scrollDown, 500);
+                setTimeout(scrollDown, 1000);
+            }
+        } catch(e) {
+            console.error("Critical Render Error:", e);
+            box.innerHTML = `<div class="alert alert-danger m-4"><h4>Kritischer Anzeigefehler</h4><p>${e.message}</p><button class="btn btn-sm btn-light" onclick="window.location.reload()">Neu laden</button></div>`;
+        }
+    }
+
+    function getTime(ts) {
+        if(!ts) return '--:--';
+        try { return new Date(ts).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}); }
+        catch(e) { return '--:--'; }
+    }
+
+    function renderSingleMessage(m) {
+        if(m.content_type === 'service') {
+            return `<div class="service-bubble">${esc(m.text)}</div>`;
+        }
+        
+        if(m.content_type === 'callback') {
+            return `<div class="service-bubble border-warning animate__animated animate__pulse" style="background: rgba(251, 191, 36, 0.1); color: var(--tg-warning); border: 1px dashed var(--tg-warning);">
+                        <i class="bi bi-hand-index-thumb-fill me-2"></i>
+                        <span class="fw-bold">${esc(m.full_name)}</span> hat interagiert: ${esc(m.text)}
+                    </div>`;
+        }
+        
+        const del = m.is_deleted;
+        const edi = m.is_edited;
+        const failed = m.is_failed;
+        const isInAdminChat = m.chat_id == adminGroupId;
+        const isBot = m.user_rank === 'Bot';
+        
+        let msgClass = isInAdminChat ? 'admin-msg' : (isBot ? 'own-msg' : '');
+        if (failed) msgClass += ' msg-failed';
+        
+        const bubbleClass = del ? 'msg-deleted-bubble' : '';
+        const textClass = del ? 'msg-deleted-text' : 'msg-text';
+        
+        // Reply logic
+        let replyHtml = '';
+        if(m.reply_to_id && m.reply_to_text && m.reply_to_text !== '[Service Message]') {
+            replyHtml = `<div class="reply-preview mb-2" onclick="scrollToMsg(${m.reply_to_id})">
+                <div class="small text-info opacity-75" style="font-size: 0.7rem;"><i class="bi bi-reply-fill"></i> Antwort an #${m.reply_to_id}</div>
+                <div class="text-truncate small" style="max-width: 300px; border-left: 2px solid var(--tg-accent); padding-left: 8px;">${esc(m.reply_to_text)}</div>
+            </div>`;
+        }
+
+        // Content logic
+        let txt = `<div class="${textClass}">${esc(m.text)}</div>`;
+        if (edi && m.previous_text && !del) {
+            txt = `
+                <div class="edit-history-box">
+                    <div class="text-muted small text-decoration-line-through opacity-50 mb-1" style="font-style: italic;">
+                        <i class="bi bi-clock-history me-1"></i> Alt: ${esc(m.previous_text)} 
+                        ${m.edited_by ? `<span class="ms-1">(durch ${esc(m.edited_by)})</span>` : ''}
+                    </div>
+                    <div class="${textClass} border-start border-warning border-3 ps-2">
+                        ${esc(m.text)}
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (del) {
+            const deleterInfo = m.deleted_by_name ? ` (durch ${m.deleted_by_name})` : '';
+            txt = `
+                <div class="deletion-indicator d-flex align-items-center gap-2 text-danger small mb-1 fw-bold">
+                    <i class="bi bi-trash3-fill"></i> NACHRICHT GELÖSCHT${deleterInfo}
+                </div>
+                <div class="${textClass}">${esc(m.text || '[Gelöschter Inhalt]')}</div>
+            `;
+        }
+
+        const rankClass = `rank-${(m.user_rank || 'user').toLowerCase()}`;
+        const warns = `<span class="badge ${m.warning_count > 0 ? 'bg-warning text-dark' : 'bg-secondary opacity-50'} warn-badge ms-2" data-user-id="${m.user_id}" style="cursor:pointer">⚠️ ${m.warning_count || 0}</span>`;
+        
+        const editTag = (edi && !del) ? `<span class="msg-edited-tag" title="Bearbeitet"><i class="bi bi-pencil-fill me-1"></i>bearbeitet</span>` : '';
+        
+        let actionBtns = '';
+        const isAdmin = ['Inhaber', 'Admin', 'Developer'].includes(m.user_rank);
+        if (!del && !isAdmin) {
+            actionBtns += `<i class="bi bi-exclamation-triangle-fill msg-action-btn warn-btn ms-2" title="Verwarnen & Löschen" data-db-id="${m.id}"></i>`;
+            actionBtns += `<i class="bi bi-trash3-fill msg-action-btn delete-btn ms-2" title="Schnelllöschen" data-db-id="${m.id}"></i>`;
+        }
+
+        // Media logic
+        let med = '';
+        if (m.file_id) {
+            const url = `/api/media/${m.file_id}`;
+            const ct = m.content_type;
+            if(ct.includes('sticker')) {
+                med = `<img src="${url}" class="msg-sticker">`;
+            } else if(ct === 'photo') {
+                med = `<a href="${url}" target="_blank" class="msg-media"><img src="${url}" loading="lazy"></a>`;
+            } else if(ct === 'video' || ct === 'animation' || ct === 'video_note') {
+                med = `<div class="msg-media"><video src="${url}" controls loop muted playsinline loading="lazy"></video></div>`;
+            } else if(ct === 'voice' || ct === 'audio') {
+                med = `<div class="audio-player"><i class="bi bi-play-circle-fill fs-3 text-info"></i><div class="flex-grow-1"><div class="fw-bold small">${ct === 'voice' ? 'Sprachnachricht' : 'Audio'}</div><div class="progress" style="height:4px; opacity:0.3;"><div class="progress-bar bg-info" style="width:0%"></div></div></div><small class="opacity-50">..</small><audio src="${url}" hidden></audio></div>`;
+            } else {
+                med = `<div class="mt-2"><a href="${url}" target="_blank" class="btn btn-sm btn-dark rounded-pill px-3 border border-white border-opacity-10"><i class="bi bi-file-earmark-arrow-down-fill me-2 text-info"></i>Datei herunterladen</a></div>`;
+            }
+        }
+
+        // Buttons logic
+        let buttonsHtml = '';
+        if (m.reply_markup && m.reply_markup !== 'null') {
+            try {
+                const rm = JSON.parse(m.reply_markup);
+                if (rm.inline_keyboard) {
+                    buttonsHtml = '<div class="mt-3 d-flex flex-wrap gap-2">';
+                    rm.inline_keyboard.forEach(row => {
+                        row.forEach(btn => {
+                            buttonsHtml += `<span class="btn btn-sm btn-outline-info rounded-pill px-3 py-1" style="font-size: 0.75rem; pointer-events: none; opacity: 0.9; background: rgba(52, 183, 241, 0.05);">${esc(btn.text)}</span>`;
+                        });
+                    });
+                    buttonsHtml += '</div>';
+                }
+            } catch(e) { console.error("Button Parse Error:", e); }
+        }
+
+        return `
+            <div id="msg-${m.message_id}" class="msg-item ${msgClass} ${del ? 'msg-deleted' : ''}">
+                <div class="msg-group-container">
+                    <img src="${m.avatar_url}" class="msg-avatar" onerror="this.src='https://ui-avatars.com/api/?name=${esc(m.full_name)}'">
+                    <div class="msg-bubble ${bubbleClass} shadow-sm">
+                        <div class="msg-user-info">
+                            <div class="d-flex align-items-center">
+                                <span class="msg-user-name" data-user-id="${m.user_id}">${esc(m.full_name)}</span>
+                                <span class="msg-user-rank ${rankClass} ms-2">${m.user_rank || 'User'}</span>
+                                ${warns}
+                                ${editTag}
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <span class="msg-time me-2">${getTime(m.ts_str)}</span>
+                                ${actionBtns}
+                            </div>
+                        </div>
+                        ${replyHtml}
+                        ${txt}
+                        ${med}
+                        ${buttonsHtml}
+                        ${failed ? `<div class="msg-failed-tag animate__animated animate__shakeX"><i class="bi bi-exclamation-octagon-fill"></i> ZUSTELLUNG FEHLGESCHLAGEN (Bot blockiert?)</div>` : ''}
+                        ${currentTopic === 'all' ? `<div class="mt-2 pt-1 border-top border-white border-opacity-5 text-muted" style="font-size: 0.6rem; opacity: 0.5;">TOPIC: ${esc(m.topic_name)}</div>` : ''}
+                    </div>
+                </div>
+            </div>`;
+    }
+
+    // Handlers
+    window.scrollToMsg = id => {
+        const el = document.getElementById(`msg-${id}`);
+        if(el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        else alert("Nachricht befindet sich nicht im geladenen Verlauf.");
+    };
+
+    window.openModModal = id => { 
+        console.log("Open Mod Modal for ID:", id);
+        if(!id || id === 'undefined') { console.error("Invalid ID for mod modal"); return; }
+        document.getElementById('modMsgId').value = id; 
+        const modal = new bootstrap.Modal(document.getElementById('moderationModal'));
+        modal.show(); 
+    };
+    window.openResetModal = uid => { document.getElementById('resetUserId').value = uid; new bootstrap.Modal(document.getElementById('resetWarningModal')).show(); };
+    
+    document.getElementById('send-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const inp = document.getElementById('chat-input');
+        const txt = inp.value.trim();
+        const file = document.getElementById('file-up').files[0];
+        if(!txt && !file) return;
+        
+        const fd = new FormData();
+        fd.append('topic_id', currentTopic);
+        fd.append('text', txt);
+        if(file) fd.append('media', file);
+        
+        try {
+            const res = await fetch('/api/send-interactive-bot-message', { method: 'POST', body: fd });
+            if(res.ok) { inp.value = ''; clearMedia(); fetchFlow(); }
+        } catch(e) { console.error("Send Error:", e); }
+    };
+
+    function previewMedia(i) {
+        if (i.files && i.files[0]) {
+            const rd = new FileReader();
+            rd.onload = e => { 
+                document.getElementById('prev-img').src = e.target.result; 
+                document.getElementById('media-prev').classList.remove('d-none'); 
+            };
+            rd.readAsDataURL(i.files[0]);
+        }
+    }
+    function clearMedia() { 
+        document.getElementById('file-up').value = ''; 
+        document.getElementById('media-prev').classList.add('d-none'); 
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadTopics();
+        fetchFlow(true);
+        
+        // Loop for real-time
+        setInterval(() => {
+            fetchFlow();
+            document.getElementById('session-time').innerText = new Date().toLocaleTimeString();
+        }, 1500);
+        
+        // Refresh topics occasionally
+        setInterval(loadTopics, 10000);
+        
+        // Infinite scroll
+        const feed = document.getElementById('chat-messages-box');
+        feed.addEventListener('scroll', () => {
+            if (feed.scrollTop === 0) { // Telegram style pagination (scroll up for more)
+                // fetchFlow(false, true); 
+                // Note: our logic currently is reverse chronologically, so we need to fetch history when scrolling UP.
+            }
+        });
+    });
+</script>
+{% endblock %}
